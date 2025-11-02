@@ -1,4 +1,6 @@
 import 'package:epi_gest_project/domain/models/epi_model.dart';
+import 'package:epi_gest_project/ui/inventory/widgets/edit_epi_drawer.dart';
+import 'package:epi_gest_project/ui/inventory/widgets/view_epi_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -289,7 +291,9 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       Text(
-                                        currencyFormat.format(epi.valorUnitario),
+                                        currencyFormat.format(
+                                          epi.valorUnitario,
+                                        ),
                                         style: TextStyle(
                                           color: theme.colorScheme.primary,
                                           fontWeight: FontWeight.bold,
@@ -340,12 +344,62 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                           Icons.visibility_outlined,
                                         ),
                                         tooltip: 'Visualizar',
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          showGeneralDialog(
+                                            context: context,
+                                            barrierDismissible: false,
+                                            barrierLabel: 'View EPI',
+                                            transitionDuration: const Duration(
+                                              milliseconds: 300,
+                                            ),
+                                            pageBuilder:
+                                                (
+                                                  context,
+                                                  animation,
+                                                  secondaryAnimation,
+                                                ) {
+                                                  return ViewEpiDrawer(
+                                                    epi: epi,
+                                                    onClose: () => Navigator.of(
+                                                      context,
+                                                    ).pop(),
+                                                  );
+                                                },
+                                          );
+                                        },
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.edit_outlined),
                                         tooltip: 'Editar',
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          showGeneralDialog(
+                                            context: context,
+                                            barrierDismissible: false,
+                                            barrierLabel: 'Edit EPI',
+                                            transitionDuration: const Duration(
+                                              milliseconds: 300,
+                                            ),
+                                            pageBuilder:
+                                                (
+                                                  context,
+                                                  animation,
+                                                  secondaryAnimation,
+                                                ) {
+                                                  return EditEpiDrawer(
+                                                    epi: epi,
+                                                    onClose: () => Navigator.of(
+                                                      context,
+                                                    ).pop(),
+                                                    onSave: (data) {
+                                                      // TODO: Implementar salvamento real
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pop();
+                                                    },
+                                                  );
+                                                },
+                                          );
+                                        },
                                       ),
                                       IconButton(
                                         icon: Icon(
