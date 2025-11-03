@@ -31,52 +31,46 @@ class StatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(color: colorScheme.outlineVariant, width: 1),
       ),
-      child: InkWell(
-        onTap: () {
-          // Ação futura ao clicar no card
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Header com ícone
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, color: color, size: 24),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Header com ícone
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  _buildTrendIndicator(),
-                ],
-              ),
-              const Spacer(),
-              // Valor principal
-              Text(
-                value,
-                style: theme.textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
+                  child: Icon(icon, color: color, size: 24),
                 ),
+                _buildTrendIndicator(),
+              ],
+            ),
+            const Spacer(),
+            // Valor principal
+            Text(
+              value,
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
               ),
-              const SizedBox(height: 4),
-              // Título
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w500,
-                ),
+            ),
+            const SizedBox(height: 4),
+            // Título
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

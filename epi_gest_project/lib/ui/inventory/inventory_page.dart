@@ -91,21 +91,38 @@ class _InventoryPageState extends State<InventoryPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
+                  spacing: 16,
                   children: [
-                    Text(
-                      'Estoque de EPIs',
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.inventory_2,
+                        color: theme.colorScheme.onPrimaryContainer,
+                        size: 40,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_controller.filteredCount} ${_controller.filteredCount == 1 ? 'item' : 'itens'} no estoque',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Estoque de EPIs',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${_controller.filteredCount} ${_controller.filteredCount == 1 ? 'item' : 'itens'} no estoque',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -115,9 +132,7 @@ class _InventoryPageState extends State<InventoryPage> {
                     IconButton.filledTonal(
                       onPressed: _toggleFilters,
                       icon: Icon(
-                        _showFilters
-                            ? Icons.filter_alt_off
-                            : Icons.filter_alt,
+                        _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
                       ),
                       tooltip: _showFilters
                           ? 'Ocultar filtros'
@@ -153,9 +168,7 @@ class _InventoryPageState extends State<InventoryPage> {
             ),
 
           // Conteúdo principal
-          Expanded(
-            child: _buildContent(theme),
-          ),
+          Expanded(child: _buildContent(theme)),
         ],
       ),
     );
@@ -164,9 +177,7 @@ class _InventoryPageState extends State<InventoryPage> {
   Widget _buildContent(ThemeData theme) {
     // Estado de loading
     if (_controller.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     // Estado de erro
@@ -175,11 +186,7 @@ class _InventoryPageState extends State<InventoryPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: theme.colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
             const SizedBox(height: 16),
             Text(
               'Erro ao carregar dados',

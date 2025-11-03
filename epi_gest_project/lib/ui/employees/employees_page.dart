@@ -93,18 +93,18 @@ class _EmployeesPageState extends State<EmployeesPage> {
       _filteredEmployees = _allEmployees.where((employee) {
         // Filtro de nome
         if (filters['nome'] != null && filters['nome'].isNotEmpty) {
-          if (!employee['nome']
-              .toLowerCase()
-              .contains(filters['nome'].toLowerCase())) {
+          if (!employee['nome'].toLowerCase().contains(
+            filters['nome'].toLowerCase(),
+          )) {
             return false;
           }
         }
 
         // Filtro de ID
         if (filters['id'] != null && filters['id'].isNotEmpty) {
-          if (!employee['id']
-              .toLowerCase()
-              .contains(filters['id'].toLowerCase())) {
+          if (!employee['id'].toLowerCase().contains(
+            filters['id'].toLowerCase(),
+          )) {
             return false;
           }
         }
@@ -156,11 +156,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
     return Scaffold(
       body: Column(
         children: [
-          // ===== CABEÇALHO =====
           _buildHeader(theme),
 
-          // ===== FILTROS (CONDICIONAL) =====
-          if (_showFilters) // <-- Renderiza apenas quando true
+          if (_showFilters)
             EmployeesFilters(
               appliedFilters: _appliedFilters,
               setores: _setores,
@@ -169,7 +167,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
               onClearFilters: _clearFilters,
             ),
 
-          // ===== TABELA =====
           Expanded(
             child: _filteredEmployees.isEmpty
                 ? _buildEmptyState(theme)
@@ -186,33 +183,46 @@ class _EmployeesPageState extends State<EmployeesPage> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Funcionários',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+          Row(
+            spacing: 16,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '${_filteredEmployees.length} ${_filteredEmployees.length == 1 ? 'funcionário' : 'funcionários'}${_appliedFilters.isNotEmpty ? ' (filtrado)' : ''}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                child: Icon(
+                  Icons.people,
+                  color: theme.colorScheme.onPrimaryContainer,
+                  size: 40,
                 ),
-              ],
-            ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Funcionários',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${_filteredEmployees.length} ${_filteredEmployees.length == 1 ? 'funcionário' : 'funcionários'}${_appliedFilters.isNotEmpty ? ' (filtrado)' : ''}',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
 
           // Botões de Ação
@@ -223,7 +233,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 onPressed: _toggleFilters, // <-- Ação de ocultar/mostrar
                 icon: Icon(
                   _showFilters
-                      ? Icons.filter_alt_off // Ícone quando filtros visíveis
+                      ? Icons
+                            .filter_alt_off // Ícone quando filtros visíveis
                       : Icons.filter_alt, // Ícone quando filtros ocultos
                 ),
                 tooltip: _showFilters
@@ -296,7 +307,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
         return AddEmployeeDrawer(
           onClose: () => Navigator.of(context).pop(),
           onSave: (newEmployee) {
-            
             Navigator.of(context).pop();
           },
         );

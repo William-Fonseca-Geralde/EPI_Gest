@@ -19,47 +19,64 @@ class DashboardPage extends StatelessWidget {
         slivers: [
           // Header com título e ações rápidas
           SliverToBoxAdapter(
-            child: Padding(
+            child: Container(
               padding: const EdgeInsets.all(24.0),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  bottom: BorderSide(
+                    color: theme.colorScheme.outlineVariant,
+                    width: 1,
+                  ),
+                ),
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
+                        spacing: 16,
                         children: [
-                          Text(
-                            'Dashboard',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              Icons.dashboard,
+                              color: theme.colorScheme.onPrimaryContainer,
+                              size: 40,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Visão geral do sistema de EPIs',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Dashboard',
+                                style: theme.textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Visão geral do sistema de EPIs',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       // Filtro de período
                       SegmentedButton<String>(
                         segments: const [
-                          ButtonSegment(
-                            value: '7d',
-                            label: Text('7 dias'),
-                          ),
-                          ButtonSegment(
-                            value: '30d',
-                            label: Text('30 dias'),
-                          ),
-                          ButtonSegment(
-                            value: '90d',
-                            label: Text('90 dias'),
-                          ),
+                          ButtonSegment(value: '7d', label: Text('7 dias')),
+                          ButtonSegment(value: '30d', label: Text('30 dias')),
+                          ButtonSegment(value: '90d', label: Text('90 dias')),
                         ],
                         selected: const {'30d'},
                         onSelectionChanged: (Set<String> newSelection) {
@@ -75,27 +92,27 @@ class DashboardPage extends StatelessWidget {
 
           // Conteúdo principal
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // Cards de Status
                 _buildStatusSection(context),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Ações Rápidas
                 const QuickActionsWidget(),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Gráficos
                 _buildChartsSection(context),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Atividades Recentes
                 const RecentActivitiesWidget(),
-                
+
                 const SizedBox(height: 24),
               ]),
             ),
@@ -111,12 +128,12 @@ class DashboardPage extends StatelessWidget {
       children: [
         Text(
           'Visão Geral',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        
+
         // Grid de Cards - Responsivo
         LayoutBuilder(
           builder: (context, constraints) {
@@ -124,10 +141,10 @@ class DashboardPage extends StatelessWidget {
             final crossAxisCount = constraints.maxWidth > 1200
                 ? 4
                 : constraints.maxWidth > 900
-                    ? 3
-                    : constraints.maxWidth > 600
-                        ? 2
-                        : 1;
+                ? 3
+                : constraints.maxWidth > 600
+                ? 2
+                : 1;
 
             return GridView.count(
               crossAxisCount: crossAxisCount,
@@ -183,12 +200,12 @@ class DashboardPage extends StatelessWidget {
       children: [
         Text(
           'Análises',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        
+
         // Layout responsivo para gráficos
         LayoutBuilder(
           builder: (context, constraints) {
@@ -197,13 +214,9 @@ class DashboardPage extends StatelessWidget {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: EpiExpirationChart(),
-                  ),
+                  Expanded(child: EpiExpirationChart()),
                   const SizedBox(width: 16),
-                  Expanded(
-                    child: CostPerEmployeeChart(),
-                  ),
+                  Expanded(child: CostPerEmployeeChart()),
                 ],
               );
             } else {
