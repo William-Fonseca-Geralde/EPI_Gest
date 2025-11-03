@@ -4,6 +4,8 @@ import 'package:epi_gest_project/ui/epi_exchange/exchange_page.dart';
 import 'package:epi_gest_project/ui/home/widgets/company_selector_widget.dart';
 import 'package:epi_gest_project/ui/home/widgets/perfil_widget.dart';
 import 'package:epi_gest_project/ui/inventory/inventory_page.dart';
+import 'package:epi_gest_project/ui/reports/reports_page.dart';
+import 'package:epi_gest_project/ui/settings/settings_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -268,26 +270,5 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-  }
-}
-
-// Páginas placeholder
-
-
-class ReportsPage extends StatelessWidget {
-  const ReportsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Relatórios - Análises e exportações'));
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(child: Text('Configurações - Ajustes do sistema'));
   }
 }

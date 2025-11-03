@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/domain/models/epi_model.dart';
+import 'package:epi_gest_project/domain/models/epi/epi_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -355,6 +355,11 @@ class _ViewEpiDrawerState extends State<ViewEpiDrawer>
       enabled: false,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Colors.white60
+        ),
+        prefixIconColor: Colors.white60,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,

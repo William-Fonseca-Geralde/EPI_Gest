@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/domain/models/epi_model.dart';
+import 'package:epi_gest_project/domain/models/epi/epi_model.dart';
 
 class EpiLocalDataSource {
   // Dados mockados (posteriormente será substituído por banco de dados)

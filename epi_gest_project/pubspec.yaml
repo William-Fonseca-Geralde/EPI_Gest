@@ -42,6 +42,12 @@ dependencies:
   flutter_localization: ^0.3.3
   image_picker: ^1.2.0
   file_picker: ^10.3.3
+  pdf: ^3.10.0
+  printing: ^5.11.0
+  excel: ^4.0.0
+  csv: ^6.0.0
+  share_plus: ^7.2.0
+  path_provider: ^2.1.0
 
 dev_dependencies:
   flutter_test:

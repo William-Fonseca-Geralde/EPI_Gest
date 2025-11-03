@@ -1,6 +1,6 @@
 import 'package:epi_gest_project/data/datasources/epi_local_datasource.dart';
-import 'package:epi_gest_project/domain/models/epi_model.dart';
-import 'package:epi_gest_project/domain/models/inventory_filter_model.dart';
+import 'package:epi_gest_project/domain/models/epi/epi_model.dart';
+import 'package:epi_gest_project/domain/models/epi/inventory_filter_model.dart';
 import 'package:epi_gest_project/domain/repositories/epi_repository.dart';
 
 class EpiRepositoryImpl implements EpiRepository {
