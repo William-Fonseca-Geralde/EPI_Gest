@@ -23,8 +23,8 @@ class _HomePageState extends State<HomePage> {
   // Lista de páginas/telas que serão navegadas
   final List<Widget> _pages = [
     const DashboardPage(),
-    const InventoryPage(),
     const EmployeesPage(),
+    const InventoryPage(),
     const ExchangePage(),
     const ReportsPage(),
     const SettingsPage(),
@@ -93,14 +93,14 @@ class _HomePageState extends State<HomePage> {
                       label: Text('Dashboard'),
                     ),
                     const NavigationRailDestination(
-                      icon: Icon(Icons.inventory_2_outlined),
-                      selectedIcon: Icon(Icons.inventory_2),
-                      label: Text('Estoque'),
-                    ),
-                    const NavigationRailDestination(
                       icon: Icon(Icons.people_outline),
                       selectedIcon: Icon(Icons.people),
                       label: Text('Funcionários'),
+                    ),
+                    const NavigationRailDestination(
+                      icon: Icon(Icons.inventory_2_outlined),
+                      selectedIcon: Icon(Icons.inventory_2),
+                      label: Text('Estoque'),
                     ),
                     NavigationRailDestination(
                       icon: Badge(
