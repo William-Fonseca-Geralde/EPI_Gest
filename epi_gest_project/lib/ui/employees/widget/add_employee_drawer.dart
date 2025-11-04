@@ -1,7 +1,7 @@
 import 'package:epi_gest_project/domain/models/employee/employee_form_data.dart';
-import 'package:epi_gest_project/ui/employees/widget/widgets_employee_add/employee_form_sections.dart';
-import 'package:epi_gest_project/ui/employees/widget/widgets_employee_add/image_picker_widget.dart';
-import 'package:epi_gest_project/ui/employees/widget/widgets_employee_add/overlays.dart';
+import 'package:epi_gest_project/ui/employees/widget/widgets_employee/employee_form_sections.dart';
+import 'package:epi_gest_project/ui/employees/widget/widgets_employee/image_picker_widget.dart';
+import 'package:epi_gest_project/ui/employees/widget/widgets_employee/overlays.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';

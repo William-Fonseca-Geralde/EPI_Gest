@@ -1,5 +1,5 @@
+import 'package:epi_gest_project/ui/employees/widget/widgets_employee/employee_view_sections.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'dart:io';
 
 class ViewEmployeeDrawer extends StatefulWidget {
@@ -24,12 +24,18 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
   @override
   void initState() {
     super.initState();
+    _initializeAnimation();
+  }
+
+  void _initializeAnimation() {
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(1.0, 0.0),
+      end: Offset.zero,
+    ).animate(
       CurvedAnimation(
         parent: _animationController,
         curve: Curves.easeOutCubic,
@@ -56,13 +62,10 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
 
     return Stack(
       children: [
-        // Overlay escuro
         GestureDetector(
           onTap: _closeDrawer,
           child: Container(color: Colors.black.withValues(alpha: 0.5)),
         ),
-
-        // Painel lateral
         Align(
           alignment: Alignment.centerRight,
           child: SlideTransition(
@@ -70,18 +73,13 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
             child: Material(
               elevation: 16,
               child: Container(
-                width: size.width > 600 ? size.width * 0.45 : size.width * 0.85,
+                width: size.width > 600 ? size.width * 0.6 : size.width * 0.9,
                 height: size.height,
                 color: theme.colorScheme.surface,
                 child: Column(
                   children: [
-                    // Cabeçalho
                     _buildHeader(theme),
-
-                    // Conteúdo
                     Expanded(child: _buildContent(theme)),
-
-                    // Rodapé
                     _buildFooter(theme),
                   ],
                 ),
@@ -99,52 +97,51 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
+          bottom: BorderSide(
+            color: theme.colorScheme.outlineVariant,
+            width: 1,
+          ),
         ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            spacing: 16,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.visibility,
+              color: theme.colorScheme.onPrimaryContainer,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Visualizar Funcionário',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                child: Icon(
-                  Icons.visibility,
-                  color: theme.colorScheme.onPrimaryContainer,
-                  size: 24,
+                const SizedBox(height: 4),
+                Text(
+                  'Informações do funcionário',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  spacing: 4,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Visualizar Funcionário',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'Informações do funcionário',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: _closeDrawer,
-                icon: const Icon(Icons.close),
-                tooltip: 'Fechar',
-              ),
-            ],
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: _closeDrawer,
+            icon: const Icon(Icons.close),
+            tooltip: 'Fechar',
           ),
         ],
       ),
@@ -152,84 +149,236 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
   }
 
   Widget _buildContent(ThemeData theme) {
-    final dateFormat = DateFormat('dd/MM/yyyy');
-    final dataEntrada = widget.employee['dataEntrada'] as DateTime?;
-
-    return ListView(
+    return Padding(
       padding: const EdgeInsets.all(24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final useTwoColumns = constraints.maxWidth > 700;
+          return SingleChildScrollView(
+            child: useTwoColumns
+                ? _buildTwoColumnLayout(theme)
+                : _buildSingleColumnLayout(theme),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTwoColumnLayout(ThemeData theme) {
+    final statusAtivo = widget.employee['statusAtivo'] as bool? ?? true;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Seção: Informações Básicas
-        _buildSectionTitle('Informações Básicas', Icons.info_outline),
-        const SizedBox(height: 16),
-
-        // Imagem, ID, Data de Entrada e Nome
-        Row(
-          children: [
-            // Container da Imagem
-            _buildImageDisplay(theme),
-
-            const SizedBox(width: 16),
-
-            // ID, Data de Entrada e Nome
-            Expanded(
-              child: Column(
-                spacing: 16,
-                children: [
-                  // Primeira linha: ID e Data de Entrada
-                  Row(
-                    spacing: 16,
-                    children: [
-                      Expanded(
-                        child: _buildDisabledTextField(
-                          label: 'ID',
-                          value: widget.employee['id'] ?? '',
-                          icon: Icons.badge_outlined,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildDisabledTextField(
-                          label: 'Data de Entrada',
-                          value: dataEntrada != null
-                              ? dateFormat.format(dataEntrada)
-                              : 'Não informada',
-                          icon: Icons.calendar_today_outlined,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Segunda linha: Nome do Funcionário
-                  _buildDisabledTextField(
-                    label: 'Nome do Funcionário',
-                    value: widget.employee['nome'] ?? '',
-                    icon: Icons.person_outline,
-                  ),
-                ],
+        // Coluna Esquerda
+        Expanded(
+          child: Column(
+            children: [
+              _buildImageDisplay(theme),
+              const SizedBox(height: 32),
+              _buildSection(
+                theme: theme,
+                title: 'Documentos Pessoais',
+                icon: Icons.assignment_outlined,
+                child: DocumentsViewSection(
+                  cpf: widget.employee['cpf'] as String?,
+                  rg: widget.employee['rg'] as String?,
+                  dataNascimento: widget.employee['dataNascimento'] as DateTime?,
+                ),
               ),
+              const SizedBox(height: 32),
+              _buildSection(
+                theme: theme,
+                title: 'Contato',
+                icon: Icons.contact_phone_outlined,
+                child: ContactViewSection(
+                  telefone: widget.employee['telefone'] as String?,
+                  email: widget.employee['email'] as String?,
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                theme: theme,
+                title: 'Hierarquia',
+                icon: Icons.people_outline,
+                child: HierarchyViewSection(
+                  lider: widget.employee['lider'] as String?,
+                  gestor: widget.employee['gestor'] as String?,
+                ),
+              ),
+              if (!statusAtivo) ...[
+                const SizedBox(height: 32),
+                _buildSection(
+                  theme: theme,
+                  title: 'Desligamento',
+                  icon: Icons.logout_outlined,
+                  child: TerminationViewSection(
+                    dataDesligamento:
+                        widget.employee['dataDesligamento'] as DateTime?,
+                    motivoDesligamento:
+                        widget.employee['motivoDesligamento'] as String?,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(width: 24),
+
+        // Coluna Direita
+        Expanded(
+          child: Column(
+            children: [
+              _buildSection(
+                theme: theme,
+                title: 'Informações Básicas',
+                icon: Icons.info_outlined,
+                child: BasicInfoViewSection(
+                  id: widget.employee['id'] as String? ?? '',
+                  matricula: widget.employee['matricula'] as String? ?? '',
+                  nome: widget.employee['nome'] as String? ?? '',
+                  dataEntrada: widget.employee['dataEntrada'] as DateTime?,
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                theme: theme,
+                title: 'Cargo e Setor',
+                icon: Icons.work_outline,
+                child: JobViewSection(
+                  setor: widget.employee['setor'] as String?,
+                  funcao: widget.employee['funcao'] as String?,
+                  vinculo: widget.employee['vinculo'] as String?,
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                theme: theme,
+                title: 'Condições de Trabalho',
+                icon: Icons.settings_outlined,
+                child: WorkConditionsViewSection(
+                  localTrabalho: widget.employee['localTrabalho'] as String?,
+                  turno: widget.employee['turno'] as String?,
+                  epis: widget.employee['epis'] as List<String>?,
+                  riscos: widget.employee['riscos'] as List<String>?,
+                ),
+              ),
+              const SizedBox(height: 32),
+              _buildSection(
+                theme: theme,
+                title: 'Status',
+                icon: Icons.info_outlined,
+                child: StatusViewSection(
+                  statusAtivo: statusAtivo,
+                  statusFerias: widget.employee['statusFerias'] as bool? ?? false,
+                  dataRetornoFerias:
+                      widget.employee['dataRetornoFerias'] as DateTime?,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSingleColumnLayout(ThemeData theme) {
+    final statusAtivo = widget.employee['statusAtivo'] as bool? ?? true;
+
+    return Column(
+      children: [
+        _buildImageDisplay(theme),
+        const SizedBox(height: 32),
+        _buildSection(
+          theme: theme,
+          title: 'Informações Básicas',
+          icon: Icons.info_outlined,
+          child: BasicInfoViewSection(
+            id: widget.employee['id'] as String? ?? '',
+            matricula: widget.employee['matricula'] as String? ?? '',
+            nome: widget.employee['nome'] as String? ?? '',
+            dataEntrada: widget.employee['dataEntrada'] as DateTime?,
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildSection(
+          theme: theme,
+          title: 'Documentos Pessoais',
+          icon: Icons.assignment_outlined,
+          child: DocumentsViewSection(
+            cpf: widget.employee['cpf'] as String?,
+            rg: widget.employee['rg'] as String?,
+            dataNascimento: widget.employee['dataNascimento'] as DateTime?,
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildSection(
+          theme: theme,
+          title: 'Contato',
+          icon: Icons.contact_phone_outlined,
+          child: ContactViewSection(
+            telefone: widget.employee['telefone'] as String?,
+            email: widget.employee['email'] as String?,
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildSection(
+          theme: theme,
+          title: 'Cargo e Setor',
+          icon: Icons.work_outline,
+          child: JobViewSection(
+            setor: widget.employee['setor'] as String?,
+            funcao: widget.employee['funcao'] as String?,
+            vinculo: widget.employee['vinculo'] as String?,
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildSection(
+          theme: theme,
+          title: 'Condições de Trabalho',
+          icon: Icons.settings_outlined,
+          child: WorkConditionsViewSection(
+            localTrabalho: widget.employee['localTrabalho'] as String?,
+            turno: widget.employee['turno'] as String?,
+            epis: widget.employee['epis'] as List<String>?,
+            riscos: widget.employee['riscos'] as List<String>?,
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildSection(
+          theme: theme,
+          title: 'Hierarquia',
+          icon: Icons.people_outline,
+          child: HierarchyViewSection(
+            lider: widget.employee['lider'] as String?,
+            gestor: widget.employee['gestor'] as String?,
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildSection(
+          theme: theme,
+          title: 'Status',
+          icon: Icons.info_outlined,
+          child: StatusViewSection(
+            statusAtivo: statusAtivo,
+            statusFerias: widget.employee['statusFerias'] as bool? ?? false,
+            dataRetornoFerias: widget.employee['dataRetornoFerias'] as DateTime?,
+          ),
+        ),
+        if (!statusAtivo) ...[
+          const SizedBox(height: 32),
+          _buildSection(
+            theme: theme,
+            title: 'Desligamento',
+            icon: Icons.logout_outlined,
+            child: TerminationViewSection(
+              dataDesligamento: widget.employee['dataDesligamento'] as DateTime?,
+              motivoDesligamento:
+                  widget.employee['motivoDesligamento'] as String?,
             ),
-          ],
-        ),
-
-        const SizedBox(height: 24),
-
-        // Seção: Cargo e Setor
-        _buildSectionTitle('Cargo e Setor', Icons.work_outline),
-        const SizedBox(height: 16),
-
-        _buildDisabledTextField(
-          label: 'Setor',
-          value: widget.employee['setor'] ?? '',
-          icon: Icons.business_outlined,
-        ),
-
-        const SizedBox(height: 16),
-
-        _buildDisabledTextField(
-          label: 'Função na Empresa',
-          value: widget.employee['funcao'] ?? '',
-          icon: Icons.assignment_ind_outlined,
-        ),
-
-        const SizedBox(height: 24),
+          ),
+        ],
       ],
     );
   }
@@ -239,8 +388,8 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
     final hasImage = imagePath != null && File(imagePath).existsSync();
 
     return Container(
-      width: 200,
-      height: 200,
+      width: 300,
+      height: 250,
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
@@ -254,8 +403,8 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
               borderRadius: BorderRadius.circular(10),
               child: Image.file(
                 File(imagePath),
-                width: 200,
-                height: 200,
+                width: 300,
+                height: 250,
                 fit: BoxFit.cover,
               ),
             )
@@ -280,39 +429,53 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.primary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDisabledTextField({
-    required String label,
-    required String value,
+  Widget _buildSection({
+    required ThemeData theme,
+    required String title,
     required IconData icon,
+    required Widget child,
   }) {
-    return TextFormField(
-      initialValue: value,
-      enabled: false,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: theme.colorScheme.outlineVariant,
+          width: 1,
+        ),
       ),
-      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          child,
+        ],
+      ),
     );
   }
 
@@ -322,7 +485,10 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant,
+            width: 1,
+          ),
         ),
       ),
       child: Row(
