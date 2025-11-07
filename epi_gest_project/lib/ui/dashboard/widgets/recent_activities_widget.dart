@@ -14,12 +14,6 @@ class RecentActivitiesWidget extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Atividades Recentes',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             TextButton.icon(
               onPressed: () {
                 // Ver todas as atividades

@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/ui/employees/widget/widgets_employee/form_fields.dart';
+import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:epi_gest_project/ui/utils/input_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

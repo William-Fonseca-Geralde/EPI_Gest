@@ -1,21 +1,16 @@
 import 'package:epi_gest_project/domain/models/employee/employee_form_data.dart';
 import 'package:epi_gest_project/ui/employees/widget/widgets_employee/employee_form_sections.dart';
-import 'package:epi_gest_project/ui/employees/widget/widgets_employee/image_picker_widget.dart';
-import 'package:epi_gest_project/ui/employees/widget/widgets_employee/overlays.dart';
+import 'package:epi_gest_project/ui/widgets/image_picker_widget.dart';
+import 'package:epi_gest_project/ui/widgets/overlays.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
-
 
 class AddEmployeeDrawer extends StatefulWidget {
   final VoidCallback onClose;
   final Function(Map<String, dynamic>)? onSave;
 
-  const AddEmployeeDrawer({
-    super.key,
-    required this.onClose,
-    this.onSave,
-  });
+  const AddEmployeeDrawer({super.key, required this.onClose, this.onSave});
 
   @override
   State<AddEmployeeDrawer> createState() => _AddEmployeeDrawerState();
@@ -74,14 +69,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       'Analista',
       'Assistente',
     ],
-    'vinculos': [
-      'CLT',
-      'PJ',
-      'Terceiro',
-      'Estágio',
-      'Temporário',
-      'Autônomo',
-    ],
+    'vinculos': ['CLT', 'PJ', 'Terceiro', 'Estágio', 'Temporário', 'Autônomo'],
     'epis': [
       'Capacete',
       'Óculos de Proteção',
@@ -156,10 +144,10 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       'turno',
       'dataDesligamento',
       'motivoDesligamento',
-      'novoSetor',
-      'novaFuncao',
-      'novoVinculo',
-      'novoTurno',
+      'newSetor',
+      'newFuncao',
+      'newVinculo',
+      'newTurno',
     ];
 
     for (final field in fields) {
@@ -172,15 +160,13 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(1.0, 0.0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _animationController.forward();
   }
 
@@ -231,22 +217,23 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
   }
 
   void _selectDateEntrada() => _selectDate('dataEntrada', (date) {
-        _formData.dataEntrada = date;
-      });
+    _formData.dataEntrada = date;
+  });
 
   void _selectDateNascimento() => _selectDate('dataNascimento', (date) {
-        _formData.dataNascimento = date;
-      });
+    _formData.dataNascimento = date;
+  });
 
   void _selectDateDesligamento() => _selectDate('dataDesligamento', (date) {
-        _formData.dataDesligamento = date;
-      });
+    _formData.dataDesligamento = date;
+  });
 
   Future<void> _selectDateRetornoFerias() async {
     try {
       final DateTime? picked = await showDatePicker(
         context: context,
-        initialDate: _formData.dataRetornoFerias ??
+        initialDate:
+            _formData.dataRetornoFerias ??
             DateTime.now().add(const Duration(days: 30)),
         firstDate: DateTime.now(),
         lastDate: DateTime(2100),
@@ -276,7 +263,6 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       _imageFile = null;
       _formData.imagemPath = null;
     });
-
     _showSuccessSnackBar('Imagem removida');
   }
 
@@ -298,14 +284,14 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       builder: (context) => AddItemOverlay(
         theme: Theme.of(context),
         title: title,
-        controller: _controllers['novo${_capitalize(type)}']!,
+        controller: _controllers['new${_capitalize(type)}']!,
         position: position,
         buttonSize: size,
         onAdd: onAdd,
         onCancel: () {
           _overlays[type]?.remove();
           _overlays[type] = null;
-          _controllers['novo${_capitalize(type)}']!.clear();
+          _controllers['new${_capitalize(type)}']!.clear();
         },
       ),
     );
@@ -363,7 +349,11 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
 
   // ==================== MÉTODOS DE ADIÇÃO ====================
 
-  void _addNewItem(String type, String listKey, TextEditingController controller) {
+  void _addNewItem(
+    String type,
+    String listKey,
+    TextEditingController controller,
+  ) {
     if (controller.text.trim().isEmpty) return;
 
     setState(() {
@@ -381,10 +371,14 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
     _showSuccessSnackBar('${_capitalize(type)} adicionado com sucesso!');
   }
 
-  void _addNovoSetor() => _addNewItem('setor', 'setores', _controllers['novoSetor']!);
-  void _addNovaFuncao() => _addNewItem('funcao', 'funcoes', _controllers['novaFuncao']!);
-  void _addNovoVinculo() => _addNewItem('vinculo', 'vinculos', _controllers['novoVinculo']!);
-  void _addNovoTurno() => _addNewItem('turno', 'turnos', _controllers['novoTurno']!);
+  void _addNovoSetor() =>
+      _addNewItem('setor', 'setores', _controllers['newSetor']!);
+  void _addNovaFuncao() =>
+      _addNewItem('funcao', 'funcoes', _controllers['newFuncao']!);
+  void _addNovoVinculo() =>
+      _addNewItem('vinculo', 'vinculos', _controllers['newVinculo']!);
+  void _addNovoTurno() =>
+      _addNewItem('turno', 'turnos', _controllers['newTurno']!);
 
   // ==================== MÉTODOS DE SALVAMENTO ====================
 
@@ -499,9 +493,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
                   children: [
                     _buildHeader(theme),
                     Expanded(
-                      child: SingleChildScrollView(
-                        child: _buildForm(theme),
-                      ),
+                      child: SingleChildScrollView(child: _buildForm(theme)),
                     ),
                     _buildFooter(theme),
                   ],
@@ -520,10 +512,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(
@@ -597,9 +586,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
             children: [
               ImagePickerWidget(
                 imageFile: _imageFile,
-                onImagePicked: () async {
-                  // Lógica de seleção de imagem
-                },
+                onImagePicked: _onImagePicked,
                 onImageRemoved: _onImageRemoved,
               ),
               const SizedBox(height: 32),
@@ -764,15 +751,13 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
 
   Widget _buildSingleColumnLayout(ThemeData theme) {
     return Column(
+      spacing: 32,
       children: [
         ImagePickerWidget(
           imageFile: _imageFile,
-          onImagePicked: () async {
-            // Lógica de seleção
-          },
+          onImagePicked: _onImagePicked,
           onImageRemoved: _onImageRemoved,
         ),
-        const SizedBox(height: 32),
         _buildSection(
           theme,
           'Informações Básicas',
@@ -785,7 +770,125 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
             onSelectDateEntrada: _selectDateEntrada,
           ),
         ),
-        // ... Adicione as outras seções aqui
+        _buildSection(
+          theme,
+          'Documentos Pessoais',
+          Icons.assignment_outlined,
+          DocumentsSection(
+            cpfController: _controllers['cpf']!,
+            rgController: _controllers['rg']!,
+            dataNascimentoController: _controllers['dataNascimento']!,
+            onSelectDateNascimento: _selectDateNascimento,
+          ),
+        ),
+        _buildSection(
+          theme,
+          'Cargo e Setor',
+          Icons.work_outline,
+          JobSection(
+            setorController: _controllers['setor']!,
+            funcaoController: _controllers['funcao']!,
+            vinculoController: _controllers['vinculo']!,
+            setoresSugeridos: _suggestions['setores']!,
+            funcoesSugeridas: _suggestions['funcoes']!,
+            vinculosSugeridos: _suggestions['vinculos']!,
+            setorButtonKey: _overlayKeys['setor']!,
+            funcaoButtonKey: _overlayKeys['funcao']!,
+            vinculoButtonKey: _overlayKeys['vinculo']!,
+            onAddSetor: () =>
+                _showAddOverlay('setor', 'Adicionar Novo Setor', _addNovoSetor),
+            onAddFuncao: () => _showAddOverlay(
+              'funcao',
+              'Adicionar Nova Função',
+              _addNovaFuncao,
+            ),
+            onAddVinculo: () => _showAddOverlay(
+              'vinculo',
+              'Adicionar Novo Tipo de Vínculo',
+              _addNovoVinculo,
+            ),
+          ),
+        ),
+        _buildSection(
+          theme,
+          'Contato',
+          Icons.contact_phone_outlined,
+          ContactSection(
+            telefoneController: _controllers['telefone']!,
+            emailController: _controllers['email']!,
+          ),
+        ),
+        _buildSection(
+          theme,
+          'Condições de Trabalho',
+          Icons.settings_outlined,
+          WorkConditionsSection(
+            localTrabalhoController: _controllers['localTrabalho']!,
+            turnoController: _controllers['turno']!,
+            locaisTrabalhoSugeridos: _suggestions['locaisTrabalho']!,
+            turnosSugeridos: _suggestions['turnos']!,
+            episSelecionados: _formData.epis,
+            riscosSelecionados: _formData.riscos,
+            turnoButtonKey: _overlayKeys['turno']!,
+            episButtonKey: _overlayKeys['epis']!,
+            riscosButtonKey: _overlayKeys['riscos']!,
+            onAddTurno: () =>
+                _showAddOverlay('turno', 'Adicionar Novo Turno', _addNovoTurno),
+            onSelectEpis: () => _showMultiSelectOverlay(
+              'epis',
+              'Selecionar EPIs Necessários',
+              Icons.security_outlined,
+              _suggestions['epis']!,
+              _formData.epis,
+            ),
+            onSelectRiscos: () => _showMultiSelectOverlay(
+              'riscos',
+              'Selecionar Riscos Associados',
+              Icons.warning_outlined,
+              _suggestions['riscos']!,
+              _formData.riscos,
+            ),
+          ),
+        ),
+        _buildSection(
+          theme,
+          'Hierarquia',
+          Icons.people_outline,
+          HierarchySection(
+            liderController: _controllers['lider']!,
+            gestorController: _controllers['gestor']!,
+            funcionariosSugeridos: _suggestions['funcionarios']!,
+          ),
+        ),
+        _buildSection(
+          theme,
+          'Status',
+          Icons.info_outlined,
+          StatusSection(
+            statusAtivo: _formData.statusAtivo,
+            statusFerias: _formData.statusFerias,
+            dataRetornoFerias: _formData.dataRetornoFerias,
+            onStatusAtivoChanged: (value) {
+              setState(() => _formData.statusAtivo = value);
+            },
+            onStatusFeriasChanged: (value) {
+              setState(() => _formData.statusFerias = value);
+            },
+            onSelectDateRetornoFerias: _selectDateRetornoFerias,
+          ),
+        ),
+        if (!_formData.statusAtivo) ...[
+          _buildSection(
+            theme,
+            'Desligamento',
+            Icons.logout_outlined,
+            TerminationSection(
+              dataDesligamentoController: _controllers['dataDesligamento']!,
+              motivoDesligamentoController: _controllers['motivoDesligamento']!,
+              onSelectDateDesligamento: _selectDateDesligamento,
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -801,10 +904,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -846,10 +946,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
+          top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(

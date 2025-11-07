@@ -88,8 +88,8 @@ class _HomePageState extends State<HomePage> {
                       : NavigationRailLabelType.selected,
                   destinations: [
                     const NavigationRailDestination(
-                      icon: Icon(Icons.dashboard_outlined),
-                      selectedIcon: Icon(Icons.dashboard),
+                      icon: Icon(Icons.analytics_outlined),
+                      selectedIcon: Icon(Icons.analytics),
                       label: Text('Dashboard'),
                     ),
                     const NavigationRailDestination(

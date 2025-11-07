@@ -353,26 +353,26 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: "6bb818ecbdffe216e81182c2f0714a2e62b593f4a4f13098713ff1685dfb6ab0"
+      sha256: "33e2e26bdd85a0112ec15400c8cbffea70d0f9c3407491f672a2fad47915e2de"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.9"
+    version: "11.0.2"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
       name: leak_tracker_flutter_testing
-      sha256: f8b613e7e6a13ec79cfdc0e97638fddb3ab848452eff057653abd3edba760573
+      sha256: "1dbc140bb5a23c75ea9c4811222756104fbcd1a27173f0c34ca01e16bea473c1"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.9"
+    version: "3.0.10"
   leak_tracker_testing:
     dependency: transitive
     description:
       name: leak_tracker_testing
-      sha256: "6ba465d5d76e67ddf503e1161d1f4a6bc42306f9d66ca1e8f079a47290fb06d3"
+      sha256: "8d5a2d49f4a66b49744b23b018848400d23e54caf9463f4eb20df3eb8acb2eb1"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.0.2"
   lints:
     dependency: transitive
     description:
@@ -421,6 +421,70 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  open_file:
+    dependency: "direct main"
+    description:
+      name: open_file
+      sha256: d17e2bddf5b278cb2ae18393d0496aa4f162142ba97d1a9e0c30d476adf99c0e
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.5.10"
+  open_file_android:
+    dependency: transitive
+    description:
+      name: open_file_android
+      sha256: "58141fcaece2f453a9684509a7275f231ac0e3d6ceb9a5e6de310a7dff9084aa"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.6"
+  open_file_ios:
+    dependency: transitive
+    description:
+      name: open_file_ios
+      sha256: "02996f01e5f6863832068e97f8f3a5ef9b613516db6897f373b43b79849e4d07"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
+  open_file_linux:
+    dependency: transitive
+    description:
+      name: open_file_linux
+      sha256: d189f799eecbb139c97f8bc7d303f9e720954fa4e0fa1b0b7294767e5f2d7550
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.5"
+  open_file_mac:
+    dependency: transitive
+    description:
+      name: open_file_mac
+      sha256: "1440b1e37ceb0642208cfeb2c659c6cda27b25187a90635c9d1acb7d0584d324"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
+  open_file_platform_interface:
+    dependency: transitive
+    description:
+      name: open_file_platform_interface
+      sha256: "101b424ca359632699a7e1213e83d025722ab668b9fd1412338221bf9b0e5757"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.3"
+  open_file_web:
+    dependency: transitive
+    description:
+      name: open_file_web
+      sha256: e3dbc9584856283dcb30aef5720558b90f88036360bd078e494ab80a80130c4f
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.4"
+  open_file_windows:
+    dependency: transitive
+    description:
+      name: open_file_windows
+      sha256: d26c31ddf935a94a1a3aa43a23f4fff8a5ff4eea395fe7a8cb819cf55431c875
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   path:
     dependency: transitive
     description:
@@ -678,10 +742,18 @@ packages:
     dependency: transitive
     description:
       name: syncfusion_flutter_core
-      sha256: "2d878bce96c4fd1092205a4f72b328f7f05d86b27c3bd55db7fd440e6017352a"
+      sha256: "825670efc828e18e14ff310cbcf6de91c8ff73b55c75ae6868a2b3cd87e88b6c"
       url: "https://pub.dev"
     source: hosted
-    version: "31.1.19"
+    version: "31.2.5"
+  syncfusion_flutter_gauges:
+    dependency: "direct main"
+    description:
+      name: syncfusion_flutter_gauges
+      sha256: "77c88515bca9c61645206b35c7ac989e92dc432f5cf05814f6b1819868cc398f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "31.2.5"
   term_glyph:
     dependency: transitive
     description:
@@ -694,10 +766,10 @@ packages:
     dependency: transitive
     description:
       name: test_api
-      sha256: fb31f383e2ee25fbbfe06b40fe21e1e458d14080e3c67e7ba0acfde4df4e0bbd
+      sha256: "522f00f556e73044315fa4585ec3270f1808a4b186c936e612cab0b565ff1e00"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.4"
+    version: "0.7.6"
   typed_data:
     dependency: transitive
     description:
@@ -758,10 +830,10 @@ packages:
     dependency: transitive
     description:
       name: vector_math
-      sha256: "80b3257d1492ce4d091729e3a67a60407d227c27241d6927be0130c98e741803"
+      sha256: d530bd74fea330e6e364cda7a85019c434070188383e1cd8d9777ee586914c5b
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.4"
+    version: "2.2.0"
   vm_service:
     dependency: transitive
     description:
@@ -812,4 +884,4 @@ packages:
     version: "3.1.3"
 sdks:
   dart: ">=3.8.0 <4.0.0"
-  flutter: ">=3.29.0"
+  flutter: ">=3.35.1"

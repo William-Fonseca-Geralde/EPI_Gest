@@ -178,13 +178,21 @@ class _EmployeesPageState extends State<EmployeesPage> {
   }
 
   Widget _buildHeader(ThemeData theme) {
+    final colorScheme = theme.colorScheme;
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
+        gradient: LinearGradient(
+          colors: [
+            colorScheme.primary.withValues(alpha: 0.08),
+            colorScheme.surface.withValues(alpha: 0.6),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.only(topRight: Radius.circular(12), topLeft: Radius.circular(12)),
+        
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -210,14 +218,18 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   Text(
                     'Funcionários',
                     style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.8,
+                      height: 1.1,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '${_filteredEmployees.length} ${_filteredEmployees.length == 1 ? 'funcionário' : 'funcionários'}${_appliedFilters.isNotEmpty ? ' (filtrado)' : ''}',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.2,
                     ),
                   ),
                 ],

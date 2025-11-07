@@ -4,7 +4,7 @@ import 'package:file_picker/file_picker.dart';
 
 class ImagePickerWidget extends StatelessWidget {
   final File? imageFile;
-  final VoidCallback onImagePicked;
+  final Function(File) onImagePicked;
   final VoidCallback onImageRemoved;
 
   const ImagePickerWidget({
@@ -22,7 +22,8 @@ class ImagePickerWidget extends StatelessWidget {
       );
 
       if (result != null && result.files.single.path != null) {
-        return File(result.files.single.path!);
+        final pickedFile = File(result.files.single.path!);
+        onImagePicked(pickedFile);
       }
     } catch (e) {
       if (context.mounted) {
@@ -51,12 +52,7 @@ class ImagePickerWidget extends StatelessWidget {
     return Column(
       children: [
         GestureDetector(
-          onTap: () async {
-            final pickedImage = await _pickImage(context);
-            if (pickedImage != null) {
-              onImagePicked();
-            }
-          },
+          onTap: () => _pickImage(context),
           child: Container(
             width: 300,
             height: 250,
@@ -105,12 +101,7 @@ class ImagePickerWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton.filledTonal(
-                onPressed: () async {
-                  final pickedImage = await _pickImage(context);
-                  if (pickedImage != null) {
-                    onImagePicked();
-                  }
-                },
+                onPressed: () => _pickImage(context),
                 icon: const Icon(Icons.edit, size: 18),
                 tooltip: 'Alterar foto',
                 iconSize: 18,
