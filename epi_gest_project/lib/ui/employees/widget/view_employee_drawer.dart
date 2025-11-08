@@ -1,9 +1,11 @@
+// lib/ui/employees/widget/view_employee_drawer.dart (VERSÃO ATUALIZADA)
+
+import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/widgets_employee/employee_view_sections.dart';
 import 'package:flutter/material.dart';
-import 'dart:io';
 
 class ViewEmployeeDrawer extends StatefulWidget {
-  final Map<String, dynamic> employee;
+  final Employee employee; // MODIFICADO: Usa o modelo Employee
   final VoidCallback onClose;
 
   const ViewEmployeeDrawer({
@@ -32,15 +34,13 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(1.0, 0.0),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _animationController.forward();
   }
 
@@ -59,12 +59,11 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
-
     return Stack(
       children: [
         GestureDetector(
           onTap: _closeDrawer,
-          child: Container(color: Colors.black.withValues(alpha: 0.5)),
+          child: Container(color: Colors.black.withOpacity(0.5)),
         ),
         Align(
           alignment: Alignment.centerRight,
@@ -97,10 +96,7 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         border: Border(
-          bottom: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(
@@ -130,7 +126,7 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Informações do funcionário',
+                  'Informações de ${widget.employee.nome}',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -164,13 +160,11 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
     );
   }
 
+  // MODIFICADO: Todos os acessos a dados agora usam o objeto widget.employee
   Widget _buildTwoColumnLayout(ThemeData theme) {
-    final statusAtivo = widget.employee['statusAtivo'] as bool? ?? true;
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Coluna Esquerda
         Expanded(
           child: Column(
             children: [
@@ -181,9 +175,9 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 title: 'Documentos Pessoais',
                 icon: Icons.assignment_outlined,
                 child: DocumentsViewSection(
-                  cpf: widget.employee['cpf'] as String?,
-                  rg: widget.employee['rg'] as String?,
-                  dataNascimento: widget.employee['dataNascimento'] as DateTime?,
+                  cpf: widget.employee.cpf,
+                  rg: widget.employee.rg,
+                  dataNascimento: widget.employee.dataNascimento,
                 ),
               ),
               const SizedBox(height: 32),
@@ -192,8 +186,8 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 title: 'Contato',
                 icon: Icons.contact_phone_outlined,
                 child: ContactViewSection(
-                  telefone: widget.employee['telefone'] as String?,
-                  email: widget.employee['email'] as String?,
+                  telefone: widget.employee.telefone,
+                  email: widget.employee.email,
                 ),
               ),
               const SizedBox(height: 32),
@@ -202,31 +196,26 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 title: 'Hierarquia',
                 icon: Icons.people_outline,
                 child: HierarchyViewSection(
-                  lider: widget.employee['lider'] as String?,
-                  gestor: widget.employee['gestor'] as String?,
+                  lider: widget.employee.lider,
+                  gestor: widget.employee.gestor,
                 ),
               ),
-              if (!statusAtivo) ...[
+              if (!widget.employee.statusAtivo) ...[
                 const SizedBox(height: 32),
                 _buildSection(
                   theme: theme,
                   title: 'Desligamento',
                   icon: Icons.logout_outlined,
                   child: TerminationViewSection(
-                    dataDesligamento:
-                        widget.employee['dataDesligamento'] as DateTime?,
-                    motivoDesligamento:
-                        widget.employee['motivoDesligamento'] as String?,
+                    dataDesligamento: widget.employee.dataDesligamento,
+                    motivoDesligamento: widget.employee.motivoDesligamento,
                   ),
                 ),
               ],
             ],
           ),
         ),
-
         const SizedBox(width: 24),
-
-        // Coluna Direita
         Expanded(
           child: Column(
             children: [
@@ -235,10 +224,10 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 title: 'Informações Básicas',
                 icon: Icons.info_outlined,
                 child: BasicInfoViewSection(
-                  id: widget.employee['id'] as String? ?? '',
-                  matricula: widget.employee['matricula'] as String? ?? '',
-                  nome: widget.employee['nome'] as String? ?? '',
-                  dataEntrada: widget.employee['dataEntrada'] as DateTime?,
+                  id: widget.employee.id ?? '',
+                  matricula: widget.employee.matricula,
+                  nome: widget.employee.nome,
+                  dataEntrada: widget.employee.dataEntrada,
                 ),
               ),
               const SizedBox(height: 32),
@@ -247,9 +236,9 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 title: 'Cargo e Setor',
                 icon: Icons.work_outline,
                 child: JobViewSection(
-                  setor: widget.employee['setor'] as String?,
-                  funcao: widget.employee['funcao'] as String?,
-                  vinculo: widget.employee['vinculo'] as String?,
+                  setor: widget.employee.setor,
+                  funcao: widget.employee.cargo,
+                  vinculo: widget.employee.vinculo,
                 ),
               ),
               const SizedBox(height: 32),
@@ -258,10 +247,10 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 title: 'Condições de Trabalho',
                 icon: Icons.settings_outlined,
                 child: WorkConditionsViewSection(
-                  localTrabalho: widget.employee['localTrabalho'] as String?,
-                  turno: widget.employee['turno'] as String?,
-                  epis: widget.employee['epis'] as List<String>?,
-                  riscos: widget.employee['riscos'] as List<String>?,
+                  localTrabalho: widget.employee.localTrabalho,
+                  turno: widget.employee.turno,
+                  epis: widget.employee.epis,
+                  riscos: widget.employee.riscos,
                 ),
               ),
               const SizedBox(height: 32),
@@ -270,10 +259,9 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
                 title: 'Status',
                 icon: Icons.info_outlined,
                 child: StatusViewSection(
-                  statusAtivo: statusAtivo,
-                  statusFerias: widget.employee['statusFerias'] as bool? ?? false,
-                  dataRetornoFerias:
-                      widget.employee['dataRetornoFerias'] as DateTime?,
+                  statusAtivo: widget.employee.statusAtivo,
+                  statusFerias: widget.employee.statusFerias,
+                  dataRetornoFerias: widget.employee.dataRetornoFerias,
                 ),
               ),
             ],
@@ -284,8 +272,6 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
   }
 
   Widget _buildSingleColumnLayout(ThemeData theme) {
-    final statusAtivo = widget.employee['statusAtivo'] as bool? ?? true;
-
     return Column(
       children: [
         _buildImageDisplay(theme),
@@ -295,10 +281,10 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
           title: 'Informações Básicas',
           icon: Icons.info_outlined,
           child: BasicInfoViewSection(
-            id: widget.employee['id'] as String? ?? '',
-            matricula: widget.employee['matricula'] as String? ?? '',
-            nome: widget.employee['nome'] as String? ?? '',
-            dataEntrada: widget.employee['dataEntrada'] as DateTime?,
+            id: widget.employee.id ?? '',
+            matricula: widget.employee.matricula,
+            nome: widget.employee.nome,
+            dataEntrada: widget.employee.dataEntrada,
           ),
         ),
         const SizedBox(height: 32),
@@ -307,9 +293,9 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
           title: 'Documentos Pessoais',
           icon: Icons.assignment_outlined,
           child: DocumentsViewSection(
-            cpf: widget.employee['cpf'] as String?,
-            rg: widget.employee['rg'] as String?,
-            dataNascimento: widget.employee['dataNascimento'] as DateTime?,
+            cpf: widget.employee.cpf,
+            rg: widget.employee.rg,
+            dataNascimento: widget.employee.dataNascimento,
           ),
         ),
         const SizedBox(height: 32),
@@ -318,8 +304,8 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
           title: 'Contato',
           icon: Icons.contact_phone_outlined,
           child: ContactViewSection(
-            telefone: widget.employee['telefone'] as String?,
-            email: widget.employee['email'] as String?,
+            telefone: widget.employee.telefone,
+            email: widget.employee.email,
           ),
         ),
         const SizedBox(height: 32),
@@ -328,9 +314,9 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
           title: 'Cargo e Setor',
           icon: Icons.work_outline,
           child: JobViewSection(
-            setor: widget.employee['setor'] as String?,
-            funcao: widget.employee['funcao'] as String?,
-            vinculo: widget.employee['vinculo'] as String?,
+            setor: widget.employee.setor,
+            funcao: widget.employee.cargo,
+            vinculo: widget.employee.vinculo,
           ),
         ),
         const SizedBox(height: 32),
@@ -339,10 +325,10 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
           title: 'Condições de Trabalho',
           icon: Icons.settings_outlined,
           child: WorkConditionsViewSection(
-            localTrabalho: widget.employee['localTrabalho'] as String?,
-            turno: widget.employee['turno'] as String?,
-            epis: widget.employee['epis'] as List<String>?,
-            riscos: widget.employee['riscos'] as List<String>?,
+            localTrabalho: widget.employee.localTrabalho,
+            turno: widget.employee.turno,
+            epis: widget.employee.epis,
+            riscos: widget.employee.riscos,
           ),
         ),
         const SizedBox(height: 32),
@@ -351,8 +337,8 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
           title: 'Hierarquia',
           icon: Icons.people_outline,
           child: HierarchyViewSection(
-            lider: widget.employee['lider'] as String?,
-            gestor: widget.employee['gestor'] as String?,
+            lider: widget.employee.lider,
+            gestor: widget.employee.gestor,
           ),
         ),
         const SizedBox(height: 32),
@@ -361,21 +347,20 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
           title: 'Status',
           icon: Icons.info_outlined,
           child: StatusViewSection(
-            statusAtivo: statusAtivo,
-            statusFerias: widget.employee['statusFerias'] as bool? ?? false,
-            dataRetornoFerias: widget.employee['dataRetornoFerias'] as DateTime?,
+            statusAtivo: widget.employee.statusAtivo,
+            statusFerias: widget.employee.statusFerias,
+            dataRetornoFerias: widget.employee.dataRetornoFerias,
           ),
         ),
-        if (!statusAtivo) ...[
+        if (!widget.employee.statusAtivo) ...[
           const SizedBox(height: 32),
           _buildSection(
             theme: theme,
             title: 'Desligamento',
             icon: Icons.logout_outlined,
             child: TerminationViewSection(
-              dataDesligamento: widget.employee['dataDesligamento'] as DateTime?,
-              motivoDesligamento:
-                  widget.employee['motivoDesligamento'] as String?,
+              dataDesligamento: widget.employee.dataDesligamento,
+              motivoDesligamento: widget.employee.motivoDesligamento,
             ),
           ),
         ],
@@ -384,28 +369,29 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
   }
 
   Widget _buildImageDisplay(ThemeData theme) {
-    final imagePath = widget.employee['imagem'] as String?;
-    final hasImage = imagePath != null && File(imagePath).existsSync();
-
+    final imageUrl = widget.employee.imagemPath;
+    final hasImage = imageUrl != null || imageUrl!.isNotEmpty;
     return Container(
       width: 300,
       height: 250,
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant,
-          width: 2,
-        ),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 2),
       ),
       child: hasImage
           ? ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: Image.file(
-                File(imagePath),
+              child: Image.network(
+                imageUrl!,
                 width: 300,
                 height: 250,
                 fit: BoxFit.cover,
+                loadingBuilder: (context, child, progress) => progress == null
+                    ? child
+                    : const Center(child: CircularProgressIndicator()),
+                errorBuilder: (context, error, stack) =>
+                    const Icon(Icons.error_outline, size: 48),
               ),
             )
           : Column(
@@ -440,10 +426,7 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,10 +468,7 @@ class _ViewEmployeeDrawerState extends State<ViewEmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant,
-            width: 1,
-          ),
+          top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
         ),
       ),
       child: Row(

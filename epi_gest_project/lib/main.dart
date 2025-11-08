@@ -1,13 +1,23 @@
+import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/settings/theme_notifier.dart';
+import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:epi_gest_project/ui/home/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  Client client = Client();
+  client
+      .setEndpoint('https://nyc.cloud.appwrite.io/v1')
+      .setProject('68ac56f3001bcef1296e')
+      .setLocale('pt_BR');
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeNotifier(),
+    MultiProvider(
+      providers: [
+        Provider<EmployeeService>(create: (_) => EmployeeService(client)),
+        ChangeNotifierProvider(create: (_) => ThemeNotifier()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -26,10 +36,6 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('pt', 'BR')
-          ],
-          locale: const Locale('pt', 'BR'),
           title: 'EPI Gest',
           debugShowCheckedModeBanner: false,
           themeMode: themeNotifier.themeMode,

@@ -1,7 +1,11 @@
+import 'package:epi_gest_project/data/services/employee_service.dart';
+import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/add_employee_drawer.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_data_table.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_filters.dart';
+import 'package:epi_gest_project/ui/employees/widget/view_employee_drawer.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class EmployeesPage extends StatefulWidget {
   const EmployeesPage({super.key});
@@ -13,46 +17,13 @@ class EmployeesPage extends StatefulWidget {
 class _EmployeesPageState extends State<EmployeesPage> {
   bool _showFilters = false;
 
-  // Dados temporários
-  final List<Map<String, dynamic>> _allEmployees = [
-    {
-      'id': '001',
-      'nome': 'João Silva',
-      'setor': 'Produção',
-      'funcao': 'Operador de Máquinas',
-      'imagem': null,
-      'dataEntrada': DateTime(2022, 3, 15),
-    },
-    {
-      'id': '002',
-      'nome': 'Maria Santos',
-      'setor': 'Qualidade',
-      'funcao': 'Inspetora de Qualidade',
-      'imagem': null,
-      'dataEntrada': DateTime(2023, 7, 20),
-    },
-    {
-      'id': '003',
-      'nome': 'Pedro Oliveira',
-      'setor': 'Manutenção',
-      'funcao': 'Técnico de Manutenção',
-      'imagem': null,
-      'dataEntrada': DateTime(2021, 1, 10),
-    },
-    {
-      'id': '004',
-      'nome': 'Ana Costa',
-      'setor': 'Administrativo',
-      'funcao': 'Assistente Administrativo',
-      'imagem': null,
-      'dataEntrada': DateTime(2024, 2, 5),
-    },
-  ];
-
-  List<Map<String, dynamic>> _filteredEmployees = [];
+  // MODIFICADO: Gerenciamento de estado com dados reais do Appwrite
+  late Future<void> _loadEmployeesFuture;
+  List<Employee> _allEmployees = [];
+  List<Employee> _filteredEmployees = [];
   Map<String, dynamic> _appliedFilters = {};
 
-  // Listas para os filtros
+  // MODIFICADO: Estas listas podem ser preenchidas dinamicamente no futuro
   final List<String> _setores = [
     'Produção',
     'Qualidade',
@@ -63,7 +34,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
     'Financeiro',
     'Comercial',
   ];
-
   final List<String> _funcoes = [
     'Operador de Máquinas',
     'Inspetor de Qualidade',
@@ -78,68 +48,94 @@ class _EmployeesPageState extends State<EmployeesPage> {
   @override
   void initState() {
     super.initState();
-    _filteredEmployees = List.from(_allEmployees);
+    // MODIFICADO: Inicia o carregamento dos dados do Appwrite
+    _loadEmployeesFuture = _loadEmployees();
+  }
+
+  // ADICIONADO: Método para buscar dados do Appwrite
+  Future<void> _loadEmployees({bool showLoading = false}) async {
+    // Se showLoading for true, criamos um novo Future para o FutureBuilder mostrar o spinner
+    if (showLoading || mounted) {
+      setState(() {
+        _loadEmployeesFuture = _internalLoad();
+      });
+    } else {
+      // Carregamento inicial ou silencioso
+      await _internalLoad();
+    }
+  }
+
+  Future<void> _internalLoad() async {
+    try {
+      final employeeService = Provider.of<EmployeeService>(
+        context,
+        listen: false,
+      );
+      final employees = await employeeService.getActiveEmployees();
+      if (mounted) {
+        setState(() {
+          _allEmployees = employees;
+          _applyFilters(_appliedFilters, updateState: false);
+        });
+      }
+    } catch (e) {
+      throw Exception('Falha ao carregar funcionários: $e');
+    }
   }
 
   void _toggleFilters() {
     setState(() {
-      _showFilters = !_showFilters; // <-- Inverte o estado
+      _showFilters = !_showFilters;
     });
   }
 
-  void _applyFilters(Map<String, dynamic> filters) {
-    setState(() {
+  // MODIFICADO: Lógica de filtro para usar o modelo Employee
+  void _applyFilters(Map<String, dynamic> filters, {bool updateState = true}) {
+    void apply() {
       _appliedFilters = filters;
       _filteredEmployees = _allEmployees.where((employee) {
-        // Filtro de nome
-        if (filters['nome'] != null && filters['nome'].isNotEmpty) {
-          if (!employee['nome'].toLowerCase().contains(
-            filters['nome'].toLowerCase(),
-          )) {
-            return false;
-          }
+        if (filters['nome'] != null ||
+            (filters['nome'] as String).isNotEmpty ||
+            !employee.nome.toLowerCase().contains(
+              (filters['nome'] as String).toLowerCase(),
+            )) {
+          return false;
         }
-
-        // Filtro de ID
-        if (filters['id'] != null && filters['id'].isNotEmpty) {
-          if (!employee['id'].toLowerCase().contains(
-            filters['id'].toLowerCase(),
-          )) {
-            return false;
-          }
+        if (filters['id'] != null ||
+            (filters['id'] as String).isNotEmpty ||
+            !employee.matricula.toLowerCase().contains(
+              (filters['id'] as String).toLowerCase(),
+            )) {
+          return false;
         }
-
-        // Filtro de setores
-        if (filters['setores'] != null &&
-            (filters['setores'] as List).isNotEmpty) {
-          if (!(filters['setores'] as List).contains(employee['setor'])) {
-            return false;
-          }
+        if (filters['setores'] != null ||
+            (filters['setores'] as List).isNotEmpty ||
+            !(filters['setores'] as List).contains(employee.setor)) {
+          return false;
         }
-
-        // Filtro de data de entrada
+        if (filters['funcoes'] != null ||
+            (filters['funcoes'] as List).isNotEmpty ||
+            !(filters['funcoes'] as List).contains(employee.cargo)) {
+          return false;
+        }
         if (filters['dataEntrada'] != null) {
           final filterDate = filters['dataEntrada'] as DateTime;
-          final employeeDate = employee['dataEntrada'] as DateTime?;
-          if (employeeDate == null ||
-              employeeDate.year != filterDate.year ||
+          final employeeDate = employee.dataEntrada;
+          if (employeeDate.year != filterDate.year ||
               employeeDate.month != filterDate.month ||
               employeeDate.day != filterDate.day) {
             return false;
           }
         }
-
-        // Filtro de funções
-        if (filters['funcoes'] != null &&
-            (filters['funcoes'] as List).isNotEmpty) {
-          if (!(filters['funcoes'] as List).contains(employee['funcao'])) {
-            return false;
-          }
-        }
-
         return true;
       }).toList();
-    });
+    }
+
+    if (updateState) {
+      setState(apply);
+    } else {
+      apply();
+    }
   }
 
   void _clearFilters() {
@@ -149,28 +145,133 @@ class _EmployeesPageState extends State<EmployeesPage> {
     });
   }
 
+  // ADICIONADO: Ações que interagem com os drawers e o serviço
+  void _showAddEmployeeDrawer() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Adicionar Funcionário',
+      pageBuilder: (context, _, __) => AddEmployeeDrawer(
+        onClose: () => Navigator.of(context).pop(),
+        onSave: () {
+          // Apenas recarrega a lista. O drawer agora cuida de salvar.
+          _loadEmployees(showLoading: true);
+        },
+      ),
+    );
+  }
+
+  void _showEditEmployeeDrawer(Employee employee) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Editar Funcionário',
+      pageBuilder: (context, _, __) => AddEmployeeDrawer(
+        employeeToEdit: employee, // Passa o funcionário para edição
+        onClose: () => Navigator.of(context).pop(),
+        onSave: () {
+          _loadEmployees(showLoading: true); // Recarrega a lista
+        },
+      ),
+    );
+  }
+
+  void _showViewEmployeeDrawer(Employee employee) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Visualizar Funcionário',
+      pageBuilder: (context, _, __) => ViewEmployeeDrawer(
+        employee: employee, // Passa o objeto Employee
+        onClose: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  void _inactivateEmployee(Employee employee) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Inativação'),
+        content: Text('Tem certeza que deseja inativar ${employee.nome}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Inativar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true || mounted) {
+      final employeeService = Provider.of<EmployeeService>(
+        context,
+        listen: false,
+      );
+      try {
+        await employeeService.inactivateEmployee(employee.id!);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Funcionário inativado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _loadEmployees(showLoading: true);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao inativar: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return Scaffold(
       body: Column(
         children: [
           _buildHeader(theme),
-
           if (_showFilters)
             EmployeesFilters(
               appliedFilters: _appliedFilters,
               setores: _setores,
               funcoes: _funcoes,
-              onApplyFilters: _applyFilters,
+              onApplyFilters: (filters) => _applyFilters(filters),
               onClearFilters: _clearFilters,
             ),
-
           Expanded(
-            child: _filteredEmployees.isEmpty
-                ? _buildEmptyState(theme)
-                : EmployeesDataTable(employees: _filteredEmployees),
+            // MODIFICADO: Usa FutureBuilder para lidar com o carregamento inicial
+            child: FutureBuilder(
+              future: _loadEmployeesFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text('Erro ao carregar dados: ${snapshot.error}'),
+                  );
+                }
+                if (_filteredEmployees.isEmpty) {
+                  return _buildEmptyState(theme);
+                }
+                // MODIFICADO: Passa as funções de ação para o DataTable
+                return EmployeesDataTable(
+                  employees: _filteredEmployees,
+                  onView: _showViewEmployeeDrawer,
+                  onEdit: _showEditEmployeeDrawer,
+                  onInactivate: _inactivateEmployee,
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -179,26 +280,26 @@ class _EmployeesPageState extends State<EmployeesPage> {
 
   Widget _buildHeader(ThemeData theme) {
     final colorScheme = theme.colorScheme;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            colorScheme.primary.withValues(alpha: 0.08),
-            colorScheme.surface.withValues(alpha: 0.6),
+            colorScheme.primary.withOpacity(0.08),
+            colorScheme.surface.withOpacity(0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.only(topRight: Radius.circular(12), topLeft: Radius.circular(12)),
-        
+        borderRadius: const BorderRadius.only(
+          topRight: Radius.circular(12),
+          topLeft: Radius.circular(12),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
-            spacing: 16,
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
@@ -212,6 +313,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   size: 40,
                 ),
               ),
+              const SizedBox(width: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -225,7 +327,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${_filteredEmployees.length} ${_filteredEmployees.length == 1 ? 'funcionário' : 'funcionários'}${_appliedFilters.isNotEmpty ? ' (filtrado)' : ''}',
+                    '${_filteredEmployees.length} de ${_allEmployees.length} ${_allEmployees.length == 1 ? 'funcionário' : 'funcionários'}${_appliedFilters.isNotEmpty ? ' (filtrado)' : ''}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -236,26 +338,16 @@ class _EmployeesPageState extends State<EmployeesPage> {
               ),
             ],
           ),
-
-          // Botões de Ação
           Row(
             children: [
-              // Botão Toggle Filtros
               IconButton.filledTonal(
-                onPressed: _toggleFilters, // <-- Ação de ocultar/mostrar
+                onPressed: _toggleFilters,
                 icon: Icon(
-                  _showFilters
-                      ? Icons
-                            .filter_alt_off // Ícone quando filtros visíveis
-                      : Icons.filter_alt, // Ícone quando filtros ocultos
+                  _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
                 ),
-                tooltip: _showFilters
-                    ? 'Ocultar filtros' // Tooltip quando filtros visíveis
-                    : 'Mostrar filtros', // Tooltip quando filtros ocultos
+                tooltip: _showFilters ? 'Ocultar filtros' : 'Mostrar filtros',
               ),
               const SizedBox(width: 12),
-
-              // Botão Adicionar Funcionário
               FilledButton.icon(
                 onPressed: _showAddEmployeeDrawer,
                 icon: const Icon(Icons.add),
@@ -293,36 +385,23 @@ class _EmployeesPageState extends State<EmployeesPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Tente ajustar os filtros',
+            _appliedFilters.isNotEmpty
+                ? 'Tente ajustar os filtros'
+                : 'Adicione um novo funcionário para começar',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 24),
-          OutlinedButton.icon(
-            onPressed: _clearFilters,
-            icon: const Icon(Icons.clear_all),
-            label: const Text('Limpar Filtros'),
-          ),
+          if (_appliedFilters.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              onPressed: _clearFilters,
+              icon: const Icon(Icons.clear_all),
+              label: const Text('Limpar Filtros'),
+            ),
+          ],
         ],
       ),
-    );
-  }
-
-  void _showAddEmployeeDrawer() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: true,
-      barrierLabel: 'Adicionar Funcionário',
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return AddEmployeeDrawer(
-          onClose: () => Navigator.of(context).pop(),
-          onSave: (newEmployee) {
-            Navigator.of(context).pop();
-          },
-        );
-      },
     );
   }
 }

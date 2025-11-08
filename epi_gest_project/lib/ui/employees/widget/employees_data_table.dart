@@ -1,12 +1,23 @@
+// lib/ui/employees/widget/employees_data_table.dart (VERSÃO ATUALIZADA)
+
+import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'edit_employee_drawer.dart';
-import 'view_employee_drawer.dart';
 
 class EmployeesDataTable extends StatefulWidget {
-  final List<Map<String, dynamic>> employees;
+  // MODIFICADO: Recebe uma lista de Employee e callbacks
+  final List<Employee> employees;
+  final Function(Employee) onView;
+  final Function(Employee) onEdit;
+  final Function(Employee) onInactivate;
 
-  const EmployeesDataTable({super.key, required this.employees});
+  const EmployeesDataTable({
+    super.key,
+    required this.employees,
+    required this.onView,
+    required this.onEdit,
+    required this.onInactivate,
+  });
 
   @override
   State<EmployeesDataTable> createState() => _EmployeesDataTableState();
@@ -15,24 +26,25 @@ class EmployeesDataTable extends StatefulWidget {
 class _EmployeesDataTableState extends State<EmployeesDataTable> {
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
-  List<Map<String, dynamic>> _sortedEmployees = [];
+  late List<Employee> _sortedEmployees; // MODIFICADO: Usa o modelo Employee
 
-  // Scroll controllers sincronizados
   final ScrollController _headerScrollController = ScrollController();
   final ScrollController _bodyScrollController = ScrollController();
-
   bool _isSyncingScroll = false;
 
-  // Larguras das colunas
   static const double idWidth = 110.0;
   static const double nomeWidth = 280.0;
   static const double setorWidth = 200.0;
   static const double funcaoWidth = 220.0;
   static const double dataEntradaWidth = 160.0;
   static const double acoesWidth = 160.0;
-
   static const double totalTableWidth =
-      idWidth + nomeWidth + setorWidth + funcaoWidth + dataEntradaWidth + acoesWidth;
+      idWidth +
+      nomeWidth +
+      setorWidth +
+      funcaoWidth +
+      dataEntradaWidth +
+      acoesWidth;
 
   @override
   void initState() {
@@ -40,6 +52,19 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
     _sortedEmployees = List.from(widget.employees);
     _headerScrollController.addListener(_syncFromHeader);
     _bodyScrollController.addListener(_syncFromBody);
+  }
+
+  // ADICIONADO: didUpdateWidget para atualizar a lista quando os filtros mudam
+  @override
+  void didUpdateWidget(covariant EmployeesDataTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.employees != oldWidget.employees) {
+      setState(() {
+        _sortedEmployees = List.from(widget.employees);
+        // Re-aplica a ordenação atual
+        _sortData(_sortColumnIndex, _sortAscending, applySetState: false);
+      });
+    }
   }
 
   void _syncFromHeader() {
@@ -65,8 +90,9 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
     super.dispose();
   }
 
-  void _sortData(int columnIndex, bool ascending) {
-    setState(() {
+  // MODIFICADO: Lógica de ordenação para usar o modelo Employee
+  void _sortData(int columnIndex, bool ascending, {bool applySetState = true}) {
+    void sort() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
 
@@ -74,36 +100,32 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
         int compare;
         switch (columnIndex) {
           case 0:
-            compare = a['id'].compareTo(b['id']);
+            compare = a.matricula.compareTo(b.matricula);
             break;
           case 1:
-            compare = a['nome'].compareTo(b['nome']);
+            compare = a.nome.compareTo(b.nome);
             break;
           case 2:
-            compare = a['setor'].compareTo(b['setor']);
+            compare = (a.setor ?? '').compareTo(b.setor ?? '');
             break;
           case 3:
-            compare = a['funcao'].compareTo(b['funcao']);
+            compare = (a.vinculo ?? '').compareTo(b.vinculo ?? '');
             break;
           case 4:
-            final dateA = a['dataEntrada'] as DateTime?;
-            final dateB = b['dataEntrada'] as DateTime?;
-            if (dateA == null && dateB == null) {
-              compare = 0;
-            } else if (dateA == null) {
-              compare = 1;
-            } else if (dateB == null) {
-              compare = -1;
-            } else {
-              compare = dateA.compareTo(dateB);
-            }
+            compare = a.dataEntrada.compareTo(b.dataEntrada);
             break;
           default:
             compare = 0;
         }
         return ascending ? compare : -compare;
       });
-    });
+    }
+
+    if (applySetState) {
+      setState(sort);
+    } else {
+      sort();
+    }
   }
 
   @override
@@ -122,7 +144,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
         borderRadius: BorderRadius.circular(12),
         child: Column(
           children: [
-            // ====== CABEÇALHO FIXO ======
             SingleChildScrollView(
               controller: _headerScrollController,
               scrollDirection: Axis.horizontal,
@@ -149,8 +170,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                 ),
               ),
             ),
-
-            // ====== CORPO DA TABELA ======
             Expanded(
               child: Scrollbar(
                 thumbVisibility: true,
@@ -165,7 +184,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                       itemBuilder: (context, index) {
                         final employee = _sortedEmployees[index];
                         final isLast = index == _sortedEmployees.length - 1;
-                        final dataEntrada = employee['dataEntrada'] as DateTime?;
 
                         return Container(
                           decoration: BoxDecoration(
@@ -177,7 +195,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   ? BorderSide.none
                                   : BorderSide(
                                       color: theme.colorScheme.outlineVariant
-                                          .withValues(alpha: 0.3),
+                                          .withOpacity(0.3),
                                     ),
                             ),
                           ),
@@ -185,7 +203,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                // ID
+                                // MODIFICADO: Usa dados do modelo Employee
                                 _buildDataCell(
                                   width: idWidth,
                                   context: context,
@@ -197,64 +215,74 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        employee['id'],
+                                        employee.matricula,
                                         style: TextStyle(
-                                          color: theme.colorScheme.onPrimaryContainer,
+                                          color: theme
+                                              .colorScheme
+                                              .onPrimaryContainer,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-
-                                // Nome
                                 _buildDataCell(
                                   width: nomeWidth,
                                   context: context,
                                   child: Row(
                                     children: [
-                                      // Avatar
                                       CircleAvatar(
                                         radius: 18,
-                                        backgroundColor: theme.colorScheme.primaryContainer,
-                                        child: Text(
-                                          employee['nome'][0].toUpperCase(),
-                                          style: TextStyle(
-                                            color: theme.colorScheme.onPrimaryContainer,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                                        backgroundColor:
+                                            theme.colorScheme.primaryContainer,
+                                        backgroundImage:
+                                            employee.imagemPath != null
+                                            ? NetworkImage(employee.imagemPath!)
+                                            : null,
+                                        child: employee.imagemPath == null
+                                            ? Text(
+                                                employee.nome.isNotEmpty
+                                                    ? employee.nome[0]
+                                                          .toUpperCase()
+                                                    : '',
+                                                style: TextStyle(
+                                                  color: theme
+                                                      .colorScheme
+                                                      .onPrimaryContainer,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              )
+                                            : null,
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          employee['nome'],
+                                          employee.nome,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: theme.textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-
-                                // Setor
                                 _buildDataCell(
                                   width: setorWidth,
                                   context: context,
                                   child: Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.business_outlined,
                                         size: 16,
-                                        color: theme.colorScheme.onSurfaceVariant,
+                                        color: Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          employee['setor'],
+                                          employee.setor ?? '-',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -262,22 +290,20 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                     ],
                                   ),
                                 ),
-
-                                // Função
                                 _buildDataCell(
                                   width: funcaoWidth,
                                   context: context,
                                   child: Row(
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.work_outline,
                                         size: 16,
-                                        color: theme.colorScheme.onSurfaceVariant,
+                                        color: Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          employee['funcao'],
+                                          employee.vinculo ?? '-',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -285,35 +311,30 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                     ],
                                   ),
                                 ),
-
-                                // Data de Entrada
                                 _buildDataCell(
                                   width: dataEntradaWidth,
                                   context: context,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        dataEntrada != null
-                                            ? dateFormat.format(dataEntrada)
-                                            : 'Não informada',
+                                        dateFormat.format(employee.dataEntrada),
                                       ),
-                                      if (dataEntrada != null) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          _getTempoServico(dataEntrada),
-                                          style: TextStyle(
-                                            color: theme.colorScheme.onSurfaceVariant,
-                                            fontSize: 12,
-                                          ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _getTempoServico(employee.dataEntrada),
+                                        style: TextStyle(
+                                          color: theme
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                          fontSize: 12,
                                         ),
-                                      ],
+                                      ),
                                     ],
                                   ),
                                 ),
-
-                                // Ações
                                 _buildDataCell(
                                   width: acoesWidth,
                                   isLast: true,
@@ -321,67 +342,29 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
+                                      // MODIFICADO: Usa callbacks
                                       IconButton(
-                                        icon: const Icon(Icons.visibility_outlined),
+                                        icon: const Icon(
+                                          Icons.visibility_outlined,
+                                        ),
                                         tooltip: 'Visualizar',
-                                        onPressed: () {
-                                          showGeneralDialog(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            barrierLabel: 'View Employee',
-                                            transitionDuration:
-                                                const Duration(milliseconds: 300),
-                                            pageBuilder: (
-                                              context,
-                                              animation,
-                                              secondaryAnimation,
-                                            ) {
-                                              return ViewEmployeeDrawer(
-                                                employee: employee,
-                                                onClose: () =>
-                                                    Navigator.of(context).pop(),
-                                              );
-                                            },
-                                          );
-                                        },
+                                        onPressed: () =>
+                                            widget.onView(employee),
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.edit_outlined),
                                         tooltip: 'Editar',
-                                        onPressed: () {
-                                          showGeneralDialog(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            barrierLabel: 'Edit Employee',
-                                            transitionDuration:
-                                                const Duration(milliseconds: 300),
-                                            pageBuilder: (
-                                              context,
-                                              animation,
-                                              secondaryAnimation,
-                                            ) {
-                                              return EditEmployeeDrawer(
-                                                employee: employee,
-                                                onClose: () =>
-                                                    Navigator.of(context).pop(),
-                                                onSave: (data) {
-                                                  // TODO: Implementar salvamento
-                                                  Navigator.of(context).pop();
-                                                },
-                                              );
-                                            },
-                                          );
-                                        },
+                                        onPressed: () =>
+                                            widget.onEdit(employee),
                                       ),
                                       IconButton(
                                         icon: Icon(
-                                          Icons.delete_outline,
+                                          Icons.person_off_outlined,
                                           color: theme.colorScheme.error,
                                         ),
-                                        tooltip: 'Excluir',
-                                        onPressed: () {
-                                          _showDeleteDialog(context, employee);
-                                        },
+                                        tooltip: 'Inativar',
+                                        onPressed: () =>
+                                            widget.onInactivate(employee),
                                       ),
                                     ],
                                   ),
@@ -402,6 +385,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
     );
   }
 
+  // ... (Seus métodos _buildHeaderCell, _buildDataCell, _getTempoServico estão perfeitos e não precisam de alteração)
   Widget _buildHeaderCell(
     String label,
     double width,
@@ -410,7 +394,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
   }) {
     final theme = Theme.of(context);
     final isActive = columnIndex == _sortColumnIndex;
-
     return Container(
       width: width,
       height: 56,
@@ -419,13 +402,15 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: theme.colorScheme.outlineVariant.withOpacity(0.3),
                   width: 1,
                 ),
         ),
       ),
       child: InkWell(
-        onTap: columnIndex >= 0 ? () => _sortData(columnIndex, !_sortAscending) : null,
+        onTap: columnIndex >= 0
+            ? () => _sortData(columnIndex, !_sortAscending)
+            : null,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
@@ -446,8 +431,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                   child: Icon(
                     isActive
                         ? (_sortAscending
-                            ? Icons.arrow_upward
-                            : Icons.arrow_downward)
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward)
                         : Icons.unfold_more,
                     size: 16,
                     color: isActive
@@ -477,7 +462,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: theme.colorScheme.outlineVariant.withOpacity(0.3),
                 ),
         ),
       ),
@@ -488,10 +473,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
   String _getTempoServico(DateTime dataEntrada) {
     final agora = DateTime.now();
     final diferenca = agora.difference(dataEntrada);
-
     final anos = diferenca.inDays ~/ 365;
     final meses = (diferenca.inDays % 365) ~/ 30;
-
     if (anos > 0) {
       return '$anos ${anos == 1 ? 'ano' : 'anos'}${meses > 0 ? ' e $meses ${meses == 1 ? 'mês' : 'meses'}' : ''}';
     } else if (meses > 0) {
@@ -500,46 +483,5 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
       final dias = diferenca.inDays;
       return '$dias ${dias == 1 ? 'dia' : 'dias'}';
     }
-  }
-
-  void _showDeleteDialog(BuildContext context, Map<String, dynamic> employee) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Excluir Funcionário'),
-        content: Text(
-          'Deseja realmente excluir o funcionário ${employee['nome']}?\n\nEsta ação não pode ser desfeita.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              // TODO: Implementar exclusão
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.white),
-                      const SizedBox(width: 12),
-                      Text('Funcionário ${employee['nome']} excluído'),
-                    ],
-                  ),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
   }
 }
