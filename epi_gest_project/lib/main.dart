@@ -1,6 +1,5 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:epi_gest_project/data/services/related_data_service.dart';
-import 'package:epi_gest_project/settings/theme_notifier.dart';
+import 'package:epi_gest_project/config/theme_notifier.dart';
 import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:epi_gest_project/ui/home/home_page.dart';
@@ -16,7 +15,6 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        Provider<RelatedDataService>(create: (_) => RelatedDataService(client)),
         Provider<EmployeeService>(create: (_) => EmployeeService(client)),
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
       ],

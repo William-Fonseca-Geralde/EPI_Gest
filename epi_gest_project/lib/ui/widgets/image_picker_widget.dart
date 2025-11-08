@@ -4,17 +4,24 @@ import 'package:file_picker/file_picker.dart';
 
 class ImagePickerWidget extends StatelessWidget {
   final File? imageFile;
+  final String? imageUrl;
+  final bool viewOnly;
   final Function(File) onImagePicked;
   final VoidCallback onImageRemoved;
 
   const ImagePickerWidget({
     super.key,
     required this.imageFile,
+    this.imageUrl,
+    this.viewOnly = false,
     required this.onImagePicked,
     required this.onImageRemoved,
   });
 
-  Future<File?> _pickImage(BuildContext context) async {
+  Future<void> _pickImage(BuildContext context) async {
+
+    if (viewOnly) return;
+
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
@@ -42,17 +49,18 @@ class ImagePickerWidget extends StatelessWidget {
         );
       }
     }
-    return null;
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    final bool hasImage = imageFile != null || (imageUrl != null && imageUrl!.isNotEmpty);
+
     return Column(
       children: [
         GestureDetector(
-          onTap: () => _pickImage(context),
+          onTap: viewOnly ? null : () => _pickImage(context),
           child: Container(
             width: 300,
             height: 250,
@@ -65,37 +73,15 @@ class ImagePickerWidget extends StatelessWidget {
                 strokeAlign: BorderSide.strokeAlignInside,
               ),
             ),
-            child: imageFile != null
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.file(
-                      imageFile!,
-                      width: 150,
-                      height: 150,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add_photo_alternate_outlined,
-                        size: 40,
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Adicionar\nFoto',
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: hasImage
+                  ? _buildImage()
+                  : _buildPlaceholder(theme),
+            )
           ),
         ),
-        if (imageFile != null) ...[
+        if (hasImage && !viewOnly) ...[
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -122,6 +108,74 @@ class ImagePickerWidget extends StatelessWidget {
             ],
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildImage() {
+    if (imageFile != null) {
+      return Image.file(
+        imageFile!,
+        width: 300,
+        height: 250,
+        fit: BoxFit.cover,
+      );
+    }
+    
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return Image.network(
+        imageUrl!,
+        width: 300,
+        height: 250,
+        fit: BoxFit.cover,
+        loadingBuilder: (context, child, progress) =>
+            progress == null ? child : const Center(child: CircularProgressIndicator()),
+        errorBuilder: (context, error, stack) =>
+            const Icon(Icons.error_outline, size: 48),
+      );
+    }
+    
+    return Container();
+  }
+
+  Widget _buildPlaceholder(ThemeData theme) {
+    if (viewOnly) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.person_outline,
+            size: 48,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Sem foto',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_photo_alternate_outlined,
+          size: 40,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Adicionar\nFoto',
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
       ],
     );
   }

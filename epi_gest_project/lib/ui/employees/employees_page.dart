@@ -1,10 +1,9 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
-import 'package:epi_gest_project/ui/employees/widget/add_employee_drawer.dart';
+import 'package:epi_gest_project/ui/employees/widget/employee_drawer.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_data_table.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_filters.dart';
-import 'package:epi_gest_project/ui/employees/widget/view_employee_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -146,16 +145,14 @@ class _EmployeesPageState extends State<EmployeesPage> {
     });
   }
 
-  // ADICIONADO: Ações que interagem com os drawers e o serviço
   void _showAddEmployeeDrawer() {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Adicionar Funcionário',
-      pageBuilder: (context, _, __) => AddEmployeeDrawer(
+      pageBuilder: (context, _, __) => EmployeeDrawer(
         onClose: () => Navigator.of(context).pop(),
         onSave: () {
-          // Apenas recarrega a lista. O drawer agora cuida de salvar.
           _loadEmployees(showLoading: true);
         },
       ),
@@ -167,11 +164,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Editar Funcionário',
-      pageBuilder: (context, _, __) => AddEmployeeDrawer(
-        employeeToEdit: employee, // Passa o funcionário para edição
+      pageBuilder: (context, _, __) => EmployeeDrawer(
+        employeeToEdit: employee,
         onClose: () => Navigator.of(context).pop(),
         onSave: () {
-          _loadEmployees(showLoading: true); // Recarrega a lista
+          _loadEmployees(showLoading: true);
         },
       ),
     );
@@ -182,8 +179,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Visualizar Funcionário',
-      pageBuilder: (context, _, __) => ViewEmployeeDrawer(
-        employee: employee, // Passa o objeto Employee
+      pageBuilder: (context, _, __) => EmployeeDrawer(
+        employeeToEdit: employee,
+        view: true,
         onClose: () => Navigator.of(context).pop(),
       ),
     );

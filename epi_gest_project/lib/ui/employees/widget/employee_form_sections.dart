@@ -5,43 +5,29 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class BasicInfoSection extends StatelessWidget {
-  final TextEditingController idController;
   final TextEditingController matriculaController;
   final TextEditingController nomeController;
   final TextEditingController dataEntradaController;
   final VoidCallback onSelectDateEntrada;
+  final bool enabled;
 
   const BasicInfoSection({
     super.key,
-    required this.idController,
     required this.matriculaController,
     required this.nomeController,
     required this.dataEntradaController,
     required this.onSelectDateEntrada,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      spacing: 16,
       children: [
         Row(
+          spacing: 16,
           children: [
-            Expanded(
-              flex: 1,
-              child: CustomTextField(
-                controller: idController,
-                label: 'ID',
-                hint: 'Ex: 001',
-                icon: Icons.badge_outlined,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Obrigatório';
-                  }
-                  return null;
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
             Expanded(
               flex: 2,
               child: CustomTextField(
@@ -49,6 +35,7 @@ class BasicInfoSection extends StatelessWidget {
                 label: 'Matrícula',
                 hint: 'Ex: 12345',
                 icon: Icons.confirmation_number_outlined,
+                enabled: enabled,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Obrigatório';
@@ -57,28 +44,31 @@ class BasicInfoSection extends StatelessWidget {
                 },
               ),
             ),
+            Expanded(
+              flex: 3,
+              child: CustomDateField(
+                controller: dataEntradaController,
+                label: 'Data de Entrada',
+                hint: 'dd/mm/aaaa',
+                icon: Icons.calendar_today_outlined,
+                onTap: onSelectDateEntrada,
+                enabled: enabled,
+              ),
+            ),
           ],
         ),
-        const SizedBox(height: 16),
         CustomTextField(
           controller: nomeController,
           label: 'Nome Completo',
           hint: 'Ex: João Silva',
           icon: Icons.person_outline,
+          enabled: enabled,
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Campo obrigatório';
             }
             return null;
           },
-        ),
-        const SizedBox(height: 16),
-        CustomDateField(
-          controller: dataEntradaController,
-          label: 'Data de Entrada',
-          hint: 'dd/mm/aaaa',
-          icon: Icons.calendar_today_outlined,
-          onTap: onSelectDateEntrada,
         ),
       ],
     );
@@ -90,6 +80,7 @@ class DocumentsSection extends StatelessWidget {
   final TextEditingController rgController;
   final TextEditingController dataNascimentoController;
   final VoidCallback onSelectDateNascimento;
+  final bool enabled;
 
   const DocumentsSection({
     super.key,
@@ -97,6 +88,7 @@ class DocumentsSection extends StatelessWidget {
     required this.rgController,
     required this.dataNascimentoController,
     required this.onSelectDateNascimento,
+    this.enabled = true,
   });
 
   @override
@@ -109,9 +101,10 @@ class DocumentsSection extends StatelessWidget {
           hint: '000.000.000-00',
           icon: Icons.credit_card_outlined,
           keyboardType: TextInputType.number,
+          enabled: enabled,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
-            LengthLimitingTextInputFormatter(11),
+            LengthLimitingTextInputFormatter(14),
             CpfInputFormatter(),
           ],
         ),
@@ -121,6 +114,7 @@ class DocumentsSection extends StatelessWidget {
           label: 'RG',
           hint: '00.000.000-0',
           icon: Icons.assignment_ind_outlined,
+          enabled: enabled,
           inputFormatters: [RgInputFormatter()],
         ),
         const SizedBox(height: 16),
@@ -130,6 +124,7 @@ class DocumentsSection extends StatelessWidget {
           hint: 'dd/mm/aaaa',
           icon: Icons.cake_outlined,
           onTap: onSelectDateNascimento,
+          enabled: enabled,
         ),
       ],
     );
@@ -139,11 +134,13 @@ class DocumentsSection extends StatelessWidget {
 class ContactSection extends StatelessWidget {
   final TextEditingController telefoneController;
   final TextEditingController emailController;
+  final bool enabled;
 
   const ContactSection({
     super.key,
     required this.telefoneController,
     required this.emailController,
+    this.enabled = true,
   });
 
   @override
@@ -156,6 +153,7 @@ class ContactSection extends StatelessWidget {
           hint: '(00) 00000-0000',
           icon: Icons.phone_outlined,
           keyboardType: TextInputType.phone,
+          enabled: enabled,
           inputFormatters: [TelefoneInputFormatter()],
         ),
         const SizedBox(height: 16),
@@ -164,6 +162,7 @@ class ContactSection extends StatelessWidget {
           label: 'E-mail',
           hint: 'exemplo@empresa.com',
           icon: Icons.email_outlined,
+          enabled: enabled,
           keyboardType: TextInputType.emailAddress,
         ),
       ],
@@ -184,6 +183,7 @@ class JobSection extends StatelessWidget {
   final VoidCallback onAddSetor;
   final VoidCallback onAddFuncao;
   final VoidCallback onAddVinculo;
+  final bool enabled;
 
   const JobSection({
     super.key,
@@ -199,6 +199,7 @@ class JobSection extends StatelessWidget {
     required this.onAddSetor,
     required this.onAddFuncao,
     required this.onAddVinculo,
+    this.enabled = true,
   });
 
   @override
@@ -211,9 +212,10 @@ class JobSection extends StatelessWidget {
           hint: 'Selecione ou digite um setor',
           icon: Icons.business_outlined,
           suggestions: setoresSugeridos,
-          showAddButton: true,
+          showAddButton: enabled,
           onAddPressed: onAddSetor,
           addButtonKey: setorButtonKey,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomAutocompleteField(
@@ -222,9 +224,10 @@ class JobSection extends StatelessWidget {
           hint: 'Selecione ou digite uma função',
           icon: Icons.assignment_ind_outlined,
           suggestions: funcoesSugeridas,
-          showAddButton: true,
+          showAddButton: enabled,
           onAddPressed: onAddFuncao,
           addButtonKey: funcaoButtonKey,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomAutocompleteField(
@@ -233,9 +236,10 @@ class JobSection extends StatelessWidget {
           hint: 'Selecione o tipo de vínculo',
           icon: Icons.work_history_outlined,
           suggestions: vinculosSugeridos,
-          showAddButton: true,
+          showAddButton: enabled,
           onAddPressed: onAddVinculo,
           addButtonKey: vinculoButtonKey,
+          enabled: enabled,
         ),
       ],
     );
@@ -255,6 +259,7 @@ class WorkConditionsSection extends StatelessWidget {
   final VoidCallback onAddTurno;
   final VoidCallback onSelectEpis;
   final VoidCallback onSelectRiscos;
+  final bool enabled;
 
   const WorkConditionsSection({
     super.key,
@@ -270,6 +275,7 @@ class WorkConditionsSection extends StatelessWidget {
     required this.onAddTurno,
     required this.onSelectEpis,
     required this.onSelectRiscos,
+    this.enabled = true,
   });
 
   @override
@@ -282,6 +288,7 @@ class WorkConditionsSection extends StatelessWidget {
           hint: 'Selecione o local',
           icon: Icons.location_on_outlined,
           suggestions: locaisTrabalhoSugeridos,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomAutocompleteField(
@@ -290,9 +297,10 @@ class WorkConditionsSection extends StatelessWidget {
           hint: 'Selecione o turno',
           icon: Icons.access_time_outlined,
           suggestions: turnosSugeridos,
-          showAddButton: true,
+          showAddButton: enabled,
           onAddPressed: onAddTurno,
           addButtonKey: turnoButtonKey,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomMultiSelectField(
@@ -302,6 +310,7 @@ class WorkConditionsSection extends StatelessWidget {
           selectedItems: episSelecionados,
           buttonKey: episButtonKey,
           onTap: onSelectEpis,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomMultiSelectField(
@@ -311,6 +320,7 @@ class WorkConditionsSection extends StatelessWidget {
           selectedItems: riscosSelecionados,
           buttonKey: riscosButtonKey,
           onTap: onSelectRiscos,
+          enabled: enabled,
         ),
       ],
     );
@@ -321,12 +331,14 @@ class HierarchySection extends StatelessWidget {
   final TextEditingController liderController;
   final TextEditingController gestorController;
   final List<String> funcionariosSugeridos;
+  final bool enabled;
 
   const HierarchySection({
     super.key,
     required this.liderController,
     required this.gestorController,
     required this.funcionariosSugeridos,
+    this.enabled = true,
   });
 
   @override
@@ -339,6 +351,7 @@ class HierarchySection extends StatelessWidget {
           hint: 'Selecione o líder',
           icon: Icons.supervisor_account_outlined,
           suggestions: funcionariosSugeridos,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomAutocompleteField(
@@ -347,6 +360,7 @@ class HierarchySection extends StatelessWidget {
           hint: 'Selecione o gestor',
           icon: Icons.manage_accounts_outlined,
           suggestions: funcionariosSugeridos,
+          enabled: enabled,
         ),
       ],
     );
@@ -360,6 +374,7 @@ class StatusSection extends StatelessWidget {
   final Function(bool) onStatusAtivoChanged;
   final Function(bool) onStatusFeriasChanged;
   final VoidCallback onSelectDateRetornoFerias;
+  final bool enabled;
 
   const StatusSection({
     super.key,
@@ -369,6 +384,7 @@ class StatusSection extends StatelessWidget {
     required this.onStatusAtivoChanged,
     required this.onStatusFeriasChanged,
     required this.onSelectDateRetornoFerias,
+    this.enabled = true,
   });
 
   @override
@@ -382,6 +398,7 @@ class StatusSection extends StatelessWidget {
           activeText: 'Ativo',
           inactiveText: 'Inativo',
           icon: Icons.person_outlined,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomSwitchField(
@@ -391,6 +408,7 @@ class StatusSection extends StatelessWidget {
           activeText: 'Em Férias',
           inactiveText: 'Não está de férias',
           icon: Icons.beach_access_outlined,
+          enabled: enabled,
         ),
         if (statusFerias) ...[
           const SizedBox(height: 16),
@@ -404,6 +422,7 @@ class StatusSection extends StatelessWidget {
             hint: 'dd/mm/aaaa',
             icon: Icons.event_available_outlined,
             onTap: onSelectDateRetornoFerias,
+            enabled: enabled,
           ),
         ],
       ],
@@ -415,12 +434,14 @@ class TerminationSection extends StatelessWidget {
   final TextEditingController dataDesligamentoController;
   final TextEditingController motivoDesligamentoController;
   final VoidCallback onSelectDateDesligamento;
+  final bool enabled;
 
   const TerminationSection({
     super.key,
     required this.dataDesligamentoController,
     required this.motivoDesligamentoController,
     required this.onSelectDateDesligamento,
+    this.enabled = true,
   });
 
   @override
@@ -433,6 +454,7 @@ class TerminationSection extends StatelessWidget {
           hint: 'dd/mm/aaaa',
           icon: Icons.event_busy_outlined,
           onTap: onSelectDateDesligamento,
+          enabled: enabled,
         ),
         const SizedBox(height: 16),
         CustomTextField(
@@ -441,6 +463,7 @@ class TerminationSection extends StatelessWidget {
           hint: 'Digite o motivo',
           icon: Icons.description_outlined,
           maxLines: 3,
+          enabled: enabled,
         ),
       ],
     );

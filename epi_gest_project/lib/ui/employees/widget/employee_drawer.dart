@@ -1,40 +1,38 @@
-// lib/ui/employees/widget/add_employee_drawer.dart (VERSÃO ATUALIZADA)
-
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
-import 'package:epi_gest_project/ui/employees/widget/widgets_employee/employee_form_sections.dart';
+import 'package:epi_gest_project/ui/employees/widget/employee_form_sections.dart';
+import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/image_picker_widget.dart';
+import 'package:epi_gest_project/ui/widgets/info_section.dart';
 import 'package:epi_gest_project/ui/widgets/overlays.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:provider/provider.dart';
 
-class AddEmployeeDrawer extends StatefulWidget {
+class EmployeeDrawer extends StatefulWidget {
   final VoidCallback onClose;
-  final Function()? onSave; // MODIFICADO: Callback simplificado
-  final Employee? employeeToEdit; // ADICIONADO: Para o modo de edição
+  final Function()? onSave;
+  final Employee? employeeToEdit;
+  final bool view;
 
-  const AddEmployeeDrawer({
+  const EmployeeDrawer({
     super.key,
     required this.onClose,
     this.onSave,
     this.employeeToEdit,
+    this.view = false,
   });
 
   @override
-  State<AddEmployeeDrawer> createState() => _AddEmployeeDrawerState();
+  State<EmployeeDrawer> createState() => _EmployeeDrawerState();
 }
 
-class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
+class _EmployeeDrawerState extends State<EmployeeDrawer>
     with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<Offset> _slideAnimation;
-
   final _formKey = GlobalKey<FormState>();
 
-  // REMOVIDO: O objeto EmployeeFormData foi substituído por variáveis de estado individuais
   File? _imageFile;
   String? _imagemPath;
   DateTime? _dataEntrada;
@@ -46,9 +44,34 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
   final List<String> _epis = [];
   final List<String> _riscos = [];
 
-  bool get _isEditing => widget.employeeToEdit != null;
+  bool get _isEditing => widget.employeeToEdit != null && !widget.view;
+  bool get _isAdding => widget.employeeToEdit == null && !widget.view;
+  bool get _isViewing => widget.view;
 
-  final Map<String, TextEditingController> _controllers = {};
+  final Map<String, TextEditingController> _controllers = {
+    'matricula': TextEditingController(),
+    'nome': TextEditingController(),
+    'cpf': TextEditingController(),
+    'rg': TextEditingController(),
+    'setor': TextEditingController(),
+    'funcao': TextEditingController(),
+    'vinculo': TextEditingController(),
+    'dataEntrada': TextEditingController(),
+    'dataNascimento': TextEditingController(),
+    'telefone': TextEditingController(),
+    'email': TextEditingController(),
+    'lider': TextEditingController(),
+    'gestor': TextEditingController(),
+    'localTrabalho': TextEditingController(),
+    'turno': TextEditingController(),
+    'dataDesligamento': TextEditingController(),
+    'motivoDesligamento': TextEditingController(),
+    'newSetor': TextEditingController(),
+    'newFuncao': TextEditingController(),
+    'newVinculo': TextEditingController(),
+    'newTurno': TextEditingController(),
+  };
+
   final Map<String, GlobalKey> _overlayKeys = {
     'setor': GlobalKey(),
     'funcao': GlobalKey(),
@@ -65,29 +88,15 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
     'epis': null,
     'riscos': null,
   };
-  
+
+  bool _isLoading = true;
+  String? _loadingError;
+  List<String> _setoresSugeridos = [];
+  List<String> _funcoesSugeridas = [];
+  List<String> _vinculosSugeridos = [];
+  List<String> _turnosSugeridos = [];
+
   final Map<String, List<String>> _suggestions = {
-    'setores': [
-      'Produção',
-      'Qualidade',
-      'Manutenção',
-      'Logística',
-      'Administrativo',
-      'Recursos Humanos',
-      'Financeiro',
-      'Comercial',
-    ],
-    'funcoes': [
-      'Operador de Máquinas',
-      'Inspetor de Qualidade',
-      'Técnico de Manutenção',
-      'Auxiliar de Produção',
-      'Supervisor',
-      'Gerente',
-      'Analista',
-      'Assistente',
-    ],
-    'vinculos': ['CLT', 'PJ', 'Terceiro', 'Estágio', 'Temporário', 'Autônomo'],
     'epis': [
       'Capacete',
       'Óculos de Proteção',
@@ -112,13 +121,6 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       'Filial Rio de Janeiro',
       'Filial Belo Horizonte',
     ],
-    'turnos': [
-      'Matutino (06:00-14:00)',
-      'Vespertino (14:00-22:00)',
-      'Noturno (22:00-06:00)',
-      'Administrativo (08:00-17:00)',
-      'Escala 12x36',
-    ],
     'riscos': [
       'Risco Físico',
       'Risco Químico',
@@ -130,16 +132,59 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
       'Produtos Químicos',
     ],
   };
+  
   bool _isSaving = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeControllers();
-    if (_isEditing) {
-      _populateFormForEdit();
+    _loadInitialData().then((_) {
+      if (!_isAdding) {
+        _populateFormForEdit();
+      }
+    });
+  }
+
+  Future<void> _loadInitialData() async {
+    if (!mounted) return;
+
+    final employeeService = Provider.of<EmployeeService>(
+      context,
+      listen: false,
+    );
+    try {
+      final results = await Future.wait([
+        employeeService.getAllSetores(),
+        employeeService.getAllCargos(),
+        employeeService.getAllVinculo(),
+        employeeService.getAllTurnos(),
+      ]);
+
+      if (!mounted) return;
+
+      setState(() {
+        _setoresSugeridos = (results[0] as List<Setor>)
+            .map((s) => s.nome)
+            .toList();
+        _funcoesSugeridas = (results[1] as List<Cargo>)
+            .map((c) => c.nome)
+            .toList();
+        _vinculosSugeridos = (results[2] as List<Vinculo>)
+            .map((v) => v.nome)
+            .toList();
+        _turnosSugeridos = (results[3] as List<Turno>)
+            .map((t) => t.nome)
+            .toList();
+        _isLoading = false;
+        _loadingError = null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _loadingError = "Falha ao carregar dados iniciais: ${e.toString()}";
+      });
     }
-    _initializeAnimation();
   }
 
   void _populateFormForEdit() {
@@ -166,7 +211,8 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
     _controllers['dataDesligamento']!.text = employee.dataDesligamento != null
         ? DateFormat('dd/MM/yyyy').format(employee.dataDesligamento!)
         : '';
-    _controllers['motivoDesligamento']!.text = employee.motivoDesligamento ?? '';
+    _controllers['motivoDesligamento']!.text =
+        employee.motivoDesligamento ?? '';
 
     setState(() {
       _dataEntrada = employee.dataEntrada;
@@ -181,55 +227,9 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
     });
   }
 
-  void _initializeControllers() {
-    final fields = [
-      'id',
-      'matricula',
-      'nome',
-      'cpf',
-      'rg',
-      'setor',
-      'funcao',
-      'vinculo',
-      'dataEntrada',
-      'dataNascimento',
-      'telefone',
-      'email',
-      'lider',
-      'gestor',
-      'localTrabalho',
-      'turno',
-      'dataDesligamento',
-      'motivoDesligamento',
-      'newSetor',
-      'newFuncao',
-      'newVinculo',
-      'newTurno',
-    ];
-    for (final field in fields) {
-      _controllers[field] = TextEditingController();
-    }
-  }
-
-  void _initializeAnimation() {
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(1.0, 0.0), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-    _animationController.forward();
-  }
-
   @override
   void dispose() {
     _removeAllOverlays();
-    _animationController.dispose();
     _controllers.forEach((_, controller) => controller.dispose());
     super.dispose();
   }
@@ -243,7 +243,6 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
 
   Future<void> _closeDrawer() async {
     _removeAllOverlays();
-    await _animationController.reverse();
     widget.onClose();
   }
 
@@ -380,14 +379,14 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
 
   void _addNewItem(
     String type,
-    String listKey,
+    List<String> suggestionList,
     TextEditingController controller,
   ) {
     if (controller.text.trim().isEmpty) return;
     setState(() {
       final newItem = controller.text.trim();
-      if (!_suggestions[listKey]!.contains(newItem)) {
-        _suggestions[listKey]!.add(newItem);
+      if (!suggestionList.contains(newItem)) {
+        suggestionList.add(newItem);
         _controllers[type]!.text = newItem;
       }
       controller.clear();
@@ -398,15 +397,14 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
   }
 
   void _addNovoSetor() =>
-      _addNewItem('setor', 'setores', _controllers['newSetor']!);
+      _addNewItem('setor', _setoresSugeridos, _controllers['newSetor']!);
   void _addNovaFuncao() =>
-      _addNewItem('funcao', 'funcoes', _controllers['newFuncao']!);
+      _addNewItem('funcao', _funcoesSugeridas, _controllers['newFuncao']!);
   void _addNovoVinculo() =>
-      _addNewItem('vinculo', 'vinculos', _controllers['newVinculo']!);
+      _addNewItem('vinculo', _vinculosSugeridos, _controllers['newVinculo']!);
   void _addNovoTurno() =>
-      _addNewItem('turno', 'turnos', _controllers['newTurno']!);
+      _addNewItem('turno', _turnosSugeridos, _controllers['newTurno']!);
 
-  // MODIFICADO: Método de salvamento que se comunica com o Appwrite
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
     if (_dataEntrada == null) {
@@ -454,9 +452,10 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
         _showSuccessSnackBar('Funcionário adicionado com sucesso!');
       }
 
-      Navigator.of(context).pop(); // Fecha o drawer
-      widget.onSave
-          ?.call(); // Chama o callback para recarregar a lista na página principal
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+      widget.onSave?.call();
     } on AppwriteException catch (e) {
       _showErrorSnackBar('Erro do Appwrite: ${e.message ?? "Ocorreu um erro"}');
     } catch (e) {
@@ -511,41 +510,84 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final size = MediaQuery.of(context).size;
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: _closeDrawer,
-          child: Container(color: Colors.black.withOpacity(0.5)),
-        ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: SlideTransition(
-            position: _slideAnimation,
-            child: Material(
-              elevation: 16,
-              child: Container(
-                width: size.width > 600 ? size.width * 0.6 : size.width * 0.9,
-                height: size.height,
-                color: theme.colorScheme.surface,
-                child: Column(
-                  children: [
-                    _buildHeader(theme),
-                    Expanded(
-                      child: SingleChildScrollView(child: _buildForm(theme)),
-                    ),
-                    _buildFooter(theme),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
+    return BaseDrawer(
+      onClose: widget.onClose,
+      header: _buildHeader(theme),
+      body: _buildBody(theme),
+      footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
     );
   }
 
+  Widget _buildBody(ThemeData theme) {
+    if (_isLoading) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(),
+          SizedBox(height: 16),
+          Text('Carregando dados...'),
+        ],
+      );
+    }
+
+    if (_loadingError != null) {
+      return Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, color: theme.colorScheme.error, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              'Ocorreu um Erro',
+              style: theme.textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _loadingError!,
+              style: theme.textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _loadingError = null;
+                });
+                _loadInitialData();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Tentar Novamente'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(child: _buildForm(theme));
+  }
+
   Widget _buildHeader(ThemeData theme) {
+    String title;
+    String subtitle;
+    IconData icon;
+
+    if (_isViewing) {
+      title = 'Visualizar Funcionário';
+      subtitle = 'Informações de ${widget.employeeToEdit?.nome ?? ""}';
+      icon = Icons.visibility_outlined;
+    } else if (_isEditing) {
+      title = 'Editar Funcionário';
+      subtitle = 'Altere os dados do funcionário';
+      icon = Icons.person_search_outlined;
+    } else {
+      title = 'Adicionar Funcionário';
+      subtitle = 'Preencha os dados do novo funcionário';
+      icon = Icons.person_add_alt_1_outlined;
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -563,7 +605,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              _isEditing ? Icons.person_search : Icons.person_add,
+              icon,
               color: theme.colorScheme.onPrimaryContainer,
               size: 24,
             ),
@@ -574,16 +616,14 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _isEditing ? 'Editar Funcionário' : 'Adicionar Funcionário',
+                  title,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _isEditing
-                      ? 'Altere os dados do funcionário'
-                      : 'Preencha os dados do novo funcionário',
+                  subtitle,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -619,96 +659,96 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
   }
 
   Widget _buildTwoColumnLayout(ThemeData theme) {
+    final bool isEnabled = !_isViewing;
+    
     return Row(
+      spacing: 24,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Column(
+            spacing: 32,
             children: [
               ImagePickerWidget(
                 imageFile: _imageFile,
+                imageUrl: _imagemPath,
                 onImagePicked: _onImagePicked,
                 onImageRemoved: _onImageRemoved,
+                viewOnly: _isViewing,
               ),
-              const SizedBox(height: 32),
-              _buildSection(
-                theme,
-                'Documentos Pessoais',
-                Icons.assignment_outlined,
-                DocumentsSection(
+              InfoSection(
+                title: 'Documentos Pessoais',
+                icon: Icons.assignment_outlined,
+                child:  DocumentsSection(
                   cpfController: _controllers['cpf']!,
                   rgController: _controllers['rg']!,
                   dataNascimentoController: _controllers['dataNascimento']!,
                   onSelectDateNascimento: _selectDateNascimento,
+                  enabled: isEnabled,
                 ),
               ),
-              const SizedBox(height: 32),
-              _buildSection(
-                theme,
-                'Contato',
-                Icons.contact_phone_outlined,
-                ContactSection(
+              InfoSection(
+                title: 'Contato',
+                icon: Icons.contact_phone_outlined,
+                child: ContactSection(
                   telefoneController: _controllers['telefone']!,
                   emailController: _controllers['email']!,
+                  enabled: isEnabled,
                 ),
               ),
-              const SizedBox(height: 32),
-              _buildSection(
-                theme,
-                'Hierarquia',
-                Icons.people_outline,
-                HierarchySection(
+              InfoSection(
+                title: 'Hierarquia',
+                icon:  Icons.people_outline,
+                child: HierarchySection(
                   liderController: _controllers['lider']!,
                   gestorController: _controllers['gestor']!,
                   funcionariosSugeridos: _suggestions['funcionarios']!,
+                  enabled: isEnabled,
                 ),
               ),
               if (!_statusAtivo) ...[
-                const SizedBox(height: 32),
-                _buildSection(
-                  theme,
-                  'Desligamento',
-                  Icons.logout_outlined,
-                  TerminationSection(
+                InfoSection(
+                  title: 'Desligamento',
+                  icon: Icons.logout_outlined,
+                  child: TerminationSection(
                     dataDesligamentoController:
                         _controllers['dataDesligamento']!,
                     motivoDesligamentoController:
                         _controllers['motivoDesligamento']!,
                     onSelectDateDesligamento: _selectDateDesligamento,
+                    enabled: isEnabled,
                   ),
                 ),
               ],
             ],
           ),
         ),
-        const SizedBox(width: 24),
         Expanded(
           child: Column(
+            spacing: 32,
             children: [
-              _buildSection(
-                theme,
-                'Informações Básicas',
-                Icons.info_outlined,
-                BasicInfoSection(
-                  idController: _controllers['id']!,
+              InfoSection(
+                title: 'Informações Básicas',
+                icon: Icons.info_outlined,
+                child: BasicInfoSection(
                   matriculaController: _controllers['matricula']!,
                   nomeController: _controllers['nome']!,
                   dataEntradaController: _controllers['dataEntrada']!,
                   onSelectDateEntrada: _selectDateEntrada,
+                  enabled: isEnabled,
                 ),
               ),
-              const SizedBox(height: 32),
-              _buildSection(
-                theme,
-                'Cargo e Setor',
-                Icons.work_outline,
-                JobSection(
+              InfoSection(
+                title: 'Cargo e Setor',
+                icon: Icons.work_outline,
+                child: JobSection(
+                  enabled: isEnabled,
                   setorController: _controllers['setor']!,
                   funcaoController: _controllers['funcao']!,
                   vinculoController: _controllers['vinculo']!,
-                  setoresSugeridos: _suggestions['setores']!,
-                  funcoesSugeridas: _suggestions['funcoes']!,
-                  vinculosSugeridos: _suggestions['vinculos']!,
+                  setoresSugeridos: _setoresSugeridos,
+                  funcoesSugeridas: _funcoesSugeridas,
+                  vinculosSugeridos: _vinculosSugeridos,
                   setorButtonKey: _overlayKeys['setor']!,
                   funcaoButtonKey: _overlayKeys['funcao']!,
                   vinculoButtonKey: _overlayKeys['vinculo']!,
@@ -729,16 +769,15 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
-              _buildSection(
-                theme,
-                'Condições de Trabalho',
-                Icons.settings_outlined,
-                WorkConditionsSection(
+              InfoSection(
+                title: 'Condições de Trabalho',
+                icon: Icons.settings_outlined,
+                child: WorkConditionsSection(
+                  enabled: isEnabled,
                   localTrabalhoController: _controllers['localTrabalho']!,
                   turnoController: _controllers['turno']!,
                   locaisTrabalhoSugeridos: _suggestions['locaisTrabalho']!,
-                  turnosSugeridos: _suggestions['turnos']!,
+                  turnosSugeridos: _turnosSugeridos,
                   episSelecionados: _epis,
                   riscosSelecionados: _riscos,
                   turnoButtonKey: _overlayKeys['turno']!,
@@ -765,12 +804,11 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
-              _buildSection(
-                theme,
-                'Status',
-                Icons.info_outlined,
-                StatusSection(
+              InfoSection(
+                title: 'Status',
+                icon: Icons.info_outlined,
+                child: StatusSection(
+                  enabled: isEnabled,
                   statusAtivo: _statusAtivo,
                   statusFerias: _statusFerias,
                   dataRetornoFerias: _dataRetornoFerias,
@@ -789,50 +827,52 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
   }
 
   Widget _buildSingleColumnLayout(ThemeData theme) {
+    final bool isEnabled = !_isViewing;
+    
     return Column(
+      spacing: 32,
       children: [
         ImagePickerWidget(
           imageFile: _imageFile,
+          imageUrl: _imagemPath,
           onImagePicked: _onImagePicked,
           onImageRemoved: _onImageRemoved,
+          viewOnly: _isViewing,
         ),
-        const SizedBox(height: 32),
-        _buildSection(
-          theme,
-          'Informações Básicas',
-          Icons.info_outlined,
-          BasicInfoSection(
-            idController: _controllers['id']!,
+        InfoSection(
+          title: 'Informações Básicas',
+          icon: Icons.info_outlined,
+          child: BasicInfoSection(
+            enabled: isEnabled,
             matriculaController: _controllers['matricula']!,
             nomeController: _controllers['nome']!,
             dataEntradaController: _controllers['dataEntrada']!,
             onSelectDateEntrada: _selectDateEntrada,
           ),
         ),
-        const SizedBox(height: 32),
-        _buildSection(
-          theme,
-          'Documentos Pessoais',
-          Icons.assignment_outlined,
-          DocumentsSection(
+        InfoSection(
+          title: 'Documentos Pessoais',
+          icon: Icons.assignment_outlined,
+          child: DocumentsSection(
+            enabled: isEnabled,
             cpfController: _controllers['cpf']!,
             rgController: _controllers['rg']!,
             dataNascimentoController: _controllers['dataNascimento']!,
             onSelectDateNascimento: _selectDateNascimento,
           ),
         ),
-        const SizedBox(height: 32),
-        _buildSection(
-          theme,
-          'Cargo e Setor',
-          Icons.work_outline,
-          JobSection(
+        InfoSection(
+          title: 'Cargo e Setor',
+          icon: Icons.work_outline,
+          child: JobSection(
+            enabled: isEnabled,
             setorController: _controllers['setor']!,
             funcaoController: _controllers['funcao']!,
             vinculoController: _controllers['vinculo']!,
-            setoresSugeridos: _suggestions['setores']!,
-            funcoesSugeridas: _suggestions['funcoes']!,
-            vinculosSugeridos: _suggestions['vinculos']!,
+            // MODIFICADO: Passando as listas carregadas do Appwrite
+            setoresSugeridos: _setoresSugeridos,
+            funcoesSugeridas: _funcoesSugeridas,
+            vinculosSugeridos: _vinculosSugeridos,
             setorButtonKey: _overlayKeys['setor']!,
             funcaoButtonKey: _overlayKeys['funcao']!,
             vinculoButtonKey: _overlayKeys['vinculo']!,
@@ -850,26 +890,25 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
             ),
           ),
         ),
-        const SizedBox(height: 32),
-        _buildSection(
-          theme,
-          'Contato',
-          Icons.contact_phone_outlined,
-          ContactSection(
+        InfoSection(
+          title: 'Contato',
+          icon: Icons.contact_phone_outlined,
+          child: ContactSection(
+            enabled: isEnabled,
             telefoneController: _controllers['telefone']!,
             emailController: _controllers['email']!,
           ),
         ),
-        const SizedBox(height: 32),
-        _buildSection(
-          theme,
-          'Condições de Trabalho',
-          Icons.settings_outlined,
-          WorkConditionsSection(
+        InfoSection(
+          title: 'Condições de Trabalho',
+          icon: Icons.settings_outlined,
+          child: WorkConditionsSection(
+            enabled: isEnabled,
             localTrabalhoController: _controllers['localTrabalho']!,
             turnoController: _controllers['turno']!,
             locaisTrabalhoSugeridos: _suggestions['locaisTrabalho']!,
-            turnosSugeridos: _suggestions['turnos']!,
+            // MODIFICADO: Passando a lista carregada do Appwrite
+            turnosSugeridos: _turnosSugeridos,
             episSelecionados: _epis,
             riscosSelecionados: _riscos,
             turnoButtonKey: _overlayKeys['turno']!,
@@ -893,23 +932,21 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
             ),
           ),
         ),
-        const SizedBox(height: 32),
-        _buildSection(
-          theme,
-          'Hierarquia',
-          Icons.people_outline,
-          HierarchySection(
+        InfoSection(
+          title: 'Hierarquia',
+          icon: Icons.people_outline,
+          child: HierarchySection(
+            enabled: isEnabled,
             liderController: _controllers['lider']!,
             gestorController: _controllers['gestor']!,
             funcionariosSugeridos: _suggestions['funcionarios']!,
           ),
         ),
-        const SizedBox(height: 32),
-        _buildSection(
-          theme,
-          'Status',
-          Icons.info_outlined,
-          StatusSection(
+        InfoSection(
+          title: 'Status',
+          icon: Icons.info_outlined,
+          child: StatusSection(
+            enabled: isEnabled,
             statusAtivo: _statusAtivo,
             statusFerias: _statusFerias,
             dataRetornoFerias: _dataRetornoFerias,
@@ -921,12 +958,11 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
           ),
         ),
         if (!_statusAtivo) ...[
-          const SizedBox(height: 32),
-          _buildSection(
-            theme,
-            'Desligamento',
-            Icons.logout_outlined,
-            TerminationSection(
+          InfoSection(
+            title: 'Desligamento',
+            icon: Icons.logout_outlined,
+            child: TerminationSection(
+              enabled: isEnabled,
               dataDesligamentoController: _controllers['dataDesligamento']!,
               motivoDesligamentoController: _controllers['motivoDesligamento']!,
               onSelectDateDesligamento: _selectDateDesligamento,
@@ -937,54 +973,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
     );
   }
 
-  Widget _buildSection(
-    ThemeData theme,
-    String title,
-    IconData icon,
-    Widget child,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooter(ThemeData theme) {
+  Widget _buildEditFooter(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -1008,7 +997,7 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
           Expanded(
             flex: 2,
             child: FilledButton.icon(
-              onPressed: _isSaving ? null : _handleSave,
+              onPressed: _isSaving || _isLoading ? null : _handleSave,
               icon: _isSaving
                   ? const SizedBox(
                       width: 20,
@@ -1029,6 +1018,31 @@ class _AddEmployeeDrawerState extends State<AddEmployeeDrawer>
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildViewFooter(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        border: Border(
+          top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _closeDrawer,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: const Text('Fechar'),
             ),
           ),
         ],

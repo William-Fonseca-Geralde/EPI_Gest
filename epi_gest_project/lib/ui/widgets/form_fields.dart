@@ -10,6 +10,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final int maxLines;
+  final bool enabled;
 
   const CustomTextField({
     super.key,
@@ -21,18 +22,25 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.inputFormatters,
     this.maxLines = 1,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      enabled: enabled,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: !enabled,
+        fillColor: enabled
+            ? null
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
+      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
       validator: validator,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
@@ -47,6 +55,7 @@ class CustomDateField extends StatelessWidget {
   final String hint;
   final IconData icon;
   final VoidCallback onTap;
+  final bool enabled;
 
   const CustomDateField({
     super.key,
@@ -55,12 +64,14 @@ class CustomDateField extends StatelessWidget {
     required this.hint,
     required this.icon,
     required this.onTap,
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
+      enabled: enabled,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -68,16 +79,25 @@ class CustomDateField extends StatelessWidget {
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         suffixIcon: IconButton(
           icon: const Icon(Icons.event),
-          onPressed: onTap,
+          onPressed: enabled ? onTap : null, // MODIFICADO
         ),
+        filled: !enabled, // NOVO
+        fillColor: enabled
+            ? null
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       readOnly: true,
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
+      style: TextStyle(
+        color: enabled
+            ? Theme.of(context).colorScheme.onSurface
+            : Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
     );
   }
 }
 
-class CustomAutocompleteField extends StatelessWidget {
+class CustomAutocompleteField extends StatefulWidget {
   final TextEditingController controller;
   final String label;
   final String hint;
@@ -86,6 +106,7 @@ class CustomAutocompleteField extends StatelessWidget {
   final bool showAddButton;
   final VoidCallback? onAddPressed;
   final GlobalKey? addButtonKey;
+  final bool enabled;
 
   const CustomAutocompleteField({
     super.key,
@@ -97,51 +118,91 @@ class CustomAutocompleteField extends StatelessWidget {
     this.showAddButton = false,
     this.onAddPressed,
     this.addButtonKey,
+    this.enabled = true,
   });
+
+  @override
+  State<CustomAutocompleteField> createState() =>
+      _CustomAutocompleteFieldState();
+}
+
+class _CustomAutocompleteFieldState extends State<CustomAutocompleteField> {
+  late final TextEditingController _internalController;
+
+  @override
+  void initState() {
+    _internalController = TextEditingController(text: widget.controller.text);
+    widget.controller.addListener(_onExternalControllerChanged);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onExternalControllerChanged);
+    _internalController.dispose();
+    super.dispose();
+  }
+
+  void _onExternalControllerChanged() {
+    if (widget.controller.text != _internalController.text) {
+      _internalController.text = widget.controller.text;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final autocompleteField = Autocomplete<String>(
+      initialValue: TextEditingValue(text: _internalController.text),
       optionsBuilder: (TextEditingValue textEditingValue) {
         if (textEditingValue.text.isEmpty) {
-          return suggestions;
+          return widget.suggestions;
         }
-        return suggestions.where((String option) {
+        return widget.suggestions.where((String option) {
           return option.toLowerCase().contains(
-                textEditingValue.text.toLowerCase(),
-              );
+            textEditingValue.text.toLowerCase(),
+          );
         });
       },
       onSelected: (String selection) {
-        controller.text = selection;
+        widget.controller.text = selection;
+        _internalController.text = selection;
       },
-      fieldViewBuilder: (
-        BuildContext context,
-        TextEditingController fieldController,
-        FocusNode focusNode,
-        VoidCallback onFieldSubmitted,
-      ) {
-        fieldController.text = controller.text;
-        fieldController.addListener(() {
-          controller.text = fieldController.text;
-        });
-
-        return TextFormField(
-          controller: fieldController,
-          focusNode: focusNode,
-          decoration: InputDecoration(
-            labelText: label,
-            hintText: hint,
-            prefixIcon: Icon(icon),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      },
+      fieldViewBuilder:
+          (
+            BuildContext context,
+            TextEditingController fieldController,
+            FocusNode focusNode,
+            VoidCallback onFieldSubmitted,
+          ) {
+            return TextFormField(
+              controller: fieldController,
+              focusNode: focusNode,
+              enabled: widget.enabled,
+              decoration: InputDecoration(
+                labelText: widget.label,
+                hintText: widget.hint,
+                prefixIcon: Icon(widget.icon),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: !widget.enabled,
+                fillColor: widget.enabled
+                    ? null
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
+              ),
+              style: TextStyle(
+                color: widget.enabled
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              onChanged: (value) {
+                widget.controller.text = value;
+              },
+            );
+          },
     );
 
-    if (!showAddButton) {
+    if (!widget.showAddButton) {
       return autocompleteField;
     }
 
@@ -150,8 +211,8 @@ class CustomAutocompleteField extends StatelessWidget {
         Expanded(child: autocompleteField),
         const SizedBox(width: 8),
         IconButton.filledTonal(
-          key: addButtonKey,
-          onPressed: onAddPressed,
+          key: widget.addButtonKey,
+          onPressed: widget.enabled ? widget.onAddPressed : null,
           icon: const Icon(Icons.add),
           tooltip: 'Adicionar novo',
         ),
@@ -167,6 +228,7 @@ class CustomMultiSelectField extends StatelessWidget {
   final List<String> selectedItems;
   final GlobalKey buttonKey;
   final VoidCallback onTap;
+  final bool enabled;
 
   const CustomMultiSelectField({
     super.key,
@@ -176,6 +238,7 @@ class CustomMultiSelectField extends StatelessWidget {
     required this.selectedItems,
     required this.buttonKey,
     required this.onTap,
+    this.enabled = true,
   });
 
   @override
@@ -184,15 +247,15 @@ class CustomMultiSelectField extends StatelessWidget {
 
     return GestureDetector(
       key: buttonKey,
-      onTap: onTap,
+      onTap: enabled ? onTap : null,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: theme.colorScheme.outlineVariant,
-          ),
+          border: Border.all(color: theme.colorScheme.outlineVariant),
           borderRadius: BorderRadius.circular(12),
-          color: theme.colorScheme.surface,
+          color: enabled
+              ? theme.colorScheme.surface
+              : theme.colorScheme.surfaceContainerHighest,
         ),
         child: Row(
           children: [
@@ -244,12 +307,10 @@ class CustomMultiSelectField extends StatelessWidget {
     return Wrap(
       spacing: 6,
       runSpacing: 6,
-      children: selectedItems.take(3).map((item) {
+      children:
+          selectedItems.take(3).map((item) {
             return Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 8,
-                vertical: 4,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: theme.colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(6),
@@ -262,31 +323,30 @@ class CustomMultiSelectField extends StatelessWidget {
                 ),
               ),
             );
-          }).toList()
-        ..addAll(
-          selectedItems.length > 3
-              ? [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.secondaryContainer,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '+${selectedItems.length - 3}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSecondaryContainer,
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
+          }).toList()..addAll(
+            selectedItems.length > 3
+                ? [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.secondaryContainer,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '+${selectedItems.length - 3}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSecondaryContainer,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ]
-              : [],
-        ),
+                  ]
+                : [],
+          ),
     );
   }
 }
@@ -298,6 +358,7 @@ class CustomSwitchField extends StatelessWidget {
   final String activeText;
   final String inactiveText;
   final IconData icon;
+  final bool enabled;
 
   const CustomSwitchField({
     super.key,
@@ -307,6 +368,7 @@ class CustomSwitchField extends StatelessWidget {
     required this.activeText,
     required this.inactiveText,
     required this.icon,
+    this.enabled = true,
   });
 
   @override
@@ -318,6 +380,7 @@ class CustomSwitchField extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: theme.colorScheme.outlineVariant),
         borderRadius: BorderRadius.circular(12),
+        color: enabled ? null : theme.colorScheme.surfaceContainerHighest,
       ),
       child: Row(
         children: [
@@ -342,7 +405,7 @@ class CustomSwitchField extends StatelessWidget {
               ],
             ),
           ),
-          Switch(value: value, onChanged: onChanged),
+          Switch(value: value, onChanged: enabled ? onChanged : null),
         ],
       ),
     );

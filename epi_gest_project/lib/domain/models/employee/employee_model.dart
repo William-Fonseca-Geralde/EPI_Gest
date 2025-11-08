@@ -64,25 +64,32 @@ class Employee {
       'dataEntrada': dataEntrada.toIso8601String(),
       'telefone': telefone,
       'email': email,
-      'setor': setor,
-      'cargo': cargo,
-      'vinculo': vinculo,
-      'lider': lider,
-      'gestor': gestor,
+      'setor_id': [
+        {'nomeSetor': setor},
+      ],
+      'cargo_id': [
+        {'nomeCargo': cargo},
+      ],
+      'vinculo_id': [
+        {'nomeVinculo': vinculo},
+      ],
+      'nomeLider': lider,
+      'nomeGestor': gestor,
       'localTrabalho': localTrabalho,
-      'turno': turno,
+      'turno_id': [
+        {'nomeTurno': turno},
+      ],
       'epis': epis,
       'riscos': riscos,
-      'imagemPath': imagemPath,
-      'statusAtivo': statusAtivo,
-      'statusFerias': statusFerias,
+      'urlImagem': imagemPath,
+      'ativo': statusAtivo,
+      'ferias': statusFerias,
+      'dataTermino': dataDesligamento?.toIso8601String(),
       'dataRetornoFerias': dataRetornoFerias?.toIso8601String(),
-      'dataDesligamento': dataDesligamento?.toIso8601String(),
-      'motivoDesligamento': motivoDesligamento,
+      'motivosTermino': motivoDesligamento,
     };
   }
 
-  // Cria um objeto Employee a partir de um Documento do Appwrite
   factory Employee.fromAppwrite(Row row) {
     final data = row.data;
     return Employee(
@@ -91,24 +98,30 @@ class Employee {
       nome: data['nome'],
       cpf: data['cpf'],
       rg: data['rg'],
-      dataNascimento: data['dataNascimento'] != null ? DateTime.parse(data['dataNascimento']) : null,
+      dataNascimento: data['dataNascimento'] != null
+          ? DateTime.parse(data['dataNascimento'])
+          : null,
       dataEntrada: DateTime.parse(data['dataEntrada']),
       telefone: data['telefone'],
       email: data['email'],
-      setor: data['setor'],
-      cargo: data['cargo'],
-      vinculo: data['vinculo'],
+      setor: data['setor_id'][0]['nomeSetor'],
+      cargo: data['cargo_id'][0]['nomeCargo'],
+      vinculo: data['vinculo_id'][0]['nomeVinculo'],
       lider: data['nomeLider'],
       gestor: data['nomeGestor'],
       localTrabalho: data['localTrabalho'],
-      turno: data['turno'],
+      turno: data['turno_id'][0]['nomeTurno'],
       epis: List<String>.from(data['epis'] ?? []),
       riscos: List<String>.from(data['riscos'] ?? []),
       imagemPath: data['urlImagem'],
       statusAtivo: data['ativo'],
       statusFerias: data['ferias'],
-      dataRetornoFerias: data['dataRetornoFerias'] != null ? DateTime.parse(data['dataRetornoFerias']) : null,
-      dataDesligamento: data['dataTermino'] != null ? DateTime.parse(data['dataTermino']) : null,
+      dataRetornoFerias: data['dataRetornoFerias'] != null
+          ? DateTime.parse(data['dataRetornoFerias'])
+          : null,
+      dataDesligamento: data['dataTermino'] != null
+          ? DateTime.parse(data['dataTermino'])
+          : null,
       motivoDesligamento: data['motivosTermino'],
     );
   }
@@ -117,46 +130,63 @@ class Employee {
 class Cargo {
   final String? id;
   final String nome;
-  
-  Cargo({
-    this.id,
-    required this.nome,
-  });
+
+  Cargo({this.id, required this.nome});
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'nome': nome};
+  }
 
   factory Cargo.fromAppwrite(Row row) {
-    return Cargo(
-      id: row.$id,
-      nome: row.data['nomeCargo'],
-    );
+    final data = row.data;
+    return Cargo(id: row.$id, nome: data['nomeCargo']);
   }
 }
 
 class Setor {
   final String? id;
   final String nome;
-  
-  Setor({
-    this.id,
-    required this.nome,
-  });
+
+  Setor({this.id, required this.nome});
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'nome': nome};
+  }
+
+  factory Setor.fromAppwrite(Row row) {
+    final data = row.data;
+    return Setor(id: row.$id, nome: data['nomeSetor']);
+  }
 }
 
 class Turno {
   final String? id;
   final String nome;
-  
-  Turno({
-    this.id,
-    required this.nome,
-  });
+
+  Turno({this.id, required this.nome});
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'nome': nome};
+  }
+
+  factory Turno.fromAppwrite(Row row) {
+    final data = row.data;
+    return Turno(id: row.$id, nome: data['nomeTurno']);
+  }
 }
 
 class Vinculo {
   final String? id;
   final String nome;
 
-  Vinculo({
-    this.id,
-    required this.nome,
-  });
+  Vinculo({this.id, required this.nome});
+
+  Map<String, dynamic> toJson() {
+    return {'id': id, 'nome': nome};
+  }
+
+  factory Vinculo.fromAppwrite(Row row) {
+    final data = row.data;
+    return Vinculo(id: row.$id, nome: data['nomeVinculo']);
+  }
 }

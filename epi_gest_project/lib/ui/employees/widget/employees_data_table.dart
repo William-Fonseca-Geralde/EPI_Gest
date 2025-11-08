@@ -195,7 +195,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   ? BorderSide.none
                                   : BorderSide(
                                       color: theme.colorScheme.outlineVariant
-                                          .withOpacity(0.3),
+                                          .withValues(alpha: 0.3),
                                     ),
                             ),
                           ),
