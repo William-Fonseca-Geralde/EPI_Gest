@@ -34,7 +34,6 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _dataEntradaController = TextEditingController();
-  final TextEditingController _ativoController = TextEditingController();
   final TextEditingController _novoSetorController = TextEditingController();
   final TextEditingController _novaFuncaoController = TextEditingController();
 
@@ -149,16 +148,37 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
         ),
       ),
       child: Column(
-        spacing: 16,
+        spacing: 12,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Chips de filtros ativos
           if (hasActiveFilters) ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _buildActiveFilterChips(theme),
+            Text(
+              'Filtros Ativos:',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+            Row(
+              spacing: 16,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _buildActiveFilterChips(theme),
+                ),
+                OutlinedButton.icon(
+                  onPressed: widget.onClearFilters,
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: const Text('Limpar Filtros'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                    side: BorderSide(color: theme.colorScheme.outline),
+                  ),
+                ),
+              ],
+            ),
+            Divider(height: 1, color: theme.colorScheme.outlineVariant),
           ],
 
           Row(
@@ -426,9 +446,7 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
         case 'ativo':
           label = 'Status';
           final status = value as List<String>;
-          displayValue = status.length == 1
-            ? status.first
-            : 'Todos';
+          displayValue = status.length == 1 ? status.first : 'Todos';
       }
 
       if (label.isNotEmpty) {

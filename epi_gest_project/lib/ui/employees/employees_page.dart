@@ -77,6 +77,24 @@ class _EmployeesPageState extends State<EmployeesPage> {
     }
   }
 
+  int get _activeFiltersCount {
+    int count = 0;
+    _appliedFilters.forEach((key, value) {
+      if (value != null) {
+        if (value is String && value.isNotEmpty) {
+          count++;
+        }
+        else if (value is List && value.isNotEmpty) {
+          count++;
+        }
+        else if (value is DateTime) {
+          count++;
+        }
+      }
+    });
+    return count;
+  }
+
   void _reloadData() {
     setState(() {
       _loadEmployeesFuture = _loadEmployees();
@@ -220,10 +238,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
       ),
     );
 
-    // CORREÇÃO: A verificação 'mounted' deve estar DENTRO do if para segurança
     if (confirm == true) {
-      if (!mounted)
-        return; // Garante que o widget ainda existe antes de operações async
+      if (!mounted) {
+        return;
+      }
       final employeeService = Provider.of<EmployeeService>(
         context,
         listen: false,
@@ -344,11 +362,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
       decoration: BoxDecoration(
-        // CORREÇÃO: 'withValues' não existe, o correto é 'withOpacity'
         gradient: LinearGradient(
           colors: [
-            colorScheme.primary.withOpacity(0.08),
-            colorScheme.surface.withOpacity(0.6),
+            colorScheme.primary.withValues(alpha: 0.08),
+            colorScheme.surface.withValues(alpha: 0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -402,12 +419,16 @@ class _EmployeesPageState extends State<EmployeesPage> {
           ),
           Row(
             children: [
-              IconButton.filledTonal(
-                onPressed: _toggleFilters,
-                icon: Icon(
-                  _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
+              Badge.count(
+                count: _activeFiltersCount,
+                isLabelVisible: _activeFiltersCount > 0,
+                child: IconButton.filledTonal(
+                  onPressed: _toggleFilters,
+                  icon: Icon(
+                    _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
+                  ),
+                  tooltip: _showFilters ? 'Ocultar filtros' : 'Mostrar filtros',
                 ),
-                tooltip: _showFilters ? 'Ocultar filtros' : 'Mostrar filtros',
               ),
               const SizedBox(width: 12),
               FilledButton.icon(
