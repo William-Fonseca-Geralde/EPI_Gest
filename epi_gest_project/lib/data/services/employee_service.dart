@@ -93,7 +93,6 @@ class EmployeeService {
     }
   }
 
-  // Atualizar um funcionário existente
   Future<void> updateEmployee(String rowId, Map<String, dynamic> data) async {
     try {
       await _tabela.updateRow(
@@ -107,12 +106,12 @@ class EmployeeService {
     }
   }
 
-  // Inativar um funcionário (Soft Delete)
-  Future<void> inactivateEmployee(String rowId) async {
+  Future<void> inactivateEmployee(String rowId, {String? motivo}) async {
     try {
       await updateEmployee(rowId, {
         'ativo': false,
         'dataTermino': DateTime.now().toIso8601String(),
+        'motivosTermino': motivo
       });
     } catch (e) {
       throw Exception('Falha ao inativar funcionário.');

@@ -25,11 +25,19 @@ class _EmployeesPageState extends State<EmployeesPage> {
   final List<String> _setores = [];
   final List<String> _funcoes = [];
 
+  final _motivoController = TextEditingController();
+
+  @override
+  void dispose() {
+    _motivoController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
     _loadReferenceData();
-      _loadEmployeesFuture = _loadEmployees();
+    _loadEmployeesFuture = _loadEmployees();
   }
 
   Future<void> _loadReferenceData() async {
@@ -72,7 +80,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
       }
     } on AppwriteException catch (e) {
       throw Exception('Falha ao carregar funcionários: ${e.message}');
-    }  catch (e) {
+    } catch (e) {
       throw Exception('Ocorreu um erro inesperado: ${e.toString()}');
     }
   }
@@ -83,11 +91,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
       if (value != null) {
         if (value is String && value.isNotEmpty) {
           count++;
-        }
-        else if (value is List && value.isNotEmpty) {
+        } else if (value is List && value.isNotEmpty) {
           count++;
-        }
-        else if (value is DateTime) {
+        } else if (value is DateTime) {
           count++;
         }
       }
@@ -220,22 +226,81 @@ class _EmployeesPageState extends State<EmployeesPage> {
   }
 
   void _inactivateEmployee(Employee employee) async {
+    _motivoController.clear();
+    final theme = Theme.of(context);
+
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Inativação'),
-        content: Text('Tem certeza que deseja inativar ${employee.nome}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Inativar'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        bool ativarMotivo = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text('Confirmar Inativação'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  spacing: 12,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      spacing: 16,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Deseja adicionar um motivo para a inativação para o ${employee.nome}?',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                        ),
+                        Switch(
+                          value: ativarMotivo,
+                          thumbIcon: WidgetStateProperty<Icon>.fromMap({
+                            WidgetState.selected: Icon(Icons.check),
+                            WidgetState.any: Icon(Icons.close),
+                          }),
+                          onChanged: (value) {
+                            setDialogState(() {
+                              ativarMotivo = value;
+
+                              if (!ativarMotivo) {
+                                _motivoController.clear();
+                              }
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    TextField(
+                      controller: _motivoController,
+                      enabled: ativarMotivo,
+                      decoration: InputDecoration(
+                        labelText: 'Motivo do Desligamento',
+                        hintText: 'Digite o motivo (opcional)',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancelar'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Inativar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
 
     if (confirm == true) {
@@ -247,7 +312,13 @@ class _EmployeesPageState extends State<EmployeesPage> {
         listen: false,
       );
       try {
-        await employeeService.inactivateEmployee(employee.id!);
+        final motivoText = _motivoController.text.trim().isNotEmpty
+            ? _motivoController.text.trim()
+            : null;
+        await employeeService.inactivateEmployee(
+          employee.id!,
+          motivo: motivoText,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Funcionário inativado com sucesso!'),
