@@ -4,6 +4,7 @@ import 'package:epi_gest_project/ui/epi_exchange/exchange_page.dart';
 import 'package:epi_gest_project/ui/home/widgets/company_selector_widget.dart';
 import 'package:epi_gest_project/ui/home/widgets/perfil_widget.dart';
 import 'package:epi_gest_project/ui/inventory/inventory_page.dart';
+import 'package:epi_gest_project/ui/organizational_structure/organizational_structure_page.dart';
 import 'package:epi_gest_project/ui/reports/reports_page.dart';
 import 'package:epi_gest_project/ui/settings/settings_page.dart';
 import 'package:flutter/material.dart';
@@ -20,14 +21,15 @@ class _HomePageState extends State<HomePage> {
   bool _isRailExtended = true;
   final int _pendingExchanges = 5; // Número de trocas pendentes
 
-  // Lista de páginas/telas que serão navegadas
+  // Lista de páginas/telas que serão navegadas - CORRIGIDA
   final List<Widget> _pages = [
-    const DashboardPage(),
-    const EmployeesPage(),
-    const InventoryPage(),
-    const ExchangePage(),
-    const ReportsPage(),
-    const SettingsPage(),
+    const DashboardPage(),                    
+    const EmployeesPage(),                    
+    const OrganizationalStructurePage(),      
+    const InventoryPage(),                    
+    const ExchangePage(),                     
+    const ReportsPage(),                      
+    const SettingsPage(),                     
   ];
 
   void _onDestinationSelected(int index) {
@@ -96,6 +98,12 @@ class _HomePageState extends State<HomePage> {
                       icon: Icon(Icons.people_outline),
                       selectedIcon: Icon(Icons.people),
                       label: Text('Funcionários'),
+                    ),
+                    // NOVO MENU: ESTRUTURA ORGANIZACIONAL
+                    const NavigationRailDestination(
+                      icon: Icon(Icons.account_tree_outlined),
+                      selectedIcon: Icon(Icons.account_tree),
+                      label: Text('Estrutura Organizacional'),
                     ),
                     const NavigationRailDestination(
                       icon: Icon(Icons.inventory_2_outlined),
