@@ -21,6 +21,7 @@ class UnitsWidgetState extends State<UnitsWidget> {
   // LISTA DE UNIDADES CADASTRADAS (EXEMPLO)
   final List<Map<String, dynamic>> _unidadesCadastradas = [
     {
+      'id': '1',
       'nome': 'Matriz São Paulo',
       'cnpj': '12.345.678/0001-90',
       'tipo': 'Matriz',
@@ -28,6 +29,7 @@ class UnitsWidgetState extends State<UnitsWidget> {
       'status': 'Ativa',
     },
     {
+      'id': '2',
       'nome': 'Filial Rio de Janeiro',
       'cnpj': '98.765.432/0001-10',
       'tipo': 'Filial',
@@ -58,6 +60,91 @@ class UnitsWidgetState extends State<UnitsWidget> {
         child: _buildUnitForm(),
       ),
     );
+  }
+
+  // FORMATAÇÃO DO CNPJ
+  String _formatarCNPJ(String cnpj) {
+    // Remove caracteres não numéricos
+    cnpj = cnpj.replaceAll(RegExp(r'[^0-9]'), '');
+    
+    // Limita a 14 caracteres
+    if (cnpj.length > 14) {
+      cnpj = cnpj.substring(0, 14);
+    }
+    
+    // Aplica a formatação
+    if (cnpj.length >= 2) {
+      cnpj = '${cnpj.substring(0, 2)}.${cnpj.substring(2)}';
+    }
+    if (cnpj.length >= 6) {
+      cnpj = '${cnpj.substring(0, 6)}.${cnpj.substring(6)}';
+    }
+    if (cnpj.length >= 10) {
+      cnpj = '${cnpj.substring(0, 10)}/${cnpj.substring(10)}';
+    }
+    if (cnpj.length >= 15) {
+      cnpj = '${cnpj.substring(0, 15)}-${cnpj.substring(15)}';
+    }
+    
+    return cnpj;
+  }
+
+  // VALIDAÇÃO DO CNPJ
+  String? _validarCNPJ(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'CNPJ é obrigatório';
+    }
+    
+    // Remove caracteres não numéricos para validação
+    final cnpjLimpo = value.replaceAll(RegExp(r'[^0-9]'), '');
+    
+    if (cnpjLimpo.length != 14) {
+      return 'CNPJ deve ter exatamente 14 dígitos';
+    }
+    
+    // Verifica se todos os dígitos são iguais (CNPJ inválido)
+    if (RegExp(r'^(\d)\1+$').hasMatch(cnpjLimpo)) {
+      return 'CNPJ inválido';
+    }
+    
+    // Validação dos dígitos verificadores
+    if (!_validarDigitosCNPJ(cnpjLimpo)) {
+      return 'CNPJ inválido';
+    }
+    
+    return null;
+  }
+
+  // ALGORITMO DE VALIDAÇÃO DOS DÍGITOS DO CNPJ
+  bool _validarDigitosCNPJ(String cnpj) {
+    // Peso para cálculo do primeiro dígito verificador
+    final peso1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    // Peso para cálculo do segundo dígito verificador
+    final peso2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
+    
+    // Calcula primeiro dígito verificador
+    var soma = 0;
+    for (var i = 0; i < 12; i++) {
+      soma += int.parse(cnpj[i]) * peso1[i];
+    }
+    
+    var resto = soma % 11;
+    var digito1 = resto < 2 ? 0 : 11 - resto;
+    
+    if (digito1 != int.parse(cnpj[12])) {
+      return false;
+    }
+    
+    // Calcula segundo dígito verificador
+    soma = 0;
+    for (var i = 0; i < 13; i++) {
+      soma += int.parse(cnpj[i]) * peso2[i];
+    }
+    
+    resto = soma % 11;
+    var digito2 = resto < 2 ? 0 : 11 - resto;
+    
+    return digito2 == int.parse(cnpj[13]);
   }
 
   Widget _buildUnitForm() {
@@ -93,11 +180,21 @@ class UnitsWidgetState extends State<UnitsWidget> {
               hintText: '00.000.000/0000-00',
               border: OutlineInputBorder(),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Campo obrigatório';
+            keyboardType: TextInputType.number,
+            maxLength: 18, // 14 dígitos + 4 caracteres de formatação
+            validator: _validarCNPJ,
+            onChanged: (value) {
+              final cursorPosition = _cnpjController.selection.baseOffset;
+              final formattedValue = _formatarCNPJ(value);
+              
+              if (formattedValue != value) {
+                _cnpjController.value = _cnpjController.value.copyWith(
+                  text: formattedValue,
+                  selection: TextSelection.collapsed(
+                    offset: cursorPosition + (formattedValue.length - value.length),
+                  ),
+                );
               }
-              return null;
             },
           ),
           const SizedBox(height: 16),
@@ -192,8 +289,8 @@ class UnitsWidgetState extends State<UnitsWidget> {
 
   void _salvarUnidade() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Implementar lógica de salvamento
       final novaUnidade = {
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'nome': _nomeController.text,
         'cnpj': _cnpjController.text,
         'endereco': _enderecoController.text,
@@ -229,28 +326,177 @@ class UnitsWidgetState extends State<UnitsWidget> {
     _statusAtiva = true;
   }
 
+  // MÉTODO PARA VISUALIZAR UNIDADE
+  void _visualizarUnidade(Map<String, dynamic> unidade) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Visualizar ${unidade['nome']}'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoItem('Nome', unidade['nome']),
+              _buildInfoItem('CNPJ', unidade['cnpj']),
+              _buildInfoItem('Tipo', unidade['tipo']),
+              _buildInfoItem('Responsável', unidade['responsavel']),
+              _buildInfoItem('Status', unidade['status']),
+              _buildInfoItem('Endereço', unidade['endereco']),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Fechar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // MÉTODO PARA EDITAR UNIDADE
+  void _editarUnidade(Map<String, dynamic> unidade) {
+    // Preenche os campos com os dados existentes
+    _nomeController.text = unidade['nome'];
+    _cnpjController.text = unidade['cnpj'];
+    _enderecoController.text = unidade['endereco'];
+    _responsavelController.text = unidade['responsavel'];
+    _tipoUnidade = unidade['tipo'];
+    _statusAtiva = unidade['status'] == 'Ativa';
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Editar Unidade',
+      pageBuilder: (context, _, __) => OrganizationalStructureDrawer(
+        title: 'Editar Unidade',
+        onClose: () {
+          _limparCampos();
+          Navigator.of(context).pop();
+        },
+        onSave: () {
+          _atualizarUnidade(unidade['id']);
+        },
+        child: _buildUnitForm(),
+      ),
+    );
+  }
+
+  void _atualizarUnidade(String id) {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        final index = _unidadesCadastradas.indexWhere((u) => u['id'] == id);
+        if (index != -1) {
+          _unidadesCadastradas[index] = {
+            'id': id,
+            'nome': _nomeController.text,
+            'cnpj': _cnpjController.text,
+            'endereco': _enderecoController.text,
+            'tipo': _tipoUnidade,
+            'responsavel': _responsavelController.text,
+            'status': _statusAtiva ? 'Ativa' : 'Inativa',
+          };
+        }
+      });
+      
+      _limparCampos();
+      Navigator.of(context).pop();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unidade atualizada com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  // MÉTODO PARA INATIVAR UNIDADE
+  void _inativarUnidade(Map<String, dynamic> unidade) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Inativação'),
+        content: Text(
+          'Tem certeza que deseja inativar a unidade "${unidade['nome']}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              setState(() {
+                final index = _unidadesCadastradas.indexWhere((u) => u['id'] == unidade['id']);
+                if (index != -1) {
+                  _unidadesCadastradas[index]['status'] = 'Inativa';
+                }
+              });
+              Navigator.pop(context);
+              
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Unidade "${unidade['nome']}" inativada com sucesso!'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+            },
+            child: const Text('Inativar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // MÉTODO PARA ATIVAR UNIDADE
+  void _ativarUnidade(Map<String, dynamic> unidade) {
+    setState(() {
+      final index = _unidadesCadastradas.indexWhere((u) => u['id'] == unidade['id']);
+      if (index != -1) {
+        _unidadesCadastradas[index]['status'] = 'Ativa';
+      }
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Unidade "${unidade['nome']}" ativada com sucesso!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // TÍTULO E DESCRIÇÃO
-        Text(
-          'Unidades (Matriz / Filial)',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Gerencie as unidades da empresa',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: Colors.grey.shade600,
-          ),
-        ),
-        const SizedBox(height: 24),
-        
-        // LISTA DE UNIDADES CADASTRADAS
+        // REMOVIDO O TÍTULO DUPLICADO
+        // APENAS A LISTA DE UNIDADES CADASTRADAS
         if (_unidadesCadastradas.isEmpty)
           _buildEmptyState()
         else
@@ -295,6 +541,8 @@ class UnitsWidgetState extends State<UnitsWidget> {
       itemCount: _unidadesCadastradas.length,
       itemBuilder: (context, index) {
         final unidade = _unidadesCadastradas[index];
+        final bool isAtiva = unidade['status'] == 'Ativa';
+        
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
@@ -315,15 +563,46 @@ class UnitsWidgetState extends State<UnitsWidget> {
                 Text('Responsável: ${unidade['responsavel']}'),
               ],
             ),
-            trailing: Chip(
-              label: Text(unidade['status']),
-              backgroundColor: unidade['status'] == 'Ativa' 
-                  ? Colors.green.shade100 
-                  : Colors.red.shade100,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // ÍCONE DE VISUALIZAR - COR ADAPTATIVA
+                IconButton(
+                  icon: Icon(Icons.visibility_outlined,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  onPressed: () => _visualizarUnidade(unidade),
+                  tooltip: 'Visualizar',
+                ),
+                
+                // ÍCONE DE EDITAR - COR ADAPTATIVA
+                IconButton(
+                  icon: Icon(Icons.edit_outlined,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                  onPressed: () => _editarUnidade(unidade),
+                  tooltip: 'Editar',
+                ),
+                
+                // ÍCONE DE INATIVAR/ATIVAR - COR ADAPTATIVA
+                if (isAtiva)
+                  IconButton(
+                    icon: Icon(Icons.toggle_off_outlined,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    onPressed: () => _inativarUnidade(unidade),
+                    tooltip: 'Inativar',
+                  )
+                else
+                  IconButton(
+                    icon: Icon(Icons.toggle_on_outlined,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                    onPressed: () => _ativarUnidade(unidade),
+                    tooltip: 'Ativar',
+                  ),
+              ],
             ),
-            onTap: () {
-              // TODO: Implementar edição
-            },
           ),
         );
       },
