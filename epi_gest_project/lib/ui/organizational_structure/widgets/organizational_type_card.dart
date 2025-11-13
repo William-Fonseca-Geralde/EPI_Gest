@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 class OrganizationalTypeCard extends StatelessWidget {
+  final IconData icon;
   final String title;
   final String description;
-  final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const OrganizationalTypeCard({
     super.key,
+    required this.icon,
     required this.title,
     required this.description,
-    required this.icon,
     required this.isSelected,
     required this.onTap,
   });
