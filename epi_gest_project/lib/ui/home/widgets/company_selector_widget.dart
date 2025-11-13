@@ -216,6 +216,41 @@ class CompanySelectorWidget extends StatelessWidget {
               onCompanyChanged?.call();
             },
           ),
+          MenuItemButton(
+            leadingIcon: Icon(
+              Icons.analytics_outlined, // ou Icons.bar_chart_outlined
+              color: Colors.purple.shade700, // Roxo para análise/dados
+            ),
+            trailingIcon: currentCompany == 'Análise Geral'
+                ? Icon(
+                    Icons.check_circle,
+                    color: Theme.of(context).colorScheme.primary,
+                  )
+                : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Análise Geral', // Corrigi "Analise" para "Análise"
+                  style: TextStyle(
+                    fontWeight: currentCompany == 'Análise Geral'
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+                Text(
+                  'União de todas as Unidades',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+            onPressed: () {
+              onCompanyChanged?.call();
+            },
+          ),
         ],
       ),
     );
