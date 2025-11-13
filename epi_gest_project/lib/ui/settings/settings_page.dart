@@ -38,131 +38,141 @@ class _SettingsPageState extends State<SettingsPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      body: Container(
-        color: colorScheme.surface,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24.0),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                border: Border(
-                  bottom: BorderSide(
-                    color: theme.colorScheme.outlineVariant,
-                    width: 1,
-                  ),
-                ),
-              ),
-              child: Row(
-                spacing: 16,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.settings,
-                      color: theme.colorScheme.onPrimaryContainer,
-                      size: 40,
-                    ),
-                  ),
-                  Column(
-                    spacing: 4,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Configurações',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Configurações gerais do sistema',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
+      body: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.08),
+                  colorScheme.surface.withValues(alpha: 0.6),
                 ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(12),
+                topLeft: Radius.circular(12),
               ),
             ),
-
-            // Conteúdo com Scroll
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Define se deve usar layout de duas colunas
-                    final useTwoColumns = constraints.maxWidth > 850;
-
-                    if (useTwoColumns) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Coluna Esquerda
-                          Expanded(
-                            child: Column(
-                              children: [
-                                _buildNotificationsSection(context),
-                                const SizedBox(height: 16),
-                                _buildInventorySection(context),
-                                const SizedBox(height: 16),
-                                _buildReportsSection(context),
-                              ],
-                            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  spacing: 16,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.settings,
+                        color: theme.colorScheme.onPrimaryContainer,
+                        size: 40,
+                      ),
+                    ),
+                    Column(
+                      spacing: 4,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Configurações',
+                          style: theme.textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.8,
+                            height: 1.1,
                           ),
-                          const SizedBox(width: 24),
-                          // Coluna Direita
-                          Expanded(
-                            child: Column(
-                              children: [
-                                _buildSecuritySection(context),
-                                const SizedBox(height: 16),
-                                _buildDataBackupSection(context),
-                                const SizedBox(height: 16),
-                                _buildAboutSection(context),
-                              ],
-                            ),
+                        ),
+                        Text(
+                          'Configurações gerais do sistema',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
                           ),
-                        ],
-                      );
-                    } else {
-                      // Layout de uma coluna para telas menores
-                      return Column(
-                        children: [
-                          _buildNotificationsSection(context),
-                          const SizedBox(height: 16),
-                          _buildInventorySection(context),
-                          const SizedBox(height: 16),
-                          _buildReportsSection(context),
-                          const SizedBox(height: 16),
-                          _buildSecuritySection(context),
-                          const SizedBox(height: 16),
-                          _buildDataBackupSection(context),
-                          const SizedBox(height: 16),
-                          _buildAboutSection(context),
-                          const SizedBox(height: 80), // Espaço para o FAB
-                        ],
-                      );
-                    }
-                  },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
+                FloatingActionButton.extended(
+                  onPressed: () {
+                    _saveSettings(context);
+                  },
+                  icon: const Icon(Icons.save_outlined),
+                  label: const Text('Salvar Configurações'),
+                  elevation: 4,
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Define se deve usar layout de duas colunas
+                  final useTwoColumns = constraints.maxWidth > 850;
+
+                  if (useTwoColumns) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Coluna Esquerda
+                        Expanded(
+                          child: Column(
+                            children: [
+                              _buildNotificationsSection(context),
+                              const SizedBox(height: 16),
+                              _buildInventorySection(context),
+                              const SizedBox(height: 16),
+                              _buildReportsSection(context),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        // Coluna Direita
+                        Expanded(
+                          child: Column(
+                            children: [
+                              _buildSecuritySection(context),
+                              const SizedBox(height: 16),
+                              _buildDataBackupSection(context),
+                              const SizedBox(height: 16),
+                              _buildAboutSection(context),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Layout de uma coluna para telas menores
+                    return Column(
+                      children: [
+                        _buildNotificationsSection(context),
+                        const SizedBox(height: 16),
+                        _buildInventorySection(context),
+                        const SizedBox(height: 16),
+                        _buildReportsSection(context),
+                        const SizedBox(height: 16),
+                        _buildSecuritySection(context),
+                        const SizedBox(height: 16),
+                        _buildDataBackupSection(context),
+                        const SizedBox(height: 16),
+                        _buildAboutSection(context),
+                        const SizedBox(height: 80), // Espaço para o FAB
+                      ],
+                    );
+                  }
+                },
               ),
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          _saveSettings(context);
-        },
-        icon: const Icon(Icons.save_outlined),
-        label: const Text('Salvar Configurações'),
-        elevation: 4,
+          ),
+        ],
       ),
     );
   }

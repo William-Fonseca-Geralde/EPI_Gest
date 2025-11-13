@@ -171,17 +171,21 @@ class _ExchangePageState extends State<ExchangePage> {
     final textTheme = theme.textTheme;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
           decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            border: Border(
-              bottom: BorderSide(
-                color: theme.colorScheme.outlineVariant,
-                width: 1,
-              ),
+            gradient: LinearGradient(
+              colors: [
+                colorScheme.primary.withValues(alpha: 0.08),
+                colorScheme.surface.withValues(alpha: 0.6),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: const BorderRadius.only(
+              topRight: Radius.circular(12),
+              topLeft: Radius.circular(12),
             ),
           ),
           child: Row(
@@ -208,14 +212,18 @@ class _ExchangePageState extends State<ExchangePage> {
                     children: [
                       Text(
                         'Troca de EPIs',
-                        style: textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.8,
+                          height: 1.1,
                         ),
                       ),
                       Text(
                         'Gerencie as trocas de EPIs vencidos ou próximos do vencimento',
-                        style: textTheme.bodyMedium?.copyWith(
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
@@ -250,7 +258,7 @@ class _ExchangePageState extends State<ExchangePage> {
             ],
           ),
         ),
-
+        const Divider(height: 1),
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(18),
@@ -341,19 +349,16 @@ class _ExchangePageState extends State<ExchangePage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(
-                                Icons.search_off,
-                                size: 64,
-                              ),
+                              Icon(Icons.search_off, size: 64),
                               const SizedBox(height: 16),
                               Text(
                                 'Nenhum funcionário encontrado',
-                                style: textTheme.titleMedium
+                                style: textTheme.titleMedium,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'Tente ajustar os filtros ou a busca',
-                                style: textTheme.bodyMedium
+                                style: textTheme.bodyMedium,
                               ),
                             ],
                           ),
@@ -500,7 +505,7 @@ class _EmployeeCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Mat: ${employee['registration']} • ${employee['position']}',
-                    style: textTheme.bodySmall
+                    style: textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -511,15 +516,9 @@ class _EmployeeCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8.0),
           child: Row(
             children: [
-              Icon(
-                Icons.business_outlined,
-                size: 14,
-              ),
+              Icon(Icons.business_outlined, size: 14),
               const SizedBox(width: 4),
-              Text(
-                employee['department'],
-                style: textTheme.bodySmall
-              ),
+              Text(employee['department'], style: textTheme.bodySmall),
               const SizedBox(width: 16),
               if (expiredCount > 0) ...[
                 Container(
@@ -670,14 +669,11 @@ class _EpiItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text(
-                        'CA: ${epi['ca']}',
-                        style: textTheme.bodySmall
-                      ),
+                      Text('CA: ${epi['ca']}', style: textTheme.bodySmall),
                       const SizedBox(width: 16),
                       Text(
                         'Vencimento: ${_formatDate(epi['expiryDate'])}',
-                        style: textTheme.bodySmall
+                        style: textTheme.bodySmall,
                       ),
                     ],
                   ),

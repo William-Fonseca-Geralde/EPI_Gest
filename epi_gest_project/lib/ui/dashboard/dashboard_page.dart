@@ -21,6 +21,7 @@ class DashboardPage extends StatelessWidget {
     return Column(
       children: [
         _buildHeader(context),
+        const Divider(height: 1),
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),

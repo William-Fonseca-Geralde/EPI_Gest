@@ -490,6 +490,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             ],
           ),
           Row(
+            spacing: 12,
             children: [
               Badge.count(
                 count: _activeFiltersCount,
@@ -502,7 +503,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   tooltip: _showFilters ? 'Ocultar filtros' : 'Mostrar filtros',
                 ),
               ),
-              const SizedBox(width: 12),
               FilledButton.icon(
                 onPressed: _showAddEmployeeDrawer,
                 icon: const Icon(Icons.add),

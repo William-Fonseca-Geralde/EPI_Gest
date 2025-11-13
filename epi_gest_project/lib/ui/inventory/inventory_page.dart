@@ -20,15 +20,12 @@ class _InventoryPageState extends State<InventoryPage> {
   @override
   void initState() {
     super.initState();
-    // Inicializa o controller com as dependências
     final dataSource = EpiLocalDataSource();
     final repository = EpiRepositoryImpl(dataSource);
     _controller = InventoryController(repository);
 
-    // Adiciona listener para reconstruir a UI
     _controller.addListener(_onControllerUpdate);
 
-    // Carrega os dados iniciais
     _controller.loadEpis();
   }
 
@@ -72,20 +69,25 @@ class _InventoryPageState extends State<InventoryPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              border: Border(
-                bottom: BorderSide(
-                  color: theme.colorScheme.outlineVariant,
-                  width: 1,
-                ),
+              gradient: LinearGradient(
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.08),
+                  colorScheme.surface.withValues(alpha: 0.6),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(12),
+                topLeft: Radius.circular(12),
               ),
             ),
             child: Row(
@@ -112,14 +114,18 @@ class _InventoryPageState extends State<InventoryPage> {
                         Text(
                           'Estoque de EPIs',
                           style: theme.textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.8,
+                            height: 1.1,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '${_controller.filteredCount} ${_controller.filteredCount == 1 ? 'item' : 'itens'} no estoque',
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       ],
@@ -127,8 +133,8 @@ class _InventoryPageState extends State<InventoryPage> {
                   ],
                 ),
                 Row(
+                  spacing: 12,
                   children: [
-                    // Botão Toggle Filtros
                     IconButton.filledTonal(
                       onPressed: _toggleFilters,
                       icon: Icon(
@@ -138,8 +144,6 @@ class _InventoryPageState extends State<InventoryPage> {
                           ? 'Ocultar filtros'
                           : 'Mostrar filtros',
                     ),
-                    const SizedBox(width: 12),
-                    // Botão Adicionar EPI
                     FilledButton.icon(
                       onPressed: _showAddEpiDrawer,
                       icon: const Icon(Icons.add),
@@ -156,8 +160,7 @@ class _InventoryPageState extends State<InventoryPage> {
               ],
             ),
           ),
-
-          // Filtros (condicional)
+          const Divider(height: 1),
           if (_showFilters)
             InventoryFilters(
               appliedFilters: _controller.filters,
@@ -166,8 +169,6 @@ class _InventoryPageState extends State<InventoryPage> {
               onApplyFilters: _controller.applyFilters,
               onClearFilters: _controller.clearFilters,
             ),
-
-          // Conteúdo principal
           Expanded(child: _buildContent(theme)),
         ],
       ),

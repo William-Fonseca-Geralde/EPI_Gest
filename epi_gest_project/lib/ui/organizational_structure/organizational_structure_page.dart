@@ -17,7 +17,7 @@ class OrganizationalStructurePage extends StatefulWidget {
 
 class _OrganizationalStructurePageState
     extends State<OrganizationalStructurePage> {
-  int _selectedSection = 0;
+  int? _selectedSection;
 
   // Keys para controlar cada widget
   final GlobalKey<UnitsWidgetState> _unitsKey = GlobalKey();
@@ -157,25 +157,6 @@ class _OrganizationalStructurePageState
           Expanded(flex: 3, child: _buildConfigurationPanel()),
         ],
       ),
-      // Column(
-      //   children: [
-      //     _buildHeader(context),
-      //     const Divider(height: 1),
-      //     Expanded(
-      //       child: Padding(
-      //         padding: const EdgeInsets.all(16.0),
-      //         child: Row(
-      //           crossAxisAlignment: CrossAxisAlignment.start,
-      //           children: [
-      //             _buildSidebar(context),
-      //             const SizedBox(width: 16),
-      //             _buildMainContent(),
-      //           ],
-      //         ),
-      //       ),
-      //     ),
-      //   ],
-      // ),
     );
   }
 
@@ -259,6 +240,35 @@ class _OrganizationalStructurePageState
   }
 
   Widget _buildConfigurationPanel() {
+    if (_selectedSection == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.account_tree_outlined,
+              size: 80,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Selecione um tipo de Seção',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Escolha uma seção no painel lateral para começar',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
       children: [
         Container(
@@ -277,128 +287,57 @@ class _OrganizationalStructurePageState
             ),
           ),
           child: Row(
-            spacing: 16,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Icon(
-                  _sections[_selectedSection]['icon'],
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                  size: 40,
-                ),
-              ),
               Expanded(
-                child: Column(
-                  spacing: 4,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  spacing: 16,
                   children: [
-                    Text(
-                      _sections[_selectedSection]['title'],
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.8,
-                            height: 1.1,
-                          ),
+                    Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Icon(
+                        _sections[_selectedSection!]['icon'],
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        size: 40,
+                      ),
                     ),
-                    Text(
-                      _sections[_selectedSection]['description'],
-                      style: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                            letterSpacing: 0.2,
+                    Expanded(
+                      child: Column(
+                        spacing: 4,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _sections[_selectedSection!]['title'],
+                            style: Theme.of(context).textTheme.headlineMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.8,
+                                  height: 1.1,
+                                ),
                           ),
+                          Text(
+                            _sections[_selectedSection!]['description'],
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: _getSectionWidget(_selectedSection),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primary.withValues(alpha: 0.08),
-            colorScheme.surface.withValues(alpha: 0.6),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: const BorderRadius.only(
-          topRight: Radius.circular(12),
-          topLeft: Radius.circular(12),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  _getSectionIcon(_selectedSection),
-                  color: theme.colorScheme.onPrimaryContainer,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _getSectionTitle(_selectedSection),
-                    style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.8,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${_sections.length} seções de gestão',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Row(
-            children: [
               FilledButton.icon(
                 onPressed: () {
-                  _triggerAddAction(_selectedSection);
+                  _triggerAddAction(_selectedSection!);
                 },
                 icon: const Icon(Icons.add),
-                label: Text(_getAddButtonText(_selectedSection)),
+                label: Text(_getAddButtonText(_selectedSection!)),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
@@ -408,56 +347,15 @@ class _OrganizationalStructurePageState
               ),
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSidebar(BuildContext context) {
-    return Container(
-      width: 300,
-      child: Card(
-        child: ListView.separated(
-          itemCount: _sections.length,
-          separatorBuilder: (context, index) => const Divider(height: 1),
-          itemBuilder: (context, index) {
-            final section = _sections[index];
-            return ListTile(
-              leading: Icon(section['icon']),
-              title: Text(
-                section['title'],
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: _selectedSection == index
-                      ? FontWeight.w600
-                      : FontWeight.normal,
-                ),
-              ),
-              subtitle: Text(
-                section['description'],
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
-              ),
-              selected: _selectedSection == index,
-              selectedTileColor: Theme.of(
-                context,
-              ).colorScheme.primary.withOpacity(0.1),
-              onTap: () => _onSectionSelected(index),
-            );
-          },
         ),
-      ),
-    );
-  }
-
-  Widget _buildMainContent() {
-    return Expanded(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: _getSectionWidget(_selectedSection),
+        const Divider(height: 1),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: _getSectionWidget(_selectedSection!),
+          ),
         ),
-      ),
+      ],
     );
   }
 }
