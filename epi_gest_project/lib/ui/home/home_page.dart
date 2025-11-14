@@ -5,6 +5,7 @@ import 'package:epi_gest_project/ui/home/widgets/company_selector_widget.dart';
 import 'package:epi_gest_project/ui/home/widgets/perfil_widget.dart';
 import 'package:epi_gest_project/ui/inventory/inventory_page.dart';
 import 'package:epi_gest_project/ui/organizational_structure/organizational_structure_page.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/product_technical_registration_page.dart'; // NOVA IMPORT
 import 'package:epi_gest_project/ui/reports/reports_page.dart';
 import 'package:epi_gest_project/ui/settings/settings_page.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class _HomePageState extends State<HomePage> {
     const InventoryPage(),
     const ExchangePage(),
     const OrganizationalStructurePage(),
+    const ProductTechnicalRegistrationPage(), // NOVA PÁGINA
     const ReportsPage(),
     const SettingsPage(),
   ];
@@ -125,6 +127,18 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Text('Estrutura'),
                           Text('Organizacional'),
+                        ],
+                      ),
+                    ),
+                    NavigationRailDestination( // NOVO DESTINO
+                      icon: Icon(Icons.app_registration_outlined),
+                      selectedIcon: Icon(Icons.app_registration),
+                      label: Column(
+                        spacing: 1,
+                        crossAxisAlignment: _isRailExtended ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+                        children: [
+                          Text('Cadastros'),
+                          Text('Técnicos'),
                         ],
                       ),
                     ),
