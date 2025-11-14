@@ -5,7 +5,7 @@ class BaseDrawer extends StatefulWidget {
   final Widget header;
   final Widget body;
   final Widget footer;
-  final double? widthFactor; // Fator da largura da tela (ex: 0.6 para 60%)
+  final double? widthFactor;
 
   const BaseDrawer({
     super.key,
@@ -62,7 +62,6 @@ class _BaseDrawerState extends State<BaseDrawer>
     final theme = Theme.of(context);
     final size = MediaQuery.of(context).size;
 
-    // Define a largura do drawer. Usa o fator se fornecido, senão usa a lógica anterior.
     final double drawerWidth = widget.widthFactor != null
         ? size.width * widget.widthFactor!
         : (size.width > 600 ? size.width * 0.6 : size.width * 0.9);

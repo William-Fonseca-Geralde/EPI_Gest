@@ -1,12 +1,12 @@
 import 'package:epi_gest_project/ui/organizational_structure/widgets/organizational_type_card.dart';
 import 'package:flutter/material.dart';
-import 'widgets/units_widget.dart';
-import 'widgets/epi_maping_widget.dart';
-import 'widgets/departments_widget.dart';
-import 'widgets/roles_widget.dart';
-import 'widgets/employment_types_widget.dart';
-import 'widgets/shifts_widget.dart';
-import 'widgets/risks_widget.dart';
+import 'widgets/units/units_widget.dart';
+import 'widgets/epi_maping/epi_maping_widget.dart';
+import 'widgets/department/departments_widget.dart';
+import 'widgets/roles/roles_widget.dart';
+import 'widgets/employment_type/employment_types_widget.dart';
+import 'widgets/shifts/shifts_widget.dart';
+import 'widgets/risks/risks_widget.dart';
 
 class OrganizationalStructurePage extends StatefulWidget {
   const OrganizationalStructurePage({super.key});
