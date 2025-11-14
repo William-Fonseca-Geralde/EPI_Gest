@@ -113,24 +113,33 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     final theme = Theme.of(context);
     return BaseDrawer(
       onClose: widget.onClose,
+      widthFactor: 0.4, // ⬅⬅⬅ LARGURA PADRÃO ADICIONADA
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
     );
   }
 
+  // ------------------------------
+  // HEADER - PADRÃO MODERNO
+  // ------------------------------
+
   Widget _buildHeader(ThemeData theme) {
     String title;
+    String subtitle;
     IconData icon;
 
     if (_isViewing) {
       title = 'Visualizar Turno';
+      subtitle = 'Informações completas do turno';
       icon = Icons.visibility_outlined;
     } else if (_isEditing) {
       title = 'Editar Turno';
+      subtitle = 'Altere os dados do turno';
       icon = Icons.edit_outlined;
     } else {
       title = 'Adicionar Turno';
+      subtitle = 'Preencha os dados do novo turno';
       icon = Icons.assignment_ind_outlined;
     }
 
@@ -144,86 +153,135 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 28, color: theme.colorScheme.primary),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: theme.colorScheme.onPrimaryContainer,
+              size: 24,
+            ),
+          ),
           const SizedBox(width: 16),
-          Expanded(child: Text(title, style: theme.textTheme.titleLarge)),
-          IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: widget.onClose,
+            icon: const Icon(Icons.close),
+            tooltip: 'Fechar',
+            style: IconButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
+  // ------------------------------
+  // FORM - CAMPOS MODERNOS COM SCROLL
+  // ------------------------------
+
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
+
     return Form(
       key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView( // ⬅⬅⬅ SCROLL ADICIONADO AQUI
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
           children: [
-            TextFormField(
+            // Campo Código
+            _buildModernTextField(
               controller: _codigoController,
+              label: 'Código do Turno*',
+              hint: 'Ex: TUR001, ADM002',
               enabled: isEnabled,
-              decoration: const InputDecoration(labelText: 'Código do Turno*'),
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              icon: Icons.qr_code_outlined,
+              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
-            TextFormField(
+            const SizedBox(height: 20),
+
+            // Campo Nome
+            _buildModernTextField(
               controller: _nomeController,
+              label: 'Nome do Turno*',
+              hint: 'Ex: Turno Administrativo, Turno Produção',
               enabled: isEnabled,
-              decoration: const InputDecoration(
-                labelText: 'Nome do Turno* (Ex: Turno Administrativo)',
-              ),
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              icon: Icons.work_outline,
+              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+            ),
+            const SizedBox(height: 24),
+
+            // Seção Horários da Jornada
+            _buildSectionHeader(
+              title: 'Horários da Jornada',
+              icon: Icons.schedule_outlined,
+              theme: theme,
             ),
             const SizedBox(height: 16),
-            Text('Horários da Jornada', style: theme.textTheme.titleMedium),
-            const Divider(),
-            _buildTimePickerTile(
-              label: 'Entrada',
+
+            _buildModernTimePickerTile(
+              label: 'Horário de Entrada',
               time: _entrada,
-              onTap: isEnabled
-                  ? () => _selectTime(
-                      context,
-                      _entrada,
-                      (time) => _entrada = time,
-                    )
-                  : null,
-            ),
-            _buildTimePickerTile(
-              label: 'Saída',
-              time: _saida,
-              onTap: isEnabled
-                  ? () => _selectTime(context, _saida, (time) => _saida = time)
-                  : null,
+              enabled: isEnabled,
+              onTap: () => _selectTime(context, _entrada, (time) => _entrada = time),
             ),
             const SizedBox(height: 16),
-            Text('Intervalo de Almoço', style: theme.textTheme.titleMedium),
-            const Divider(),
-            _buildTimePickerTile(
+
+            _buildModernTimePickerTile(
+              label: 'Horário de Saída',
+              time: _saida,
+              enabled: isEnabled,
+              onTap: () => _selectTime(context, _saida, (time) => _saida = time),
+            ),
+            const SizedBox(height: 24),
+
+            // Seção Intervalo de Almoço
+            _buildSectionHeader(
+              title: 'Intervalo de Almoço',
+              icon: Icons.restaurant_outlined,
+              theme: theme,
+            ),
+            const SizedBox(height: 16),
+
+            _buildModernTimePickerTile(
               label: 'Início do Almoço',
               time: _almocoInicio,
-              onTap: isEnabled
-                  ? () => _selectTime(
-                      context,
-                      _almocoInicio,
-                      (time) => _almocoInicio = time,
-                    )
-                  : null,
+              enabled: isEnabled,
+              onTap: () => _selectTime(context, _almocoInicio, (time) => _almocoInicio = time),
             ),
-            _buildTimePickerTile(
+            const SizedBox(height: 16),
+
+            _buildModernTimePickerTile(
               label: 'Fim do Almoço',
               time: _almocoFim,
-              onTap: isEnabled
-                  ? () => _selectTime(
-                      context,
-                      _almocoFim,
-                      (time) => _almocoFim = time,
-                    )
-                  : null,
+              enabled: isEnabled,
+              onTap: () => _selectTime(context, _almocoFim, (time) => _almocoFim = time),
             ),
           ],
         ),
@@ -231,63 +289,265 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     );
   }
 
-  // Widget auxiliar para os campos de horário
-  Widget _buildTimePickerTile({
+  // ------------------------------
+  // COMPONENTES MODERNOS
+  // ------------------------------
+
+  Widget _buildModernTextField({
+    required TextEditingController controller,
     required String label,
-    required TimeOfDay time,
-    VoidCallback? onTap,
+    required String hint,
+    required bool enabled,
+    required IconData icon,
+    String? Function(String?)? validator,
   }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.access_time_outlined),
-      title: Text(label),
-      trailing: Text(
-        time.format(context),
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+    final theme = Theme.of(context);
+
+    return TextFormField(
+      controller: controller,
+      enabled: enabled,
+      style: TextStyle(
+        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
       ),
-      onTap: onTap,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        hintText: hint,
+        prefixIcon: Icon(
+          icon,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        enabled: enabled,
+        filled: !enabled,
+        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      validator: validator,
     );
   }
+
+  Widget _buildSectionHeader({
+    required String title,
+    required IconData icon,
+    required ThemeData theme,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: theme.colorScheme.primary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernTimePickerTile({
+    required String label,
+    required TimeOfDay time,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.3),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.access_time_outlined,
+            color: theme.colorScheme.onPrimaryContainer,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            time.format(context),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        onTap: enabled ? onTap : null,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  // ------------------------------
+  // FOOTER (EDITAR) - BOTÕES MODERNOS
+  // ------------------------------
 
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant),
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: [
+          // Botão Cancelar - Estilo moderno
           Expanded(
-            child: OutlinedButton(
-              onPressed: _isSaving ? null : widget.onClose,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: _isSaving ? null : widget.onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.onSurface,
+                  side: BorderSide(
+                    color: theme.colorScheme.outline.withOpacity(0.5),
+                  ),
+                  backgroundColor: theme.colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.close, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Cancelar",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Cancelar'),
             ),
           ),
-          const SizedBox(width: 12),
+          
+          const SizedBox(width: 16),
+          
+          // Botão Principal - Estilo moderno
           Expanded(
             flex: 2,
-            child: FilledButton.icon(
-              onPressed: _isSaving ? null : _handleSave,
-              icon: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(_isEditing ? Icons.save : Icons.add),
-              label: Text(
-                _isSaving
-                    ? 'Salvando...'
-                    : (_isEditing ? 'Salvar Alterações' : 'Adicionar'),
+            child: SizedBox(
+              height: 48,
+              child: FilledButton(
+                onPressed: _isSaving ? null : _handleSave,
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isSaving
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            "Salvando...",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _isEditing ? Icons.save_outlined : Icons.add,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isEditing ? "Salvar Alterações" : "Adicionar Turno",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
           ),
@@ -296,24 +556,60 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     );
   }
 
+  // ------------------------------
+  // FOOTER (VIEW) - BOTÃO MODERNIZADO
+  // ------------------------------
+
   Widget _buildViewFooter(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant),
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Expanded(
-            child: OutlinedButton(
-              onPressed: widget.onClose,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: widget.onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.primary,
+                  side: BorderSide(
+                    color: theme.colorScheme.primary.withOpacity(0.3),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.close, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Fechar",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Fechar'),
             ),
           ),
         ],

@@ -26,6 +26,7 @@ class _UnitDrawerState extends State<UnitDrawer> {
   final _cnpjController = TextEditingController();
   final _enderecoController = TextEditingController();
   final _responsavelController = TextEditingController();
+
   String _tipoUnidade = 'Matriz';
   bool _statusAtiva = true;
 
@@ -36,19 +37,17 @@ class _UnitDrawerState extends State<UnitDrawer> {
   @override
   void initState() {
     super.initState();
-    if (_isEditing || _isViewing) {
-      _populateForm();
-    }
+    if (_isEditing || _isViewing) _populateForm();
   }
 
   void _populateForm() {
-    final unit = widget.unitToEdit!;
-    _nomeController.text = unit.nome;
-    _cnpjController.text = unit.cnpj;
-    _enderecoController.text = unit.endereco;
-    _responsavelController.text = unit.responsavel;
-    _tipoUnidade = unit.tipo;
-    _statusAtiva = unit.statusAtiva;
+    final u = widget.unitToEdit!;
+    _nomeController.text = u.nome;
+    _cnpjController.text = u.cnpj;
+    _enderecoController.text = u.endereco;
+    _responsavelController.text = u.responsavel;
+    _tipoUnidade = u.tipo;
+    _statusAtiva = u.statusAtiva;
   }
 
   @override
@@ -64,10 +63,10 @@ class _UnitDrawerState extends State<UnitDrawer> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 500));
 
-    final unitData = Unit(
-      id: widget.unitToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    final unit = Unit(
+      id: widget.unitToEdit?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       nome: _nomeController.text,
       cnpj: _cnpjController.text,
       endereco: _enderecoController.text,
@@ -76,37 +75,45 @@ class _UnitDrawerState extends State<UnitDrawer> {
       statusAtiva: _statusAtiva,
     );
 
-    widget.onSave(unitData);
+    widget.onSave(unit);
     widget.onClose();
 
-    if (mounted) {
-      setState(() => _isSaving = false);
-    }
+    if (mounted) setState(() => _isSaving = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return BaseDrawer(
       onClose: widget.onClose,
+      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
     );
   }
 
+  // ------------------------------
+  // HEADER
+  // ------------------------------
+
   Widget _buildHeader(ThemeData theme) {
     String title;
+    String subtitle;
     IconData icon;
 
     if (_isViewing) {
-      title = 'Visualizar Unidade';
+      title = "Visualizar Unidade";
+      subtitle = "Informações completas da unidade";
       icon = Icons.visibility_outlined;
     } else if (_isEditing) {
-      title = 'Editar Unidade';
+      title = "Editar Unidade";
+      subtitle = "Altere os dados da unidade";
       icon = Icons.edit_outlined;
     } else {
-      title = 'Adicionar Unidade';
+      title = "Adicionar Unidade";
+      subtitle = "Preencha os dados da nova unidade";
       icon = Icons.add_business_outlined;
     }
 
@@ -114,73 +121,135 @@ class _UnitDrawerState extends State<UnitDrawer> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(bottom: BorderSide(color: theme.colorScheme.outlineVariant)),
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 28, color: theme.colorScheme.primary),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: theme.colorScheme.onPrimaryContainer,
+              size: 24,
+            ),
+          ),
           const SizedBox(width: 16),
-          Expanded(child: Text(title, style: theme.textTheme.titleLarge)),
-          IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                )
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: widget.onClose,
+            icon: const Icon(Icons.close),
+            tooltip: "Fechar",
+            style: IconButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          )
         ],
       ),
     );
   }
 
+  // ------------------------------
+  // FORM - CAMPOS MODERNIZADOS
+  // ------------------------------
+
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
+
     return Form(
       key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
           children: [
-            TextFormField(
+            // Campo Nome
+            _buildModernTextField(
               controller: _nomeController,
+              label: 'Nome da Unidade*',
               enabled: isEnabled,
-              decoration: const InputDecoration(labelText: 'Nome da Unidade*'),
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              icon: Icons.business_outlined,
             ),
-            TextFormField(
+            const SizedBox(height: 20),
+
+            // Campo CNPJ
+            _buildModernTextField(
               controller: _cnpjController,
+              label: 'CNPJ*',
               enabled: isEnabled,
-              decoration: const InputDecoration(labelText: 'CNPJ*'),
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              icon: Icons.badge_outlined,
+              keyboardType: TextInputType.number,
             ),
-            TextFormField(
+            const SizedBox(height: 20),
+
+            // Campo Endereço
+            _buildModernTextField(
               controller: _enderecoController,
+              label: 'Endereço Completo*',
               enabled: isEnabled,
-              decoration: const InputDecoration(labelText: 'Endereço Completo*'),
               maxLines: 2,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              icon: Icons.location_on_outlined,
             ),
-            DropdownButtonFormField<String>(
+            const SizedBox(height: 20),
+
+            // Dropdown Tipo de Unidade
+            _buildModernDropdown(
               value: _tipoUnidade,
-              items: ['Matriz', 'Filial'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-              onChanged: isEnabled ? (value) => setState(() => _tipoUnidade = value!) : null,
-              decoration: const InputDecoration(labelText: 'Tipo de Unidade*'),
-            ),
-            TextFormField(
-              controller: _responsavelController,
-              enabled: isEnabled,
-              decoration: const InputDecoration(labelText: 'Responsável Local*'),
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            Row(
-              children: [
-                const Text('Status da Unidade:'),
-                const SizedBox(width: 12),
-                Switch(
-                  value: _statusAtiva,
-                  onChanged: isEnabled ? (value) => setState(() => _statusAtiva = value) : null,
-                ),
-                Text(
-                  _statusAtiva ? 'Ativa' : 'Inativa',
-                  style: TextStyle(color: _statusAtiva ? Colors.green : Colors.red, fontWeight: FontWeight.w500),
-                ),
+              items: const [
+                DropdownMenuItem(value: 'Matriz', child: Text('Matriz')),
+                DropdownMenuItem(value: 'Filial', child: Text('Filial')),
               ],
+              onChanged: isEnabled ? (v) => setState(() => _tipoUnidade = v!) : null,
+              label: 'Tipo de Unidade*',
+              icon: Icons.category_outlined,
+            ),
+            const SizedBox(height: 20),
+
+            // Campo Responsável
+            _buildModernTextField(
+              controller: _responsavelController,
+              label: 'Responsável Local*',
+              enabled: isEnabled,
+              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+              icon: Icons.person_outlined,
+            ),
+            const SizedBox(height: 20),
+
+            // Switch Status - Estilo Moderno
+            _buildModernSwitch(
+              value: _statusAtiva,
+              onChanged: isEnabled ? (v) => setState(() => _statusAtiva = v) : null,
+              label: 'Status da Unidade',
+              activeText: 'Ativa',
+              inactiveText: 'Inativa',
             ),
           ],
         ),
@@ -188,25 +257,173 @@ class _UnitDrawerState extends State<UnitDrawer> {
     );
   }
 
-  Widget _buildEditFooter(ThemeData theme) {
+  // ------------------------------
+  // COMPONENTES MODERNOS
+  // ------------------------------
+
+  Widget _buildModernTextField({
+    required TextEditingController controller,
+    required String label,
+    required bool enabled,
+    String? Function(String?)? validator,
+    IconData? icon,
+    int maxLines = 1,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    final theme = Theme.of(context);
+
+    return TextFormField(
+      controller: controller,
+      enabled: enabled,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      style: TextStyle(
+        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        prefixIcon: icon != null ? Icon(
+          icon,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ) : null,
+        enabled: enabled,
+        filled: !enabled,
+        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildModernDropdown({
+    required String value,
+    required List<DropdownMenuItem<String>> items,
+    required void Function(String?)? onChanged,
+    required String label,
+    required IconData icon,
+  }) {
+    final theme = Theme.of(context);
+
+    return DropdownButtonFormField<String>(
+      value: value,
+      items: items,
+      onChanged: onChanged,
+      style: TextStyle(
+        color: theme.colorScheme.onSurface,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        prefixIcon: Icon(
+          icon,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+      icon: Icon(
+        Icons.arrow_drop_down_outlined,
+        color: theme.colorScheme.onSurfaceVariant,
+      ),
+      borderRadius: BorderRadius.circular(12),
+    );
+  }
+
+  Widget _buildModernSwitch({
+    required bool value,
+    required void Function(bool)? onChanged,
+    required String label,
+    required String activeText,
+    required String inactiveText,
+  }) {
+    final theme = Theme.of(context);
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(top: BorderSide(color: theme.colorScheme.outlineVariant)),
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
       ),
       child: Row(
         children: [
-          Expanded(child: OutlinedButton(onPressed: _isSaving ? null : widget.onClose, child: const Text('Cancelar'))),
+          Icon(
+            Icons.toggle_on_outlined,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
           const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: FilledButton.icon(
-              onPressed: _isSaving ? null : _handleSave,
-              icon: _isSaving
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : Icon(_isEditing ? Icons.save : Icons.add),
-              label: Text(_isSaving ? 'Salvando...' : (_isEditing ? 'Salvar Alterações' : 'Adicionar')),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const Spacer(),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            thumbColor: MaterialStateProperty.all(theme.colorScheme.onPrimary),
+            trackColor: MaterialStateProperty.resolveWith((states) {
+              if (states.contains(MaterialState.selected)) {
+                return theme.colorScheme.primary;
+              }
+              return theme.colorScheme.surfaceVariant;
+            }),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: value 
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value ? activeText : inactiveText,
+              style: TextStyle(
+                color: value ? Colors.green : Colors.red,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
             ),
           ),
         ],
@@ -214,16 +431,182 @@ class _UnitDrawerState extends State<UnitDrawer> {
     );
   }
 
+  // ------------------------------
+  // FOOTER (EDITAR) - BOTÕES MODERNOS
+  // ------------------------------
+
+  Widget _buildEditFooter(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Botão Cancelar
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: _isSaving ? null : widget.onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.onSurface,
+                  side: BorderSide(
+                    color: theme.colorScheme.outline.withOpacity(0.5),
+                  ),
+                  backgroundColor: theme.colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.close, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Cancelar",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          
+          const SizedBox(width: 16),
+          
+          // Botão Principal
+          Expanded(
+            flex: 2,
+            child: SizedBox(
+              height: 48,
+              child: FilledButton(
+                onPressed: _isSaving ? null : _handleSave,
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isSaving
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            "Salvando...",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _isEditing ? Icons.save_outlined : Icons.add,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isEditing ? "Salvar Alterações" : "Adicionar Unidade",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ------------------------------
+  // FOOTER (VIEW)
+  // ------------------------------
+
   Widget _buildViewFooter(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(top: BorderSide(color: theme.colorScheme.outlineVariant)),
+        color: theme.colorScheme.surface,
+        border: Border(
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Expanded(child: OutlinedButton(onPressed: widget.onClose, child: const Text('Fechar'))),
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: widget.onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.primary,
+                  side: BorderSide(
+                    color: theme.colorScheme.primary.withOpacity(0.3),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.close, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Fechar",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

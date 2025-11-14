@@ -170,18 +170,15 @@ class ContactSection extends StatelessWidget {
   }
 }
 
-// REMOVIDO: Classe JobSection completa
-
 class WorkConditionsSection extends StatelessWidget {
   final TextEditingController localTrabalhoController;
   final TextEditingController turnoController;
   final List<String> locaisTrabalhoSugeridos;
   final List<String> turnosSugeridos;
-  // REMOVIDO: episSelecionados, riscosSelecionados
   final GlobalKey turnoButtonKey;
-  // REMOVIDO: episButtonKey, riscosButtonKey
+  final GlobalKey localTrabalhoButtonKey; // NOVO PARÂMETRO
   final VoidCallback onAddTurno;
-  // REMOVIDO: onSelectEpis, onSelectRiscos
+  final VoidCallback onAddLocalTrabalho; // NOVO PARÂMETRO
   final bool enabled;
 
   const WorkConditionsSection({
@@ -190,11 +187,10 @@ class WorkConditionsSection extends StatelessWidget {
     required this.turnoController,
     required this.locaisTrabalhoSugeridos,
     required this.turnosSugeridos,
-    // REMOVIDO: episSelecionados, riscosSelecionados
     required this.turnoButtonKey,
-    // REMOVIDO: episButtonKey, riscosButtonKey
+    required this.localTrabalhoButtonKey, // NOVO PARÂMETRO
     required this.onAddTurno,
-    // REMOVIDO: onSelectEpis, onSelectRiscos
+    required this.onAddLocalTrabalho, // NOVO PARÂMETRO
     this.enabled = true,
   });
 
@@ -208,6 +204,9 @@ class WorkConditionsSection extends StatelessWidget {
           hint: 'Selecione o local',
           icon: Icons.location_on_outlined,
           suggestions: locaisTrabalhoSugeridos,
+          showAddButton: enabled,
+          onAddPressed: onAddLocalTrabalho, // NOVO: usando o callback
+          addButtonKey: localTrabalhoButtonKey, // NOVO: usando a key
           enabled: enabled,
         ),
         const SizedBox(height: 16),
@@ -222,8 +221,6 @@ class WorkConditionsSection extends StatelessWidget {
           addButtonKey: turnoButtonKey,
           enabled: enabled,
         ),
-        // REMOVIDO: MultiSelect para EPIs
-        // REMOVIDO: MultiSelect para Riscos
       ],
     );
   }
