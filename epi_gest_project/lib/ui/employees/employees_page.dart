@@ -22,8 +22,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
   List<Employee> _filteredEmployees = [];
   Map<String, dynamic> _appliedFilters = {};
 
-  final List<String> _setores = [];
-  final List<String> _funcoes = [];
+  // REMOVIDO: Listas de setores e funções
+  // final List<String> _setores = [];
+  // final List<String> _funcoes = [];
 
   final _motivoController = TextEditingController();
 
@@ -36,34 +37,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
   @override
   void initState() {
     super.initState();
-    _loadReferenceData();
+    // REMOVIDO: _loadReferenceData();
     _loadEmployeesFuture = _loadEmployees();
   }
 
-  Future<void> _loadReferenceData() async {
-    if (!mounted) return;
-    final employeeService = Provider.of<EmployeeService>(
-      context,
-      listen: false,
-    );
-    try {
-      final results = await Future.wait([
-        employeeService.getAllSetores(),
-        employeeService.getAllCargos(),
-      ]);
-
-      final setoresResult = results[0] as List<Setor>;
-      final funcoesResult = results[1] as List<Cargo>;
-
-      if (!mounted) return;
-      setState(() {
-        _setores.addAll(setoresResult.map((s) => s.nome));
-        _funcoes.addAll(funcoesResult.map((c) => c.nome));
-      });
-    } catch (e) {
-      debugPrint('Erro ao carregar dados de referência para filtros: $e');
-    }
-  }
+  // REMOVIDO: Método _loadReferenceData completo
 
   Future<void> _loadEmployees() async {
     try {
@@ -135,16 +113,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             )) {
           return false;
         }
-        if (filters['setores'] != null &&
-            (filters['setores'] as List).isNotEmpty &&
-            !(filters['setores'] as List).contains(employee.setor)) {
-          return false;
-        }
-        if (filters['funcoes'] != null &&
-            (filters['funcoes'] as List).isNotEmpty &&
-            !(filters['funcoes'] as List).contains(employee.cargo)) {
-          return false;
-        }
+        // REMOVIDO: Filtros para setores e funções
         if (filters['ativo'] != null && (filters['ativo'] as List).isNotEmpty) {
           final List<String> statusList = List<String>.from(filters['ativo']);
 
@@ -396,8 +365,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
           if (_showFilters)
             EmployeesFilters(
               appliedFilters: _appliedFilters,
-              setores: _setores,
-              funcoes: _funcoes,
+              setores: const [], // REMOVIDO: setores não são mais necessários
+              funcoes: const [], // REMOVIDO: funções não são mais necessárias
               onApplyFilters: (filters) => _applyFilters(filters),
               onClearFilters: _clearFilters,
             ),

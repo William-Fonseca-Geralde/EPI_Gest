@@ -41,9 +41,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   DateTime? _dataRetornoFerias;
   bool _statusAtivo = true;
   bool _statusFerias = false;
-  final List<String> _epis = [];
-  final List<String> _riscos = [];
-
   bool get _isEditing => widget.employeeToEdit != null && !widget.view;
   bool get _isAdding => widget.employeeToEdit == null && !widget.view;
   bool get _isViewing => widget.view;
@@ -54,9 +51,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     'nome': TextEditingController(),
     'cpf': TextEditingController(),
     'rg': TextEditingController(),
-    'setor': TextEditingController(),
-    'funcao': TextEditingController(),
-    'vinculo': TextEditingController(),
+    // REMOVIDO: 'setor', 'funcao', 'vinculo'
     'dataEntrada': TextEditingController(),
     'dataNascimento': TextEditingController(),
     'telefone': TextEditingController(),
@@ -67,48 +62,21 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     'turno': TextEditingController(),
     'dataDesligamento': TextEditingController(),
     'motivoDesligamento': TextEditingController(),
-    'newSetor': TextEditingController(),
-    'newFuncao': TextEditingController(),
-    'newVinculo': TextEditingController(),
     'newTurno': TextEditingController(),
   };
 
   final Map<String, GlobalKey> _overlayKeys = {
-    'setor': GlobalKey(),
-    'funcao': GlobalKey(),
-    'vinculo': GlobalKey(),
     'turno': GlobalKey(),
-    'epis': GlobalKey(),
-    'riscos': GlobalKey(),
   };
   final Map<String, OverlayEntry?> _overlays = {
-    'setor': null,
-    'funcao': null,
-    'vinculo': null,
     'turno': null,
-    'epis': null,
-    'riscos': null,
   };
 
   bool _isLoading = true;
   String? _loadingError;
-  List<String> _setoresSugeridos = [];
-  List<String> _funcoesSugeridas = [];
-  List<String> _vinculosSugeridos = [];
   List<String> _turnosSugeridos = [];
 
   final Map<String, List<String>> _suggestions = {
-    'epis': [
-      'Capacete',
-      'Óculos de Proteção',
-      'Protetor Auricular',
-      'Luvas',
-      'Botas de Segurança',
-      'Cinto de Segurança',
-      'Máscara',
-      'Avental',
-      'Protetor Facial',
-    ],
     'funcionarios': [
       'João Silva',
       'Maria Santos',
@@ -121,16 +89,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       'Filial São Paulo',
       'Filial Rio de Janeiro',
       'Filial Belo Horizonte',
-    ],
-    'riscos': [
-      'Risco Físico',
-      'Risco Químico',
-      'Risco Biológico',
-      'Risco Ergonômico',
-      'Risco de Acidente',
-      'Ruído Excessivo',
-      'Calor Intenso',
-      'Produtos Químicos',
     ],
   };
   
@@ -155,25 +113,13 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     );
     try {
       final results = await Future.wait([
-        employeeService.getAllSetores(),
-        employeeService.getAllCargos(),
-        employeeService.getAllVinculo(),
         employeeService.getAllTurnos(),
       ]);
 
       if (!mounted) return;
 
       setState(() {
-        _setoresSugeridos = (results[0] as List<Setor>)
-            .map((s) => s.nome)
-            .toList();
-        _funcoesSugeridas = (results[1] as List<Cargo>)
-            .map((c) => c.nome)
-            .toList();
-        _vinculosSugeridos = (results[2] as List<Vinculo>)
-            .map((v) => v.nome)
-            .toList();
-        _turnosSugeridos = (results[3] as List<Turno>)
+        _turnosSugeridos = (results[0] as List<Turno>)
             .map((t) => t.nome)
             .toList();
         _isLoading = false;
@@ -195,9 +141,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _controllers['nome']!.text = employee.nome;
     _controllers['cpf']!.text = employee.cpf ?? '';
     _controllers['rg']!.text = employee.rg ?? '';
-    _controllers['setor']!.text = employee.setor ?? '';
-    _controllers['funcao']!.text = employee.cargo ?? '';
-    _controllers['vinculo']!.text = employee.vinculo ?? '';
     _controllers['dataEntrada']!.text = DateFormat(
       'dd/MM/yyyy',
     ).format(employee.dataEntrada);
@@ -223,8 +166,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       _dataRetornoFerias = employee.dataRetornoFerias;
       _statusAtivo = employee.statusAtivo;
       _statusFerias = employee.statusFerias;
-      _epis.addAll(employee.epis);
-      _riscos.addAll(employee.riscos);
       _imagemPath = employee.imagemPath;
     });
   }
@@ -329,56 +270,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     Overlay.of(context).insert(_overlays[type]!);
   }
 
-  void _showMultiSelectOverlay(
-    String type,
-    String title,
-    IconData icon,
-    List<String> items,
-    List<String> selectedItems,
-  ) {
-    if (_overlays[type] != null) {
-      _overlays[type]!.remove();
-      _overlays[type] = null;
-      return;
-    }
-    final RenderBox renderBox =
-        _overlayKeys[type]!.currentContext!.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
-    _overlays[type] = OverlayEntry(
-      builder: (context) => MultiSelectOverlay(
-        theme: Theme.of(context),
-        title: title,
-        icon: icon,
-        position: position,
-        buttonSize: size,
-        items: items,
-        selectedItems: List.from(selectedItems),
-        onChanged: (updatedList) {
-          setState(() {
-            if (type == 'epis') {
-              _epis.clear();
-              _epis.addAll(updatedList);
-            } else if (type == 'riscos') {
-              _riscos.clear();
-              _riscos.addAll(updatedList);
-            }
-          });
-        },
-        onCancel: () {
-          _overlays[type]?.remove();
-          _overlays[type] = null;
-        },
-        onConfirm: () {
-          _overlays[type]?.remove();
-          _overlays[type] = null;
-          setState(() {});
-        },
-      ),
-    );
-    Overlay.of(context).insert(_overlays[type]!);
-  }
-
   void _addNewItem(
     String type,
     List<String> suggestionList,
@@ -389,7 +280,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       final newItem = controller.text.trim();
       if (!suggestionList.contains(newItem)) {
         suggestionList.add(newItem);
-        _controllers[type]!.text = newItem;
+        if (type == 'turno') {
+          _controllers['turno']!.text = newItem;
+        }
       }
       controller.clear();
     });
@@ -398,12 +291,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _showSuccessSnackBar('${_capitalize(type)} adicionado com sucesso!');
   }
 
-  void _addNovoSetor() =>
-      _addNewItem('setor', _setoresSugeridos, _controllers['newSetor']!);
-  void _addNovaFuncao() =>
-      _addNewItem('funcao', _funcoesSugeridas, _controllers['newFuncao']!);
-  void _addNovoVinculo() =>
-      _addNewItem('vinculo', _vinculosSugeridos, _controllers['newVinculo']!);
   void _addNovoTurno() =>
       _addNewItem('turno', _turnosSugeridos, _controllers['newTurno']!);
 
@@ -431,15 +318,15 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         dataNascimento: _dataNascimento,
         telefone: _controllers['telefone']!.text.trim(),
         email: _controllers['email']!.text.trim(),
-        setor: _controllers['setor']!.text.trim(),
-        cargo: _controllers['funcao']!.text.trim(),
-        vinculo: _controllers['vinculo']!.text.trim(),
+        setor: null,
+        cargo: null,
+        vinculo: null,
         lider: _controllers['lider']!.text.trim(),
         gestor: _controllers['gestor']!.text.trim(),
         localTrabalho: _controllers['localTrabalho']!.text.trim(),
         turno: _controllers['turno']!.text.trim(),
-        epis: _epis,
-        riscos: _riscos,
+        epis: const [],
+        riscos: const [],
         statusAtivo: _statusAtivo,
         statusFerias: _statusFerias,
         dataRetornoFerias: _dataRetornoFerias,
@@ -742,34 +629,12 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 ),
               ),
               InfoSection(
-                title: 'Cargo e Setor',
-                icon: Icons.work_outline,
-                child: JobSection(
+                title: 'Contato',
+                icon: Icons.contact_phone_outlined,
+                child: ContactSection(
+                  telefoneController: _controllers['telefone']!,
+                  emailController: _controllers['email']!,
                   enabled: isEnabled,
-                  setorController: _controllers['setor']!,
-                  funcaoController: _controllers['funcao']!,
-                  vinculoController: _controllers['vinculo']!,
-                  setoresSugeridos: _setoresSugeridos,
-                  funcoesSugeridas: _funcoesSugeridas,
-                  vinculosSugeridos: _vinculosSugeridos,
-                  setorButtonKey: _overlayKeys['setor']!,
-                  funcaoButtonKey: _overlayKeys['funcao']!,
-                  vinculoButtonKey: _overlayKeys['vinculo']!,
-                  onAddSetor: () => _showAddOverlay(
-                    'setor',
-                    'Adicionar Novo Setor',
-                    _addNovoSetor,
-                  ),
-                  onAddFuncao: () => _showAddOverlay(
-                    'funcao',
-                    'Adicionar Nova Função',
-                    _addNovaFuncao,
-                  ),
-                  onAddVinculo: () => _showAddOverlay(
-                    'vinculo',
-                    'Adicionar Novo Tipo de Vínculo',
-                    _addNovoVinculo,
-                  ),
                 ),
               ),
               InfoSection(
@@ -781,29 +646,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   turnoController: _controllers['turno']!,
                   locaisTrabalhoSugeridos: _suggestions['locaisTrabalho']!,
                   turnosSugeridos: _turnosSugeridos,
-                  episSelecionados: _epis,
-                  riscosSelecionados: _riscos,
                   turnoButtonKey: _overlayKeys['turno']!,
-                  episButtonKey: _overlayKeys['epis']!,
-                  riscosButtonKey: _overlayKeys['riscos']!,
                   onAddTurno: () => _showAddOverlay(
                     'turno',
                     'Adicionar Novo Turno',
                     _addNovoTurno,
-                  ),
-                  onSelectEpis: () => _showMultiSelectOverlay(
-                    'epis',
-                    'Selecionar EPIs Necessários',
-                    Icons.security_outlined,
-                    _suggestions['epis']!,
-                    _epis,
-                  ),
-                  onSelectRiscos: () => _showMultiSelectOverlay(
-                    'riscos',
-                    'Selecionar Riscos Associados',
-                    Icons.warning_outlined,
-                    _suggestions['riscos']!,
-                    _riscos,
                   ),
                 ),
               ),
@@ -865,35 +712,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           ),
         ),
         InfoSection(
-          title: 'Cargo e Setor',
-          icon: Icons.work_outline,
-          child: JobSection(
-            enabled: isEnabled,
-            setorController: _controllers['setor']!,
-            funcaoController: _controllers['funcao']!,
-            vinculoController: _controllers['vinculo']!,
-            // MODIFICADO: Passando as listas carregadas do Appwrite
-            setoresSugeridos: _setoresSugeridos,
-            funcoesSugeridas: _funcoesSugeridas,
-            vinculosSugeridos: _vinculosSugeridos,
-            setorButtonKey: _overlayKeys['setor']!,
-            funcaoButtonKey: _overlayKeys['funcao']!,
-            vinculoButtonKey: _overlayKeys['vinculo']!,
-            onAddSetor: () =>
-                _showAddOverlay('setor', 'Adicionar Novo Setor', _addNovoSetor),
-            onAddFuncao: () => _showAddOverlay(
-              'funcao',
-              'Adicionar Nova Função',
-              _addNovaFuncao,
-            ),
-            onAddVinculo: () => _showAddOverlay(
-              'vinculo',
-              'Adicionar Novo Tipo de Vínculo',
-              _addNovoVinculo,
-            ),
-          ),
-        ),
-        InfoSection(
           title: 'Contato',
           icon: Icons.contact_phone_outlined,
           child: ContactSection(
@@ -910,29 +728,10 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
             localTrabalhoController: _controllers['localTrabalho']!,
             turnoController: _controllers['turno']!,
             locaisTrabalhoSugeridos: _suggestions['locaisTrabalho']!,
-            // MODIFICADO: Passando a lista carregada do Appwrite
             turnosSugeridos: _turnosSugeridos,
-            episSelecionados: _epis,
-            riscosSelecionados: _riscos,
             turnoButtonKey: _overlayKeys['turno']!,
-            episButtonKey: _overlayKeys['epis']!,
-            riscosButtonKey: _overlayKeys['riscos']!,
             onAddTurno: () =>
                 _showAddOverlay('turno', 'Adicionar Novo Turno', _addNovoTurno),
-            onSelectEpis: () => _showMultiSelectOverlay(
-              'epis',
-              'Selecionar EPIs Necessários',
-              Icons.security_outlined,
-              _suggestions['epis']!,
-              _epis,
-            ),
-            onSelectRiscos: () => _showMultiSelectOverlay(
-              'riscos',
-              'Selecionar Riscos Associados',
-              Icons.warning_outlined,
-              _suggestions['riscos']!,
-              _riscos,
-            ),
           ),
         ),
         InfoSection(
