@@ -323,7 +323,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     TimeOfDay _almocoInicio = const TimeOfDay(hour: 12, minute: 0);
     TimeOfDay _almocoFim = const TimeOfDay(hour: 13, minute: 0);
     String _nomeTurno = '';
-    String _codigoTurno = '';
 
     showDialog(
       context: context,
@@ -362,20 +361,12 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            // CAMPOS NOME E CÓDIGO
+                            // CAMPO NOME (CÓDIGO REMOVIDO)
                             _buildModalTextField(
                               label: 'Nome do Turno*',
-                              hint: 'Ex: Turno Administrativo',
+                              hint: 'Ex: Turno Administrativo, Manhã, Tarde',
                               icon: Icons.work_outlined,
                               onChanged: (value) => _nomeTurno = value,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _buildModalTextField(
-                              label: 'Código do Turno*',
-                              hint: 'Ex: TUR001, ADM002',
-                              icon: Icons.qr_code_outlined,
-                              onChanged: (value) => _codigoTurno = value,
                             ),
                             const SizedBox(height: 24),
 
@@ -467,7 +458,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                         Expanded(
                           child: FilledButton(
                             onPressed: () {
-                              if (_nomeTurno.isNotEmpty && _codigoTurno.isNotEmpty) {
+                              if (_nomeTurno.isNotEmpty) {
                                 final novoTurno = _nomeTurno;
                                 setState(() {
                                   if (!_turnosSugeridos.contains(novoTurno)) {
