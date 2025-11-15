@@ -22,7 +22,6 @@ class EmploymentTypeDrawer extends StatefulWidget {
 
 class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
 
   bool get _isEditing => widget.typeToEdit != null && !widget.view;
@@ -39,13 +38,11 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
 
   void _populateForm() {
     final type = widget.typeToEdit!;
-    _codigoController.text = type.codigo;
     _descricaoController.text = type.descricao;
   }
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _descricaoController.dispose();
     super.dispose();
   }
@@ -56,11 +53,11 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
     setState(() => _isSaving = true);
     await Future.delayed(const Duration(milliseconds: 500));
 
-    final typeData = EmploymentType(
-      id: widget.typeToEdit?.id ?? _codigoController.text,
-      codigo: _codigoController.text,
-      descricao: _descricaoController.text,
-    );
+   final typeData = EmploymentType(
+  id: widget.typeToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+  codigo: '', // Campo vazio temporariamente
+  descricao: _descricaoController.text,
+  );
 
     widget.onSave(typeData);
     widget.onClose();
@@ -75,16 +72,12 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
     final theme = Theme.of(context);
     return BaseDrawer(
       onClose: widget.onClose,
-      widthFactor: 0.4, // ⬅⬅⬅ LARGURA PADRÃO ADICIONADA
+      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
     );
   }
-
-  // ------------------------------
-  // HEADER - PADRÃO MODERNO
-  // ------------------------------
 
   Widget _buildHeader(ThemeData theme) {
     String title;
@@ -163,10 +156,6 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
     );
   }
 
-  // ------------------------------
-  // FORM - CAMPOS MODERNOS
-  // ------------------------------
-
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 
@@ -177,18 +166,7 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo Código
-            _buildModernTextField(
-              controller: _codigoController,
-              label: 'Código do Vínculo*',
-              hint: 'Ex: CLT, PJ, EST, TER',
-              enabled: isEnabled,
-              icon: Icons.qr_code_outlined,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            const SizedBox(height: 20),
-
-            // Campo Descrição
+            // Campo Descrição (único campo agora)
             _buildModernTextField(
               controller: _descricaoController,
               label: 'Descrição do Vínculo*',
@@ -202,10 +180,6 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
       ),
     );
   }
-
-  // ------------------------------
-  // COMPONENTE DE CAMPO MODERNO
-  // ------------------------------
 
   Widget _buildModernTextField({
     required TextEditingController controller,
@@ -259,10 +233,6 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
     );
   }
 
-  // ------------------------------
-  // FOOTER (EDITAR) - BOTÕES MODERNOS
-  // ------------------------------
-
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -284,7 +254,6 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
       ),
       child: Row(
         children: [
-          // Botão Cancelar - Estilo moderno
           Expanded(
             child: SizedBox(
               height: 48,
@@ -320,7 +289,6 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
           
           const SizedBox(width: 16),
           
-          // Botão Principal - Estilo moderno
           Expanded(
             flex: 2,
             child: SizedBox(
@@ -378,10 +346,6 @@ class _EmploymentTypeDrawerState extends State<EmploymentTypeDrawer> {
       ),
     );
   }
-
-  // ------------------------------
-  // FOOTER (VIEW) - BOTÃO MODERNIZADO
-  // ------------------------------
 
   Widget _buildViewFooter(ThemeData theme) {
     return Container(

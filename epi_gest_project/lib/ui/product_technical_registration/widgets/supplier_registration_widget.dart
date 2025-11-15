@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class MeasurementUnitsWidget extends StatefulWidget {
-  const MeasurementUnitsWidget({super.key});
+class SupplierRegistrationWidget extends StatefulWidget {
+  const SupplierRegistrationWidget({super.key});
 
   @override
-  State<MeasurementUnitsWidget> createState() => MeasurementUnitsWidgetState();
+  State<SupplierRegistrationWidget> createState() => SupplierRegistrationWidgetState();
 }
 
-class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
-  final List<Map<String, String>> _units = [];
+class SupplierRegistrationWidgetState extends State<SupplierRegistrationWidget> {
+  final List<Map<String, dynamic>> _suppliers = [];
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _companyNameController = TextEditingController();
+  final _cnpjController = TextEditingController();
+  bool _statusAtiva = true; // STATUS NO PADRÃO
 
-  // ------------------------------
-  //  OPEN RIGHT SIDE DRAWER
-  // ------------------------------
   void showAddDrawer() {
-    _nameController.clear();
+    _companyNameController.clear();
+    _cnpjController.clear();
+    _statusAtiva = true;
 
     showGeneralDialog(
       context: context,
@@ -61,20 +63,19 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
     );
   }
 
-  // ------------------------------
-  // SAVE UNIT
-  // ------------------------------
-  void _saveUnit() {
+  void _saveSupplier() {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _units.add({
-          'name': _nameController.text,
+        _suppliers.add({
+          'companyName': _companyNameController.text,
+          'cnpj': _cnpjController.text,
+          'statusAtiva': _statusAtiva, // STATUS NO PADRÃO
         });
       });
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Unidade ${_nameController.text} cadastrada!'),
+          content: Text('Fornecedor ${_companyNameController.text} cadastrado!'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -82,22 +83,49 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
     }
   }
 
-  void _deleteUnit(int index) {
+  void _deleteSupplier(int index) {
     setState(() {
-      _units.removeAt(index);
+      _suppliers.removeAt(index);
     });
   }
 
-  // ------------------------------
-  // RIGHT DRAWER CONTENT - PADRÃO MODERNO
-  // ------------------------------
+  void _toggleSupplierStatus(int index) {
+    setState(() {
+      _suppliers[index]['statusAtiva'] = !_suppliers[index]['statusAtiva'];
+    });
+  }
+
+  String? _validateCNPJ(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Por favor, insira o CNPJ';
+    }
+    
+    final cleanedCNPJ = value.replaceAll(RegExp(r'[^\d]'), '');
+    
+    if (cleanedCNPJ.length != 14) {
+      return 'CNPJ deve ter 14 dígitos';
+    }
+    
+    if (_suppliers.any((supplier) => supplier['cnpj'] == cleanedCNPJ)) {
+      return 'CNPJ já cadastrado';
+    }
+    
+    return null;
+  }
+
+  String _formatCNPJ(String cnpj) {
+    final cleanedCNPJ = cnpj.replaceAll(RegExp(r'[^\d]'), '');
+    if (cleanedCNPJ.length != 14) return cnpj;
+    
+    return '${cleanedCNPJ.substring(0, 2)}.${cleanedCNPJ.substring(2, 5)}.${cleanedCNPJ.substring(5, 8)}/${cleanedCNPJ.substring(8, 12)}-${cleanedCNPJ.substring(12)}';
+  }
+
   Widget _buildAddDrawer() {
     final theme = Theme.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // HEADER - PADRÃO MODERNO
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -115,7 +143,7 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.straighten_outlined,
+                  Icons.business_outlined,
                   color: theme.colorScheme.onPrimaryContainer,
                   size: 24,
                 ),
@@ -126,14 +154,14 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Nova Unidade de Medida',
+                      'Novo Fornecedor',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Cadastre uma nova unidade de medida',
+                      'Cadastre um novo fornecedor',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -155,7 +183,6 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
           ),
         ),
 
-        // FORM
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -163,18 +190,42 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
               key: _formKey,
               child: Column(
                 children: [
-                  // Campo Nome - ESTILO MODERNO
+                  // Campo Razão Social
                   _buildModernTextField(
-                    controller: _nameController,
-                    label: 'Nome da Unidade*',
-                    hint: 'Ex: Unidade, Caixa, Par, Quilograma, Metro',
-                    icon: Icons.straighten_outlined,
+                    controller: _companyNameController,
+                    label: 'Razão Social*',
+                    hint: 'Ex: Empresa XYZ Ltda',
+                    icon: Icons.business_outlined,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Por favor, insira o nome';
+                        return 'Por favor, insira a razão social';
                       }
                       return null;
                     },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Campo CNPJ
+                  _buildModernTextField(
+                    controller: _cnpjController,
+                    label: 'CNPJ*',
+                    hint: 'Ex: 12.345.678/0001-90',
+                    icon: Icons.badge_outlined,
+                    validator: _validateCNPJ,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(14),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Switch Status - PADRÃO IDÊNTICO
+                  _buildModernSwitch(
+                    value: _statusAtiva,
+                    onChanged: (v) => setState(() => _statusAtiva = v),
+                    label: 'Status do Fornecedor',
+                    activeText: 'Ativo',
+                    inactiveText: 'Inativo',
                   ),
                 ],
               ),
@@ -182,7 +233,6 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
           ),
         ),
 
-        // FOOTER - BOTÕES MODERNOS
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -203,7 +253,6 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
           ),
           child: Row(
             children: [
-              // Botão Cancelar
               Expanded(
                 child: SizedBox(
                   height: 48,
@@ -238,13 +287,12 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
               ),
               const SizedBox(width: 16),
               
-              // Botão Salvar
               Expanded(
                 flex: 2,
                 child: SizedBox(
                   height: 48,
                   child: FilledButton(
-                    onPressed: _saveUnit,
+                    onPressed: _saveSupplier,
                     style: FilledButton.styleFrom(
                       backgroundColor: theme.colorScheme.primary,
                       foregroundColor: theme.colorScheme.onPrimary,
@@ -258,7 +306,7 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                         const Icon(Icons.add, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          "Adicionar Unidade",
+                          "Adicionar Fornecedor",
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                           ),
@@ -275,9 +323,6 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
     );
   }
 
-  // ------------------------------
-  // COMPONENTE DE CAMPO MODERNO
-  // ------------------------------
   Widget _buildModernTextField({
     required TextEditingController controller,
     required String label,
@@ -285,6 +330,7 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
     required IconData icon,
     required String? Function(String?)? validator,
     String? helperText,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     final theme = Theme.of(context);
 
@@ -296,6 +342,7 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
           style: TextStyle(
             color: theme.colorScheme.onSurface,
           ),
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             labelText: label,
             labelStyle: TextStyle(
@@ -340,9 +387,75 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
     );
   }
 
-  // ------------------------------
-  // MAIN LIST SCREEN - MODERNIZADA
-  // ------------------------------
+  // SWITCH NO PADRÃO IDÊNTICO
+  Widget _buildModernSwitch({
+    required bool value,
+    required void Function(bool)? onChanged,
+    required String label,
+    required String activeText,
+    required String inactiveText,
+  }) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.toggle_on_outlined,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const Spacer(),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            thumbColor: MaterialStateProperty.all(theme.colorScheme.onPrimary),
+            trackColor: MaterialStateProperty.resolveWith((states) {
+              if (states.contains(MaterialState.selected)) {
+                return theme.colorScheme.primary;
+              }
+              return theme.colorScheme.surfaceVariant;
+            }),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: value 
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value ? activeText : inactiveText,
+              style: TextStyle(
+                color: value ? Colors.green : Colors.red,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -351,7 +464,7 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
       width: double.infinity,
       height: double.infinity,
       padding: const EdgeInsets.all(24),
-      child: _units.isEmpty
+      child: _suppliers.isEmpty
           ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -362,21 +475,21 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    Icons.straighten_outlined,
+                    Icons.business_outlined,
                     size: 64,
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Nenhuma unidade cadastrada',
+                  'Nenhum fornecedor cadastrado',
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Clique em "Nova Unidade" para começar',
+                  'Clique em "Novo Fornecedor" para começar',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -397,7 +510,7 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                     ),
                     icon: const Icon(Icons.add),
                     label: const Text(
-                      'Nova Unidade',
+                      'Novo Fornecedor',
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -407,12 +520,11 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
           : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // HEADER DA LISTA
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Unidades de Medida',
+                      'Fornecedores Cadastrados',
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -428,7 +540,7 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                       ),
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text(
-                        'Nova Unidade',
+                        'Novo Fornecedor',
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -436,12 +548,11 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                 ),
                 const SizedBox(height: 16),
                 
-                // LISTA DE UNIDADES
                 Expanded(
                   child: ListView.builder(
-                    itemCount: _units.length,
+                    itemCount: _suppliers.length,
                     itemBuilder: (context, index) {
-                      final unit = _units[index];
+                      final supplier = _suppliers[index];
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
@@ -454,34 +565,75 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
                         child: ListTile(
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16,
-                            vertical: 12,
+                            vertical: 8,
                           ),
                           leading: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
-                              Icons.straighten,
+                              Icons.business,
                               color: theme.colorScheme.onPrimaryContainer,
-                              size: 24,
+                              size: 20,
                             ),
                           ),
                           title: Text(
-                            unit['name']!,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 16,
-                            ),
+                            supplier['companyName']!,
+                            style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
-                          trailing: IconButton(
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: theme.colorScheme.error,
-                            ),
-                            onPressed: () => _deleteUnit(index),
-                            tooltip: 'Excluir unidade',
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'CNPJ: ${_formatCNPJ(supplier['cnpj']!)}',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: supplier['statusAtiva'] 
+                                      ? Colors.green.withOpacity(0.1)
+                                      : Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  supplier['statusAtiva'] ? 'Ativo' : 'Inativo',
+                                  style: TextStyle(
+                                    color: supplier['statusAtiva'] ? Colors.green : Colors.red,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  supplier['statusAtiva'] ? Icons.toggle_on : Icons.toggle_off,
+                                  color: supplier['statusAtiva'] 
+                                      ? theme.colorScheme.primary 
+                                      : theme.colorScheme.outline,
+                                ),
+                                onPressed: () => _toggleSupplierStatus(index),
+                                tooltip: supplier['statusAtiva'] ? 'Desativar' : 'Ativar',
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.delete_outline,
+                                  color: theme.colorScheme.error,
+                                ),
+                                onPressed: () => _deleteSupplier(index),
+                                tooltip: 'Excluir fornecedor',
+                              ),
+                            ],
                           ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -498,7 +650,8 @@ class MeasurementUnitsWidgetState extends State<MeasurementUnitsWidget> {
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _companyNameController.dispose();
+    _cnpjController.dispose();
     super.dispose();
   }
 }

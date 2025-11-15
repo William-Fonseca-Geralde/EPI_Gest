@@ -23,7 +23,6 @@ class DepartmentDrawer extends StatefulWidget {
 
 class _DepartmentDrawerState extends State<DepartmentDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
   final _unidadeVinculada = TextEditingController();
 
@@ -31,6 +30,18 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
   bool get _isAdding => widget.departmentToEdit == null && !widget.view;
   bool get _isViewing => widget.view;
   bool _isSaving = false;
+
+  // Lista de unidades disponíveis
+  final List<String> _unidadesDisponiveis = [
+    'Matriz Araras',
+    'Filial São Paulo', 
+    'Filial Rio de Janeiro',
+    'Filial Belo Horizonte',
+    'Filial Curitiba',
+    'Filial Porto Alegre',
+    'Filial Brasília',
+    'Filial Salvador',
+  ];
 
   @override
   void initState() {
@@ -42,14 +53,12 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
 
   void _populateForm() {
     final department = widget.departmentToEdit!;
-    _codigoController.text = department.codigo;
     _descricaoController.text = department.descricao;
     _unidadeVinculada.text = department.unidade;
   }
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _descricaoController.dispose();
     _unidadeVinculada.dispose();
     super.dispose();
@@ -61,8 +70,8 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
     setState(() => _isSaving = true);
 
     final departmentData = Department(
-      id: widget.departmentToEdit?.id ?? _codigoController.text,
-      codigo: _codigoController.text,
+      id: widget.departmentToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      codigo: '', // Código removido
       descricao: _descricaoController.text,
       unidade: _unidadeVinculada.text,
     );
@@ -170,7 +179,7 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
   }
 
   // ------------------------------
-  // FORM - COM ESPAÇAMENTO MODERNO
+  // FORM - SEM CÓDIGO E COM AUTOCORRECT FUNCIONAL
   // ------------------------------
 
   Widget _buildForm(ThemeData theme) {
@@ -183,36 +192,25 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo Código
-            _buildCustomTextField(
-              controller: _codigoController,
-              label: 'Código do Setor*',
-              hint: 'Ex: PROD001',
-              icon: Icons.qr_code_outlined,
-              enabled: isEnabled,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            const SizedBox(height: 20),
-
             // Campo Descrição
             _buildCustomTextField(
               controller: _descricaoController,
               label: 'Descrição do Setor*',
-              hint: 'Ex: Produção, Administrativo, RH',
+              hint: 'Ex: Produção, Administrativo, RH, Financeiro',
               icon: Icons.work_outline,
               enabled: isEnabled,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
             const SizedBox(height: 20),
 
-            // Campo Unidade Vinculada
-            _buildCustomAutocompleteField(
+            // Campo Unidade Vinculada - CORRIGIDO
+            _buildCustomDropdown(
               controller: _unidadeVinculada,
               label: 'Unidade Vinculada*',
               hint: 'Selecione a unidade',
               icon: Icons.workspaces_outlined,
               enabled: isEnabled,
-              suggestions: const ['Matriz', 'Filial SP', 'Filial RJ', 'Filial MG'],
+              items: _unidadesDisponiveis,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
           ],
@@ -277,114 +275,74 @@ class _DepartmentDrawerState extends State<DepartmentDrawer> {
     );
   }
 
-  Widget _buildCustomAutocompleteField({
+  Widget _buildCustomDropdown({
     required TextEditingController controller,
     required String label,
     required String hint,
     required IconData icon,
     required bool enabled,
-    required List<String> suggestions,
+    required List<String> items,
     String? Function(String?)? validator,
   }) {
     final theme = Theme.of(context);
+    String? selectedValue = controller.text.isEmpty ? null : controller.text;
 
-    return Autocomplete<String>(
-      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
-        textEditingController.text = controller.text;
-        
-        return TextFormField(
-          controller: textEditingController,
-          focusNode: focusNode,
-          enabled: enabled,
-          style: TextStyle(
-            color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-          ),
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: TextStyle(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            hintText: hint,
-            prefixIcon: Icon(
-              icon,
-              color: theme.colorScheme.onSurfaceVariant,
-              size: 20,
-            ),
-            enabled: enabled,
-            filled: !enabled,
-            fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.outline),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            suffixIcon: enabled ? const Icon(Icons.arrow_drop_down_outlined) : null,
-          ),
-          validator: validator,
-          onChanged: (value) {
-            controller.text = value;
-          },
+    return DropdownButtonFormField<String>(
+      value: selectedValue,
+      items: items.map((String unidade) {
+        return DropdownMenuItem(
+          value: unidade,
+          child: Text(unidade),
         );
-      },
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return const Iterable<String>.empty();
-        }
-        return suggestions.where((String option) {
-          return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+      }).toList(),
+      onChanged: enabled ? (String? newValue) {
+        setState(() {
+          selectedValue = newValue;
+          controller.text = newValue ?? '';
         });
-      },
-      onSelected: (String selection) {
-        controller.text = selection;
-      },
-      optionsViewBuilder: (context, onSelected, options) {
-        return Align(
-          alignment: Alignment.topLeft,
-          child: Material(
-            elevation: 4,
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.4 - 48,
-              constraints: const BoxConstraints(maxHeight: 200),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ListView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                itemCount: options.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final String option = options.elementAt(index);
-                  return ListTile(
-                    leading: Icon(
-                      Icons.workspaces_outlined,
-                      color: theme.colorScheme.onSurfaceVariant,
-                      size: 20,
-                    ),
-                    title: Text(option),
-                    onTap: () {
-                      onSelected(option);
-                    },
-                  );
-                },
-              ),
-            ),
-          ),
-        );
-      },
+      } : null,
+      style: TextStyle(
+        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        hintText: hint,
+        prefixIcon: Icon(
+          icon,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        enabled: enabled,
+        filled: !enabled,
+        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        suffixIcon: enabled ? const Icon(Icons.arrow_drop_down_outlined) : null,
+      ),
+      icon: enabled ? Icon(
+        Icons.arrow_drop_down_outlined,
+        color: theme.colorScheme.onSurfaceVariant,
+      ) : null,
+      borderRadius: BorderRadius.circular(12),
+      validator: validator,
     );
   }
 

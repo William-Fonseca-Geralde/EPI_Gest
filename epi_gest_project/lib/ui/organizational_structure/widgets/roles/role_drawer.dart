@@ -22,7 +22,6 @@ class RoleDrawer extends StatefulWidget {
 
 class _RoleDrawerState extends State<RoleDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
 
   bool get _isEditing => widget.roleToEdit != null && !widget.view;
@@ -39,13 +38,11 @@ class _RoleDrawerState extends State<RoleDrawer> {
 
   void _populateForm() {
     final role = widget.roleToEdit!;
-    _codigoController.text = role.codigo;
     _descricaoController.text = role.descricao;
   }
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _descricaoController.dispose();
     super.dispose();
   }
@@ -57,8 +54,8 @@ class _RoleDrawerState extends State<RoleDrawer> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     final roleData = Role(
-      id: widget.roleToEdit?.id ?? _codigoController.text,
-      codigo: _codigoController.text,
+      id: widget.roleToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      codigo: '', // Código removido
       descricao: _descricaoController.text,
     );
 
@@ -75,7 +72,7 @@ class _RoleDrawerState extends State<RoleDrawer> {
     final theme = Theme.of(context);
     return BaseDrawer(
       onClose: widget.onClose,
-      widthFactor: 0.4, // ⬅⬅⬅ LARGURA PADRÃO ADICIONADA AQUI
+      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
@@ -164,7 +161,7 @@ class _RoleDrawerState extends State<RoleDrawer> {
   }
 
   // ------------------------------
-  // FORM - CAMPOS MODERNOS (AGORA COM LARGURA CORRETA)
+  // FORM - CAMPOS MODERNOS (SEM CÓDIGO)
   // ------------------------------
 
   Widget _buildForm(ThemeData theme) {
@@ -177,22 +174,11 @@ class _RoleDrawerState extends State<RoleDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo Código
-            _buildModernTextField(
-              controller: _codigoController,
-              label: 'Código Cargo/Função*',
-              hint: 'Ex: CAR001, FUN002',
-              enabled: isEnabled,
-              icon: Icons.qr_code_outlined,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            const SizedBox(height: 20),
-
-            // Campo Descrição
+            // Campo Descrição (único campo agora)
             _buildModernTextField(
               controller: _descricaoController,
               label: 'Descrição do Cargo*',
-              hint: 'Ex: Analista, Gerente, Assistente',
+              hint: 'Ex: Analista, Gerente, Assistente, Operador',
               enabled: isEnabled,
               icon: Icons.work_outline,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,

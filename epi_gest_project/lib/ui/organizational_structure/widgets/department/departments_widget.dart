@@ -10,19 +10,17 @@ class DepartmentsWidget extends StatefulWidget {
 }
 
 class DepartmentsWidgetState extends State<DepartmentsWidget> {
-  final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
   var index = 0;
 
-  // LISTA DE DEPARTAMENTOS CADASTRADOS
+  // LISTA DE DEPARTAMENTOS CADASTRADOS - VERSÃO TEMPORÁRIA COM CÓDIGO VAZIO
   final List<Department> _departamentosCadastrados = [
-    Department(id: 'PROD001', codigo: 'PROD001', descricao: 'Produção', unidade: 'Matriz'),
-    Department(id: 'ADM001', codigo: 'ADM001', descricao: 'Administrativo', unidade: 'Matriz'),
+    Department(id: '1', codigo: '', descricao: 'Produção', unidade: 'Matriz'),
+    Department(id: '2', codigo: '', descricao: 'Administrativo', unidade: 'Matriz'),
   ];
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _descricaoController.dispose();
     super.dispose();
   }
@@ -114,7 +112,7 @@ class DepartmentsWidgetState extends State<DepartmentsWidget> {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
             subtitle: Text(
-              'Código: ${departamento.codigo} | Unidade: ${departamento.unidade}',
+              'Unidade: ${departamento.unidade}', // ⬅️ Removido o código do subtítulo
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -137,7 +135,7 @@ class DepartmentsWidgetState extends State<DepartmentsWidget> {
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Excluir',
                   onPressed: () {
-                    // TODO: Adicionar lógica de exclusão com confirmação
+                    _showDeleteConfirmation(departamento);
                   },
                 ),
               ],
@@ -145,6 +143,48 @@ class DepartmentsWidgetState extends State<DepartmentsWidget> {
           ),
         );
       },
+    );
+  }
+
+  void _showDeleteConfirmation(Department department) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: Text(
+              'Tem certeza que deseja excluir o departamento "${department.descricao}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteDepartment(department);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Excluir',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteDepartment(Department department) {
+    setState(() {
+      _departamentosCadastrados.removeWhere((d) => d.id == department.id);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Departamento "${department.descricao}" excluído com sucesso!'),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 }

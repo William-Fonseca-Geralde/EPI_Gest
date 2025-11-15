@@ -23,7 +23,6 @@ class ShiftDrawer extends StatefulWidget {
 
 class _ShiftDrawerState extends State<ShiftDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _codigoController = TextEditingController();
   final _nomeController = TextEditingController();
 
   // Estado para os horários
@@ -52,7 +51,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
 
   void _populateForm() {
     final shift = widget.shiftToEdit!;
-    _codigoController.text = shift.codigo;
     _nomeController.text = shift.nome;
     _entrada = shift.entrada;
     _saida = shift.saida;
@@ -62,7 +60,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _nomeController.dispose();
     super.dispose();
   }
@@ -74,14 +71,14 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     final shiftData = Shift(
-      id: widget.shiftToEdit?.id ?? _codigoController.text,
-      codigo: _codigoController.text,
-      nome: _nomeController.text,
-      entrada: _entrada,
-      saida: _saida,
-      almocoInicio: _almocoInicio,
-      almocoFim: _almocoFim,
-    );
+    id: widget.shiftToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    codigo: '', // Campo vazio temporariamente
+    nome: _nomeController.text,
+    entrada: _entrada,
+    saida: _saida,
+    almocoInicio: _almocoInicio,
+    almocoFim: _almocoFim,
+  );
 
     widget.onSave(shiftData);
     widget.onClose();
@@ -113,7 +110,7 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     final theme = Theme.of(context);
     return BaseDrawer(
       onClose: widget.onClose,
-      widthFactor: 0.4, // ⬅⬅⬅ LARGURA PADRÃO ADICIONADA
+      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
@@ -210,27 +207,16 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
 
     return Form(
       key: _formKey,
-      child: SingleChildScrollView( // ⬅⬅⬅ SCROLL ADICIONADO AQUI
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo Código
-            _buildModernTextField(
-              controller: _codigoController,
-              label: 'Código do Turno*',
-              hint: 'Ex: TUR001, ADM002',
-              enabled: isEnabled,
-              icon: Icons.qr_code_outlined,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            const SizedBox(height: 20),
-
-            // Campo Nome
+            // Campo Nome (único campo de texto agora)
             _buildModernTextField(
               controller: _nomeController,
               label: 'Nome do Turno*',
-              hint: 'Ex: Turno Administrativo, Turno Produção',
+              hint: 'Ex: Turno Administrativo, Turno Produção, Manhã, Tarde',
               enabled: isEnabled,
               icon: Icons.work_outline,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
@@ -461,7 +447,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
       ),
       child: Row(
         children: [
-          // Botão Cancelar - Estilo moderno
           Expanded(
             child: SizedBox(
               height: 48,
@@ -497,7 +482,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
           
           const SizedBox(width: 16),
           
-          // Botão Principal - Estilo moderno
           Expanded(
             flex: 2,
             child: SizedBox(

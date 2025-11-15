@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'widgets/measurement_units_widget.dart';
 import 'widgets/product_categories_widget.dart';
 import 'widgets/storage_locations_widget.dart';
+import 'widgets/supplier_registration_widget.dart';
+import 'widgets/brands_registration_widget.dart'; // NOVA IMPORT
 
 class ProductTechnicalRegistrationPage extends StatefulWidget {
   const ProductTechnicalRegistrationPage({super.key});
@@ -15,10 +17,12 @@ class _ProductTechnicalRegistrationPageState
     extends State<ProductTechnicalRegistrationPage> {
   int? _selectedSection;
 
-  // Keys para controlar cada widget - CORRIGIDO
+  // Keys para controlar cada widget - ATUALIZADO
   final GlobalKey<MeasurementUnitsWidgetState> _measurementUnitsKey = GlobalKey();
   final GlobalKey<ProductCategoriesWidgetState> _productCategoriesKey = GlobalKey();
   final GlobalKey<StorageLocationsWidgetState> _storageLocationsKey = GlobalKey();
+  final GlobalKey<SupplierRegistrationWidgetState> _supplierRegistrationKey = GlobalKey();
+  final GlobalKey<BrandsRegistrationWidgetState> _brandsRegistrationKey = GlobalKey(); // NOVO
 
   final List<Map<String, dynamic>> _sections = [
     {
@@ -39,6 +43,18 @@ class _ProductTechnicalRegistrationPageState
       'description': 'Gerencie endereços e locais de estoque',
       'index': 2,
     },
+    {
+      'title': 'Fornecedores',
+      'icon': Icons.business_outlined,
+      'description': 'Cadastre fornecedores e seus CNPJs',
+      'index': 3,
+    },
+    { // NOVA SEÇÃO
+      'title': 'Marcas',
+      'icon': Icons.branding_watermark_outlined,
+      'description': 'Gerencie marcas de produtos',
+      'index': 4,
+    },
   ];
 
   void _onSectionSelected(int index) {
@@ -55,6 +71,10 @@ class _ProductTechnicalRegistrationPageState
         return ProductCategoriesWidget(key: _productCategoriesKey);
       case 2:
         return StorageLocationsWidget(key: _storageLocationsKey);
+      case 3:
+        return SupplierRegistrationWidget(key: _supplierRegistrationKey);
+      case 4: // NOVO
+        return BrandsRegistrationWidget(key: _brandsRegistrationKey);
       default:
         return const Center(child: Text('Seção não encontrada'));
     }
@@ -68,6 +88,10 @@ class _ProductTechnicalRegistrationPageState
         return 'Nova Categoria';
       case 2:
         return 'Novo Local';
+      case 3:
+        return 'Novo Fornecedor';
+      case 4: // NOVO
+        return 'Nova Marca';
       default:
         return 'Adicionar';
     }
@@ -83,6 +107,12 @@ class _ProductTechnicalRegistrationPageState
         break;
       case 2:
         _storageLocationsKey.currentState?.showAddDrawer();
+        break;
+      case 3:
+        _supplierRegistrationKey.currentState?.showAddDrawer();
+        break;
+      case 4: // NOVO
+        _brandsRegistrationKey.currentState?.showAddDrawer();
         break;
     }
   }
@@ -190,13 +220,13 @@ class _ProductTechnicalRegistrationPageState
     final colorScheme = theme.colorScheme;
 
     return Card(
-      elevation: 0, // Remove sombra
+      elevation: 0,
       color: isSelected
           ? colorScheme.primaryContainer
-          : Colors.transparent, // Fundo transparente quando não selecionado
+          : Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide.none, // Remove completamente a borda
+        side: BorderSide.none,
       ),
       child: InkWell(
         onTap: onTap,

@@ -10,7 +10,6 @@ class StorageLocationsWidget extends StatefulWidget {
 class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
   final List<Map<String, dynamic>> _locations = [];
   final _formKey = GlobalKey<FormState>();
-  final _codeController = TextEditingController();
   final _addressController = TextEditingController();
   final _productCodeController = TextEditingController();
   final _productDescriptionController = TextEditingController();
@@ -37,7 +36,6 @@ class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
   //  OPEN RIGHT SIDE DRAWER
   // ------------------------------
   void showAddDrawer() {
-    _codeController.clear();
     _addressController.clear();
     _productCodeController.clear();
     _productDescriptionController.clear();
@@ -93,7 +91,6 @@ class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _locations.add({
-          'code': _codeController.text.toUpperCase(),
           'unit': _selectedUnit,
           'address': _addressController.text,
           'productCode': _productCodeController.text,
@@ -103,7 +100,7 @@ class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Local ${_codeController.text} cadastrado!'),
+          content: Text('Local ${_addressController.text} cadastrado!'),
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
@@ -342,25 +339,6 @@ class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
               key: _formKey,
               child: Column(
                 children: [
-                  // Campo Código - ESTILO MODERNO
-                  _buildModernTextField(
-                    controller: _codeController,
-                    label: 'Código/ID do Local*',
-                    hint: 'Ex: ALM001, EST002, DEP003',
-                    icon: Icons.qr_code_outlined,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira o código';
-                      }
-                      if (_locations.any(
-                          (loc) => loc['code'] == value.toUpperCase())) {
-                        return 'Código já existe';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
                   // Dropdown Unidade - ESTILO MODERNO
                   _buildModernDropdown(
                     value: _selectedUnit,
@@ -806,7 +784,7 @@ class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
                             ),
                           ),
                           title: Text(
-                            'Local: ${location['code']}',
+                            'Unidade: ${location['unit']}',
                             style: const TextStyle(
                               fontWeight: FontWeight.w500,
                               fontSize: 16,
@@ -816,13 +794,6 @@ class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const SizedBox(height: 4),
-                              Text(
-                                'Unidade: ${location['unit']}',
-                                style: TextStyle(
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
                               Text(
                                 'Endereço: ${location['address']}',
                                 style: TextStyle(
@@ -868,7 +839,6 @@ class StorageLocationsWidgetState extends State<StorageLocationsWidget> {
 
   @override
   void dispose() {
-    _codeController.dispose();
     _addressController.dispose();
     _productCodeController.dispose();
     _productDescriptionController.dispose();

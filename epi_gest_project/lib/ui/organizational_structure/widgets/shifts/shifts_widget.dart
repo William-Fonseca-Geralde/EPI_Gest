@@ -15,23 +15,23 @@ class ShiftsWidgetState extends State<ShiftsWidget> {
   final List<Shift> _turnosCadastrados = [
     Shift(
       id: '1',
-      codigo: 'TUR001',
+      codigo: '', // Campo vazio temporariamente
       nome: 'Manhã',
-      entrada: TimeOfDay(hour: 06, minute: 00),
-      saida: TimeOfDay(hour: 14, minute: 00),
-      almocoInicio: TimeOfDay(hour: 12, minute: 00),
-      almocoFim: TimeOfDay(hour: 13, minute: 00),
+      entrada: const TimeOfDay(hour: 6, minute: 0),
+      saida: const TimeOfDay(hour: 14, minute: 0),
+      almocoInicio: const TimeOfDay(hour: 12, minute: 0),
+      almocoFim: const TimeOfDay(hour: 13, minute: 0),
     ),
     Shift(
       id: '2',
-      codigo: 'TUR002',
+      codigo: '', // Campo vazio temporariamente
       nome: 'Tarde',
-      entrada: TimeOfDay(hour: 14, minute: 00),
-      saida: TimeOfDay(hour: 22, minute: 00),
-      almocoInicio: TimeOfDay(hour: 18, minute: 00),
-      almocoFim: TimeOfDay(hour: 19, minute: 00),
+      entrada: const TimeOfDay(hour: 14, minute: 0),
+      saida: const TimeOfDay(hour: 22, minute: 0),
+      almocoInicio: const TimeOfDay(hour: 18, minute: 0),
+      almocoFim: const TimeOfDay(hour: 19, minute: 0),
     ),
-  ];
+];
 
   void showAddDrawer() {
     _showShiftDrawer();
@@ -42,7 +42,7 @@ class ShiftsWidgetState extends State<ShiftsWidget> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Gerenciar Turno',
-      pageBuilder: (context, _, __) => ShiftDrawer( // <-- 4. Chama o drawer
+      pageBuilder: (context, _, __) => ShiftDrawer(
         shiftToEdit: turno,
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
@@ -111,26 +111,82 @@ class ShiftsWidgetState extends State<ShiftsWidget> {
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
-            // ...código do ListTile...
+            leading: Icon(
+              Icons.access_time_outlined,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            title: Text(
+              turno.nome,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Text(
+              '${turno.entrada.format(context)} - ${turno.saida.format(context)}',
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.visibility_outlined),
                   tooltip: 'Visualizar',
-                  onPressed: () => _showShiftDrawer(turno: turno, viewOnly: true), // <-- 5. Ações da lista
+                  onPressed: () => _showShiftDrawer(turno: turno, viewOnly: true),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   tooltip: 'Editar',
-                  onPressed: () => _showShiftDrawer(turno: turno), // <-- 5. Ações da lista
+                  onPressed: () => _showShiftDrawer(turno: turno),
                 ),
-                // ...outros botões...
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  tooltip: 'Excluir',
+                  onPressed: () => _showDeleteConfirmation(turno),
+                ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  void _showDeleteConfirmation(Shift turno) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: Text(
+              'Tem certeza que deseja excluir o turno "${turno.nome}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteTurno(turno);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Excluir',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteTurno(Shift turno) {
+    setState(() {
+      _turnosCadastrados.removeWhere((t) => t.id == turno.id);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Turno "${turno.nome}" excluído com sucesso!'),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 }

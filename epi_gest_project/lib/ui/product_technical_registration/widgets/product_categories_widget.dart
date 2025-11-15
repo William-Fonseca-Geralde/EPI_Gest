@@ -11,14 +11,12 @@ class ProductCategoriesWidgetState extends State<ProductCategoriesWidget> {
   final List<Map<String, String>> _categories = [];
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _codeController = TextEditingController();
 
   // ------------------------------
   //  OPEN RIGHT SIDE DRAWER
   // ------------------------------
   void showAddDrawer() {
     _nameController.clear();
-    _codeController.clear();
 
     showGeneralDialog(
       context: context,
@@ -31,7 +29,7 @@ class ProductCategoriesWidgetState extends State<ProductCategoriesWidget> {
           child: Material(
             color: Colors.transparent,
             child: Container(
-              width: 500, // ⬅⬅⬅ LARGURA AUMENTADA PARA 500px
+              width: 500,
               height: MediaQuery.of(context).size.height,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
@@ -71,7 +69,6 @@ class ProductCategoriesWidgetState extends State<ProductCategoriesWidget> {
       setState(() {
         _categories.add({
           'name': _nameController.text,
-          'code': _codeController.text.toUpperCase(),
         });
       });
       Navigator.pop(context);
@@ -166,25 +163,6 @@ class ProductCategoriesWidgetState extends State<ProductCategoriesWidget> {
               key: _formKey,
               child: Column(
                 children: [
-                  // Campo Código - ESTILO MODERNO
-                  _buildModernTextField(
-                    controller: _codeController,
-                    label: 'Código/ID*',
-                    hint: 'Ex: LUV, CAP, BOT, EPI, FER',
-                    icon: Icons.qr_code_outlined,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Por favor, insira o código';
-                      }
-                      if (_categories.any(
-                          (cat) => cat['code'] == value.toUpperCase())) {
-                        return 'Código já existe';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-
                   // Campo Nome - ESTILO MODERNO
                   _buildModernTextField(
                     controller: _nameController,
@@ -497,12 +475,6 @@ class ProductCategoriesWidgetState extends State<ProductCategoriesWidget> {
                               fontSize: 16,
                             ),
                           ),
-                          subtitle: Text(
-                            'Código: ${category['code']}',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurfaceVariant,
-                            ),
-                          ),
                           trailing: IconButton(
                             icon: Icon(
                               Icons.delete_outline,
@@ -527,7 +499,6 @@ class ProductCategoriesWidgetState extends State<ProductCategoriesWidget> {
   @override
   void dispose() {
     _nameController.dispose();
-    _codeController.dispose();
     super.dispose();
   }
 }

@@ -22,7 +22,6 @@ class RisksDrawer extends StatefulWidget {
 
 class _RisksDrawerState extends State<RisksDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
 
   bool get _isEditing => widget.riskToEdit != null && !widget.view;
@@ -39,13 +38,11 @@ class _RisksDrawerState extends State<RisksDrawer> {
 
   void _populateForm() {
     final risk = widget.riskToEdit!;
-    _codigoController.text = risk.codigo;
     _descricaoController.text = risk.descricao;
   }
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _descricaoController.dispose();
     super.dispose();
   }
@@ -57,9 +54,9 @@ class _RisksDrawerState extends State<RisksDrawer> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     final riskData = Risk(
-      id: widget.riskToEdit?.id ?? _codigoController.text,
-      codigo: _codigoController.text,
+      id: widget.riskToEdit?.id ?? '',
       descricao: _descricaoController.text,
+      codigo: '', // ⬅️ Mantenha temporariamente ou remova do model
     );
 
     widget.onSave(riskData);
@@ -75,7 +72,7 @@ class _RisksDrawerState extends State<RisksDrawer> {
     final theme = Theme.of(context);
     return BaseDrawer(
       onClose: widget.onClose,
-      widthFactor: 0.4, // ⬅⬅⬅ LARGURA PADRÃO ADICIONADA
+      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
@@ -102,7 +99,7 @@ class _RisksDrawerState extends State<RisksDrawer> {
     } else {
       title = 'Adicionar Risco';
       subtitle = 'Preencha os dados do novo risco';
-      icon = Icons.warning_outlined; // Ícone mais apropriado para risco
+      icon = Icons.warning_outlined;
     }
 
     return Container(
@@ -177,18 +174,7 @@ class _RisksDrawerState extends State<RisksDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo Código
-            _buildModernTextField(
-              controller: _codigoController,
-              label: 'Código Risco*',
-              hint: 'Ex: RIS001, QUI002',
-              enabled: isEnabled,
-              icon: Icons.qr_code_outlined,
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            const SizedBox(height: 20),
-
-            // Campo Descrição
+            // Campo Descrição (único campo agora)
             _buildModernTextField(
               controller: _descricaoController,
               label: 'Descrição do Risco*',

@@ -164,11 +164,6 @@ class _AddEpiDrawerState extends State<AddEpiDrawer>
       'estoqueMax',
       'periodicidadeTroca',
       'observacoes',
-      'novaCategoria',
-      'novaMarca',
-      'novaUnidade',
-      'novaFornecedor',
-      'novaLocalizacao',
     ];
     for (final field in fields) {
       _controllers[field] = TextEditingController();
@@ -271,79 +266,720 @@ class _AddEpiDrawerState extends State<AddEpiDrawer>
     _showSuccessSnackBar('Imagem removida');
   }
 
-  // ==================== MÉTODOS DE OVERLAY (REUTILIZÁVEIS) ====================
+  // ==================== MODAIS PARA CADASTRO RÁPIDO ====================
 
-  void _showAddOverlay(String type, String title, VoidCallback onAdd) {
-    if (_overlays[type] != null) {
-      _overlays[type]!.remove();
-      _overlays[type] = null;
-      return;
-    }
+  void _showCategoriaModal() {
+    final theme = Theme.of(context);
+    String nomeCategoria = '';
 
-    final RenderBox renderBox =
-        _overlayKeys[type]!.currentContext!.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // HEADER DO MODAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Adicionar Categoria',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
 
-    _overlays[type] = OverlayEntry(
-      builder: (context) => AddItemOverlay(
-        theme: Theme.of(context),
-        title: title,
-        controller: _controllers['nova${_capitalize(type)}']!,
-        position: position,
-        buttonSize: size,
-        onAdd: onAdd,
-        onCancel: () {
-          _overlays[type]?.remove();
-          _overlays[type] = null;
-          _controllers['nova${_capitalize(type)}']!.clear();
-        },
+                    // CAMPO NOME DA CATEGORIA
+                    _buildModalTextField(
+                      label: 'Nome da Categoria*',
+                      hint: 'Ex: Proteção Respiratória, Proteção para Mãos',
+                      icon: Icons.category_outlined,
+                      onChanged: (value) => nomeCategoria = value,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // BOTÕES DO MODAL
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              if (nomeCategoria.isNotEmpty) {
+                                setState(() {
+                                  if (!_suggestions['categorias']!.contains(nomeCategoria)) {
+                                    _suggestions['categorias']!.add(nomeCategoria);
+                                  }
+                                  _controllers['categoria']!.text = nomeCategoria;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessSnackBar('Categoria adicionada com sucesso!');
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Adicionar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showMarcaModal() {
+    final theme = Theme.of(context);
+    String nomeMarca = '';
+    bool statusAtiva = true;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // HEADER DO MODAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Adicionar Marca',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // CAMPO NOME DA MARCA
+                    _buildModalTextField(
+                      label: 'Nome da Marca*',
+                      hint: 'Ex: 3M, SafetyPro, DuPont',
+                      icon: Icons.branding_watermark_outlined,
+                      onChanged: (value) => nomeMarca = value,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // SWITCH STATUS - PADRÃO IDÊNTICO
+                    _buildModalSwitch(
+                      value: statusAtiva,
+                      onChanged: (value) => setState(() => statusAtiva = value),
+                      label: 'Status da Marca',
+                      activeText: 'Ativa',
+                      inactiveText: 'Inativa',
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // BOTÕES DO MODAL
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              if (nomeMarca.isNotEmpty) {
+                                setState(() {
+                                  if (!_suggestions['marcas']!.contains(nomeMarca)) {
+                                    _suggestions['marcas']!.add(nomeMarca);
+                                  }
+                                  _controllers['marca']!.text = nomeMarca;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessSnackBar('Marca adicionada com sucesso!');
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Adicionar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showUnidadeModal() {
+    final theme = Theme.of(context);
+    String nomeUnidade = '';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // HEADER DO MODAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Adicionar Unidade',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // CAMPO NOME DA UNIDADE
+                    _buildModalTextField(
+                      label: 'Nome da Unidade*',
+                      hint: 'Ex: Unidade, Caixa, Par, Quilograma',
+                      icon: Icons.straighten_outlined,
+                      onChanged: (value) => nomeUnidade = value,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // BOTÕES DO MODAL
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              if (nomeUnidade.isNotEmpty) {
+                                setState(() {
+                                  if (!_suggestions['unidades']!.contains(nomeUnidade)) {
+                                    _suggestions['unidades']!.add(nomeUnidade);
+                                  }
+                                  _controllers['unidade']!.text = nomeUnidade;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessSnackBar('Unidade adicionada com sucesso!');
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Adicionar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showFornecedorModal() {
+    final theme = Theme.of(context);
+    String razaoSocial = '';
+    String cnpj = '';
+    bool statusAtivo = true;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // HEADER DO MODAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Adicionar Fornecedor',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // CAMPO RAZÃO SOCIAL
+                    _buildModalTextField(
+                      label: 'Razão Social*',
+                      hint: 'Ex: Empresa XYZ Ltda',
+                      icon: Icons.business_outlined,
+                      onChanged: (value) => razaoSocial = value,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // CAMPO CNPJ
+                    _buildModalTextField(
+                      label: 'CNPJ*',
+                      hint: 'Ex: 12.345.678/0001-90',
+                      icon: Icons.badge_outlined,
+                      onChanged: (value) => cnpj = value,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(14),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // SWITCH STATUS - PADRÃO IDÊNTICO
+                    _buildModalSwitch(
+                      value: statusAtivo,
+                      onChanged: (value) => setState(() => statusAtivo = value),
+                      label: 'Status do Fornecedor',
+                      activeText: 'Ativo',
+                      inactiveText: 'Inativo',
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 24),
+
+                    // BOTÕES DO MODAL
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              if (razaoSocial.isNotEmpty && cnpj.isNotEmpty) {
+                                setState(() {
+                                  if (!_suggestions['fornecedores']!.contains(razaoSocial)) {
+                                    _suggestions['fornecedores']!.add(razaoSocial);
+                                  }
+                                  _controllers['fornecedor']!.text = razaoSocial;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessSnackBar('Fornecedor adicionado com sucesso!');
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Adicionar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showLocalizacaoModal() {
+    final theme = Theme.of(context);
+    String nomeUnidade = '';
+    String endereco = '';
+    String produtoCodigo = '';
+    String produtoDescricao = '';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                height: 600,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    // HEADER DO MODAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Adicionar Localização',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            // DROPDOWN UNIDADE
+                            _buildModalDropdown(
+                              label: 'Unidade Vinculada*',
+                              value: nomeUnidade.isEmpty ? null : nomeUnidade,
+                              items: _suggestions['unidades']!,
+                              onChanged: (value) => setState(() => nomeUnidade = value!),
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // CAMPO ENDEREÇO
+                            _buildModalTextField(
+                              label: 'Endereço*',
+                              hint: 'Ex: Rua A, 123 - Setor B, Prateleira 4',
+                              icon: Icons.location_on_outlined,
+                              maxLines: 2,
+                              onChanged: (value) => endereco = value,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // CAMPO CÓDIGO DO PRODUTO
+                            _buildModalTextField(
+                              label: 'Código do Produto*',
+                              hint: 'Ex: EPI001, EPI002',
+                              icon: Icons.qr_code_outlined,
+                              onChanged: (value) => produtoCodigo = value,
+                            ),
+                            const SizedBox(height: 16),
+
+                            // CAMPO DESCRIÇÃO DO PRODUTO
+                            _buildModalTextField(
+                              label: 'Descrição do Produto*',
+                              hint: 'Ex: Luva de Proteção Nitrílica',
+                              icon: Icons.description_outlined,
+                              onChanged: (value) => produtoDescricao = value,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // BOTÕES DO MODAL
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              if (nomeUnidade.isNotEmpty && endereco.isNotEmpty && 
+                                  produtoCodigo.isNotEmpty && produtoDescricao.isNotEmpty) {
+                                final novaLocalizacao = '$nomeUnidade - $endereco';
+                                setState(() {
+                                  if (!_suggestions['localizacoes']!.contains(novaLocalizacao)) {
+                                    _suggestions['localizacoes']!.add(novaLocalizacao);
+                                  }
+                                  _controllers['localizacao']!.text = novaLocalizacao;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessSnackBar('Localização adicionada com sucesso!');
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Adicionar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ==================== COMPONENTES DOS MODAIS ====================
+
+  Widget _buildModalTextField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    required Function(String) onChanged,
+    List<TextInputFormatter>? inputFormatters,
+    int maxLines = 1,
+  }) {
+    final theme = Theme.of(context);
+
+    return TextFormField(
+      onChanged: onChanged,
+      maxLines: maxLines,
+      inputFormatters: inputFormatters,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        hintText: hint,
+        prefixIcon: Icon(
+          icon,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: maxLines > 1 ? 16 : 12,
+        ),
       ),
     );
-
-    Overlay.of(context).insert(_overlays[type]!);
   }
 
-  // ==================== MÉTODOS DE ADIÇÃO (REUTILIZÁVEIS) ====================
-
-  void _addNewItem(
-    String type,
-    String listKey,
-    TextEditingController controller,
-  ) {
-    if (controller.text.trim().isEmpty) return;
-
-    setState(() {
-      final newItem = controller.text.trim();
-      if (!_suggestions[listKey]!.contains(newItem)) {
-        _suggestions[listKey]!.add(newItem);
-        _controllers[type]!.text = newItem;
-      }
-      controller.clear();
-    });
-
-    _overlays[type]?.remove();
-    _overlays[type] = null;
-
-    _showSuccessSnackBar('${_capitalize(type)} adicionado(a) com sucesso!');
+  Widget _buildModalDropdown({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+    required ThemeData theme,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      items: items.map((String item) {
+        return DropdownMenuItem(
+          value: item,
+          child: Text(item),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        prefixIcon: Icon(
+          Icons.category_outlined,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
   }
 
-  void _addNovaCategoria() =>
-      _addNewItem('categoria', 'categorias', _controllers['novaCategoria']!);
-  void _addNovaMarca() =>
-      _addNewItem('marca', 'marcas', _controllers['novaMarca']!);
-  void _addNovaUnidade() =>
-      _addNewItem('unidade', 'unidades', _controllers['novaUnidade']!);
-  void _addNovoFornecedor() => _addNewItem(
-    'fornecedor',
-    'fornecedores',
-    _controllers['novaFornecedor']!,
-  );
-  void _addNovaLocalizacao() => _addNewItem(
-    'localizacao',
-    'localizacoes',
-    _controllers['novaLocalizacao']!,
-  );
+  Widget _buildModalSwitch({
+    required bool value,
+    required Function(bool) onChanged,
+    required String label,
+    required String activeText,
+    required String inactiveText,
+    required ThemeData theme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.toggle_on_outlined,
+            color: theme.colorScheme.onSurfaceVariant,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const Spacer(),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            thumbColor: MaterialStateProperty.all(theme.colorScheme.onPrimary),
+            trackColor: MaterialStateProperty.resolveWith((states) {
+              if (states.contains(MaterialState.selected)) {
+                return theme.colorScheme.primary;
+              }
+              return theme.colorScheme.surfaceVariant;
+            }),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: value 
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value ? activeText : inactiveText,
+              style: TextStyle(
+                color: value ? Colors.green : Colors.red,
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   // ==================== MÉTODOS DE SALVAMENTO ====================
 
@@ -579,7 +1215,6 @@ class _AddEpiDrawerState extends State<AddEpiDrawer>
                   observacoesController: _controllers['observacoes']!,
                 ),
               ),
-              
             ],
           ),
         ),
@@ -604,26 +1239,10 @@ class _AddEpiDrawerState extends State<AddEpiDrawer>
                   marcaButtonKey: _overlayKeys['marca']!,
                   fornecedorButtonKey: _overlayKeys['fornecedor']!,
                   localizacaoButtonKey: _overlayKeys['localizacao']!,
-                  onAddCategoria: () => _showAddOverlay(
-                    'categoria',
-                    'Adicionar Nova Categoria',
-                    _addNovaCategoria,
-                  ),
-                  onAddMarca: () => _showAddOverlay(
-                    'marca',
-                    'Adicionar Nova Marca',
-                    _addNovaMarca,
-                  ),
-                  onAddFornecedor: () => _showAddOverlay(
-                    'fornecedor',
-                    'Adicionar Novo Fornecedor',
-                    _addNovoFornecedor,
-                  ),
-                  onAddLocalizacao: () => _showAddOverlay(
-                    'localizacao',
-                    'Adicionar Nova Localização',
-                    _addNovaLocalizacao,
-                  ),
+                  onAddCategoria: _showCategoriaModal,
+                  onAddMarca: _showMarcaModal,
+                  onAddFornecedor: _showFornecedorModal,
+                  onAddLocalizacao: _showLocalizacaoModal,
                 ),
               ),
               const SizedBox(height: 24),
@@ -639,11 +1258,7 @@ class _AddEpiDrawerState extends State<AddEpiDrawer>
                   unidadeController: _controllers['unidade']!,
                   unidadesSugeridas: _suggestions['unidades']!,
                   unidadeButtonKey: _overlayKeys['unidade']!,
-                  onAddUnidade: () => _showAddOverlay(
-                    'unidade',
-                    'Adicionar Nova Unidade',
-                    _addNovaUnidade,
-                  ),
+                  onAddUnidade: _showUnidadeModal,
                 ),
               ),
               const SizedBox(height: 24),
@@ -703,23 +1318,10 @@ class _AddEpiDrawerState extends State<AddEpiDrawer>
             marcaButtonKey: _overlayKeys['marca']!,
             fornecedorButtonKey: _overlayKeys['fornecedor']!,
             localizacaoButtonKey: _overlayKeys['localizacao']!,
-            onAddCategoria: () => _showAddOverlay(
-              'categoria',
-              'Adicionar Nova Categoria',
-              _addNovaCategoria,
-            ),
-            onAddMarca: () =>
-                _showAddOverlay('marca', 'Adicionar Nova Marca', _addNovaMarca),
-            onAddFornecedor: () => _showAddOverlay(
-              'fornecedor',
-              'Adicionar Novo Fornecedor',
-              _addNovoFornecedor,
-            ),
-            onAddLocalizacao: () => _showAddOverlay(
-              'localizacao',
-              'Adicionar Nova Localização',
-              _addNovaLocalizacao,
-            ),
+            onAddCategoria: _showCategoriaModal,
+            onAddMarca: _showMarcaModal,
+            onAddFornecedor: _showFornecedorModal,
+            onAddLocalizacao: _showLocalizacaoModal,
           ),
         ),
         const SizedBox(height: 24),
@@ -735,11 +1337,7 @@ class _AddEpiDrawerState extends State<AddEpiDrawer>
             unidadeController: _controllers['unidade']!,
             unidadesSugeridas: _suggestions['unidades']!,
             unidadeButtonKey: _overlayKeys['unidade']!,
-            onAddUnidade: () => _showAddOverlay(
-              'unidade',
-              'Adicionar Nova Unidade',
-              _addNovaUnidade,
-            ),
+            onAddUnidade: _showUnidadeModal,
           ),
         ),
         const SizedBox(height: 24),
