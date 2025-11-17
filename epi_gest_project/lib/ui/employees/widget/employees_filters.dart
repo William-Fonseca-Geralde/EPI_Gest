@@ -34,12 +34,9 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _dataEntradaController = TextEditingController();
-  final TextEditingController _novoSetorController = TextEditingController();
-  final TextEditingController _novaFuncaoController = TextEditingController();
+  // REMOVIDO: Controladores para novo setor e nova função
 
-  // Overlays
-  OverlayEntry? _setorOverlay;
-  OverlayEntry? _funcaoOverlay;
+  // REMOVIDO: Overlays para setor e função
 
   @override
   void initState() {
@@ -70,21 +67,14 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
 
   @override
   void dispose() {
-    _removeOverlays();
+    // REMOVIDO: Dispose dos controladores removidos
     _nomeController.dispose();
     _idController.dispose();
     _dataEntradaController.dispose();
-    _novoSetorController.dispose();
-    _novaFuncaoController.dispose();
     super.dispose();
   }
 
-  void _removeOverlays() {
-    _setorOverlay?.remove();
-    _setorOverlay = null;
-    _funcaoOverlay?.remove();
-    _funcaoOverlay = null;
-  }
+  // REMOVIDO: _removeOverlays
 
   void _applyFilters() {
     widget.onApplyFilters(_tempFilters);
@@ -348,54 +338,8 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                           onTap: _selectDate,
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: MultiSelectDropdown(
-                                label: 'Setor',
-                                icon: Icons.business_outlined,
-                                items: widget.setores,
-                                selectedItems: _tempFilters['setores'] ?? [],
-                                allItemsLabel: 'Todos',
-                                width: 300,
-                                onChanged: (selected) {
-                                  setState(() {
-                                    _tempFilters['setores'] = selected.isEmpty
-                                        ? null
-                                        : selected;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: MultiSelectDropdown(
-                                label: 'Funções',
-                                icon: Icons.work_outline,
-                                items: widget.funcoes,
-                                selectedItems: _tempFilters['funcoes'] ?? [],
-                                allItemsLabel: 'Todas',
-                                width: 300,
-                                onChanged: (selected) {
-                                  setState(() {
-                                    _tempFilters['funcoes'] = selected.isEmpty
-                                        ? null
-                                        : selected;
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      // REMOVIDO: Filtro de Setor
+                      // REMOVIDO: Filtro de Funções
                     ],
                   ),
                 ],
@@ -425,23 +369,10 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
           label = 'Matricula';
           displayValue = value.toString();
           break;
-        case 'setores':
-          label = 'Setor';
-          final setores = value as List<String>;
-          displayValue = setores.length == 1
-              ? setores.first
-              : '${setores.length} setores';
-          break;
+        // REMOVIDO: Casos para setores e funções
         case 'dataEntrada':
           label = 'Data de Entrada';
           displayValue = DateFormat('dd/MM/yyyy').format(value as DateTime);
-          break;
-        case 'funcoes':
-          label = 'Função';
-          final funcoes = value as List<String>;
-          displayValue = funcoes.length == 1
-              ? funcoes.first
-              : '${funcoes.length} funções';
           break;
         case 'ativo':
           label = 'Status';

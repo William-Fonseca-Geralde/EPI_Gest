@@ -170,95 +170,15 @@ class ContactSection extends StatelessWidget {
   }
 }
 
-class JobSection extends StatelessWidget {
-  final TextEditingController setorController;
-  final TextEditingController funcaoController;
-  final TextEditingController vinculoController;
-  final List<String> setoresSugeridos;
-  final List<String> funcoesSugeridas;
-  final List<String> vinculosSugeridos;
-  final GlobalKey setorButtonKey;
-  final GlobalKey funcaoButtonKey;
-  final GlobalKey vinculoButtonKey;
-  final VoidCallback onAddSetor;
-  final VoidCallback onAddFuncao;
-  final VoidCallback onAddVinculo;
-  final bool enabled;
-
-  const JobSection({
-    super.key,
-    required this.setorController,
-    required this.funcaoController,
-    required this.vinculoController,
-    required this.setoresSugeridos,
-    required this.funcoesSugeridas,
-    required this.vinculosSugeridos,
-    required this.setorButtonKey,
-    required this.funcaoButtonKey,
-    required this.vinculoButtonKey,
-    required this.onAddSetor,
-    required this.onAddFuncao,
-    required this.onAddVinculo,
-    this.enabled = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CustomAutocompleteField(
-          controller: setorController,
-          label: 'Setor/Departamento',
-          hint: 'Selecione ou digite um setor',
-          icon: Icons.business_outlined,
-          suggestions: setoresSugeridos,
-          showAddButton: enabled,
-          onAddPressed: onAddSetor,
-          addButtonKey: setorButtonKey,
-          enabled: enabled,
-        ),
-        const SizedBox(height: 16),
-        CustomAutocompleteField(
-          controller: funcaoController,
-          label: 'Cargo/Função',
-          hint: 'Selecione ou digite uma função',
-          icon: Icons.assignment_ind_outlined,
-          suggestions: funcoesSugeridas,
-          showAddButton: enabled,
-          onAddPressed: onAddFuncao,
-          addButtonKey: funcaoButtonKey,
-          enabled: enabled,
-        ),
-        const SizedBox(height: 16),
-        CustomAutocompleteField(
-          controller: vinculoController,
-          label: 'Tipo de Vínculo',
-          hint: 'Selecione o tipo de vínculo',
-          icon: Icons.work_history_outlined,
-          suggestions: vinculosSugeridos,
-          showAddButton: enabled,
-          onAddPressed: onAddVinculo,
-          addButtonKey: vinculoButtonKey,
-          enabled: enabled,
-        ),
-      ],
-    );
-  }
-}
-
 class WorkConditionsSection extends StatelessWidget {
   final TextEditingController localTrabalhoController;
   final TextEditingController turnoController;
   final List<String> locaisTrabalhoSugeridos;
   final List<String> turnosSugeridos;
-  final List<String> episSelecionados;
-  final List<String> riscosSelecionados;
   final GlobalKey turnoButtonKey;
-  final GlobalKey episButtonKey;
-  final GlobalKey riscosButtonKey;
+  final GlobalKey localTrabalhoButtonKey; // NOVO PARÂMETRO
   final VoidCallback onAddTurno;
-  final VoidCallback onSelectEpis;
-  final VoidCallback onSelectRiscos;
+  final VoidCallback onAddLocalTrabalho; // NOVO PARÂMETRO
   final bool enabled;
 
   const WorkConditionsSection({
@@ -267,14 +187,10 @@ class WorkConditionsSection extends StatelessWidget {
     required this.turnoController,
     required this.locaisTrabalhoSugeridos,
     required this.turnosSugeridos,
-    required this.episSelecionados,
-    required this.riscosSelecionados,
     required this.turnoButtonKey,
-    required this.episButtonKey,
-    required this.riscosButtonKey,
+    required this.localTrabalhoButtonKey, // NOVO PARÂMETRO
     required this.onAddTurno,
-    required this.onSelectEpis,
-    required this.onSelectRiscos,
+    required this.onAddLocalTrabalho, // NOVO PARÂMETRO
     this.enabled = true,
   });
 
@@ -288,6 +204,9 @@ class WorkConditionsSection extends StatelessWidget {
           hint: 'Selecione o local',
           icon: Icons.location_on_outlined,
           suggestions: locaisTrabalhoSugeridos,
+          showAddButton: enabled,
+          onAddPressed: onAddLocalTrabalho, // NOVO: usando o callback
+          addButtonKey: localTrabalhoButtonKey, // NOVO: usando a key
           enabled: enabled,
         ),
         const SizedBox(height: 16),
@@ -300,26 +219,6 @@ class WorkConditionsSection extends StatelessWidget {
           showAddButton: enabled,
           onAddPressed: onAddTurno,
           addButtonKey: turnoButtonKey,
-          enabled: enabled,
-        ),
-        const SizedBox(height: 16),
-        CustomMultiSelectField(
-          label: 'EPIs Necessários',
-          hint: 'Selecione os EPIs',
-          icon: Icons.security_outlined,
-          selectedItems: episSelecionados,
-          buttonKey: episButtonKey,
-          onTap: onSelectEpis,
-          enabled: enabled,
-        ),
-        const SizedBox(height: 16),
-        CustomMultiSelectField(
-          label: 'Riscos Associados',
-          hint: 'Selecione os riscos',
-          icon: Icons.warning_outlined,
-          selectedItems: riscosSelecionados,
-          buttonKey: riscosButtonKey,
-          onTap: onSelectRiscos,
           enabled: enabled,
         ),
       ],

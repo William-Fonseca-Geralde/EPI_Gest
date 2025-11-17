@@ -10,18 +10,17 @@ class RisksWidget extends StatefulWidget {
 }
 
 class RisksWidgetState extends State<RisksWidget> {
-  final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
   var index = 0;
 
+  // ⬇️ SOLUÇÃO TEMPORÁRIA - Mantenha o campo codigo vazio
   final List<Risk> _riscosCadastrados = [
-    Risk(id: 'R001', codigo: 'R001', descricao: 'Ruído Contínuo'),
-    Risk(id: 'R002', codigo: 'R002', descricao: 'Poeira Mineral'),
+    Risk(id: '1', codigo: '', descricao: 'Ruído Contínuo'),
+    Risk(id: '2', codigo: '', descricao: 'Poeira Mineral'),
   ];
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _descricaoController.dispose();
     super.dispose();
   }
@@ -34,7 +33,7 @@ class RisksWidgetState extends State<RisksWidget> {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Gerenciar Cargo',
+      barrierLabel: 'Gerenciar Risco',
       pageBuilder: (context, _, __) => RisksDrawer(
         riskToEdit: risk,
         view: viewOnly,
@@ -50,7 +49,7 @@ class RisksWidgetState extends State<RisksWidget> {
           });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Cargo ${index != -1 ? 'atualizado' : 'cadastrado'} com sucesso!'),
+              content: Text('Risco ${index != -1 ? 'atualizado' : 'cadastrado'} com sucesso!'),
               backgroundColor: Colors.green,
             ),
           );
@@ -105,13 +104,13 @@ class RisksWidgetState extends State<RisksWidget> {
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: Icon(
-              Icons.warning_amber_outlined, color: Theme.of(context).colorScheme.primary
+              Icons.warning_amber_outlined, 
+              color: Theme.of(context).colorScheme.primary
             ),
             title: Text(
               risco.descricao,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text('Código: ${risco.codigo}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -132,9 +131,6 @@ class RisksWidgetState extends State<RisksWidget> {
                 ),
               ],
             ),
-            onTap: () {
-              // TODO: Implementar edição
-            },
           ),
         );
       },

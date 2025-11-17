@@ -22,7 +22,6 @@ class RoleDrawer extends StatefulWidget {
 
 class _RoleDrawerState extends State<RoleDrawer> {
   final _formKey = GlobalKey<FormState>();
-  final _codigoController = TextEditingController();
   final _descricaoController = TextEditingController();
 
   bool get _isEditing => widget.roleToEdit != null && !widget.view;
@@ -39,13 +38,11 @@ class _RoleDrawerState extends State<RoleDrawer> {
 
   void _populateForm() {
     final role = widget.roleToEdit!;
-    _codigoController.text = role.codigo;
     _descricaoController.text = role.descricao;
   }
 
   @override
   void dispose() {
-    _codigoController.dispose();
     _descricaoController.dispose();
     super.dispose();
   }
@@ -57,8 +54,8 @@ class _RoleDrawerState extends State<RoleDrawer> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     final roleData = Role(
-      id: widget.roleToEdit?.id ?? _codigoController.text,
-      codigo: _codigoController.text,
+      id: widget.roleToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      codigo: '', // Código removido
       descricao: _descricaoController.text,
     );
 
@@ -75,24 +72,33 @@ class _RoleDrawerState extends State<RoleDrawer> {
     final theme = Theme.of(context);
     return BaseDrawer(
       onClose: widget.onClose,
+      widthFactor: 0.4,
       header: _buildHeader(theme),
       body: _buildForm(theme),
       footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
     );
   }
 
+  // ------------------------------
+  // HEADER - PADRÃO MODERNO
+  // ------------------------------
+
   Widget _buildHeader(ThemeData theme) {
     String title;
+    String subtitle;
     IconData icon;
 
     if (_isViewing) {
       title = 'Visualizar Cargo';
+      subtitle = 'Informações completas do cargo';
       icon = Icons.visibility_outlined;
     } else if (_isEditing) {
       title = 'Editar Cargo';
+      subtitle = 'Altere os dados do cargo';
       icon = Icons.edit_outlined;
     } else {
       title = 'Adicionar Cargo/Função';
+      subtitle = 'Preencha os dados do novo cargo';
       icon = Icons.add_card_outlined;
     }
 
@@ -100,39 +106,81 @@ class _RoleDrawerState extends State<RoleDrawer> {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(bottom: BorderSide(color: theme.colorScheme.outlineVariant)),
+        border: Border(
+          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 28, color: theme.colorScheme.primary),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: theme.colorScheme.onPrimaryContainer,
+              size: 24,
+            ),
+          ),
           const SizedBox(width: 16),
-          Expanded(child: Text(title, style: theme.textTheme.titleLarge)),
-          IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: widget.onClose,
+            icon: const Icon(Icons.close),
+            tooltip: 'Fechar',
+            style: IconButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
+  // ------------------------------
+  // FORM - CAMPOS MODERNOS (SEM CÓDIGO)
+  // ------------------------------
+
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
+
     return Form(
       key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
           children: [
-            TextFormField(
-              controller: _codigoController,
-              enabled: isEnabled,
-              decoration: const InputDecoration(labelText: 'Código Cargo/Função*'),
-              validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            TextFormField(
+            // Campo Descrição (único campo agora)
+            _buildModernTextField(
               controller: _descricaoController,
+              label: 'Descrição do Cargo*',
+              hint: 'Ex: Analista, Gerente, Assistente, Operador',
               enabled: isEnabled,
-              decoration: const InputDecoration(labelText: 'Descrição do Cargo*'),
+              icon: Icons.work_outline,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
             ),
           ],
@@ -141,42 +189,174 @@ class _RoleDrawerState extends State<RoleDrawer> {
     );
   }
 
+  // ------------------------------
+  // COMPONENTE DE CAMPO MODERNO
+  // ------------------------------
+
+  Widget _buildModernTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required bool enabled,
+    required IconData icon,
+    String? Function(String?)? validator,
+  }) {
+    final theme = Theme.of(context);
+
+    return TextFormField(
+      controller: controller,
+      enabled: enabled,
+      style: TextStyle(
+        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        hintText: hint,
+        prefixIcon: Icon(
+          icon,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        enabled: enabled,
+        filled: !enabled,
+        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      validator: validator,
+    );
+  }
+
+  // ------------------------------
+  // FOOTER (EDITAR) - BOTÕES MODERNOS
+  // ------------------------------
+
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant),
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: [
+          // Botão Cancelar - Estilo moderno
           Expanded(
-            child: OutlinedButton(
-              onPressed: _isSaving ? null : widget.onClose,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: _isSaving ? null : widget.onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.onSurface,
+                  side: BorderSide(
+                    color: theme.colorScheme.outline.withOpacity(0.5),
+                  ),
+                  backgroundColor: theme.colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.close, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Cancelar",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Cancelar'),
             ),
           ),
-          const SizedBox(width: 12),
+          
+          const SizedBox(width: 16),
+          
+          // Botão Principal - Estilo moderno
           Expanded(
             flex: 2,
-            child: FilledButton.icon(
-              onPressed: _isSaving ? null : _handleSave,
-              icon: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(_isEditing ? Icons.save : Icons.add),
-              label: Text(
-                _isSaving
-                    ? 'Salvando...'
-                    : (_isEditing ? 'Salvar Alterações' : 'Adicionar'),
+            child: SizedBox(
+              height: 48,
+              child: FilledButton(
+                onPressed: _isSaving ? null : _handleSave,
+                style: FilledButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: theme.colorScheme.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: _isSaving
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            "Salvando...",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _isEditing ? Icons.save_outlined : Icons.add,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isEditing ? "Salvar Alterações" : "Adicionar Cargo",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
               ),
             ),
           ),
@@ -185,24 +365,60 @@ class _RoleDrawerState extends State<RoleDrawer> {
     );
   }
 
+  // ------------------------------
+  // FOOTER (VIEW) - BOTÃO MODERNIZADO
+  // ------------------------------
+
   Widget _buildViewFooter(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
+        color: theme.colorScheme.surface,
         border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant),
+          top: BorderSide(
+            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
+            width: 1,
+          ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         children: [
           Expanded(
-            child: OutlinedButton(
-              onPressed: widget.onClose,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton(
+                onPressed: widget.onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.primary,
+                  side: BorderSide(
+                    color: theme.colorScheme.primary.withOpacity(0.3),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.close, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Fechar",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: const Text('Fechar'),
             ),
           ),
         ],

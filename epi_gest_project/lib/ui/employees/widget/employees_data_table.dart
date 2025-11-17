@@ -1,11 +1,8 @@
-// lib/ui/employees/widget/employees_data_table.dart (VERSÃO ATUALIZADA)
-
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EmployeesDataTable extends StatefulWidget {
-  // MODIFICADO: Recebe uma lista de Employee e callbacks
   final List<Employee> employees;
   final Function(Employee) onView;
   final Function(Employee) onEdit;
@@ -28,7 +25,7 @@ class EmployeesDataTable extends StatefulWidget {
 class _EmployeesDataTableState extends State<EmployeesDataTable> {
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
-  late List<Employee> _sortedEmployees; // MODIFICADO: Usa o modelo Employee
+  late List<Employee> _sortedEmployees;
 
   final ScrollController _headerScrollController = ScrollController();
   final ScrollController _bodyScrollController = ScrollController();
@@ -36,15 +33,13 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
 
   static const double matriculaWidth = 130.0;
   static const double nomeWidth = 280.0;
-  static const double setorWidth = 200.0;
-  static const double funcaoWidth = 220.0;
+  static const double localTrabalhoWidth = 220.0;
   static const double dataEntradaWidth = 160.0;
   static const double acoesWidth = 160.0;
   static const double totalTableWidth =
       matriculaWidth +
       nomeWidth +
-      setorWidth +
-      funcaoWidth +
+      localTrabalhoWidth +
       dataEntradaWidth +
       acoesWidth;
 
@@ -56,14 +51,12 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
     _bodyScrollController.addListener(_syncFromBody);
   }
 
-  // ADICIONADO: didUpdateWidget para atualizar a lista quando os filtros mudam
   @override
   void didUpdateWidget(covariant EmployeesDataTable oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.employees != oldWidget.employees) {
       setState(() {
         _sortedEmployees = List.from(widget.employees);
-        // Re-aplica a ordenação atual
         _sortData(_sortColumnIndex, _sortAscending, applySetState: false);
       });
     }
@@ -92,7 +85,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
     super.dispose();
   }
 
-  // MODIFICADO: Lógica de ordenação para usar o modelo Employee
   void _sortData(int columnIndex, bool ascending, {bool applySetState = true}) {
     void sort() {
       _sortColumnIndex = columnIndex;
@@ -108,12 +100,9 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
             compare = a.nome.compareTo(b.nome);
             break;
           case 2:
-            compare = (a.setor ?? '').compareTo(b.setor ?? '');
+            compare = (a.localTrabalho ?? '').compareTo(b.localTrabalho ?? '');
             break;
           case 3:
-            compare = (a.vinculo ?? '').compareTo(b.vinculo ?? '');
-            break;
-          case 4:
             compare = a.dataEntrada.compareTo(b.dataEntrada);
             break;
           default:
@@ -164,9 +153,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                   children: [
                     _buildHeaderCell('Matricula', matriculaWidth, 0),
                     _buildHeaderCell('Nome do Funcionário', nomeWidth, 1),
-                    _buildHeaderCell('Setor', setorWidth, 2),
-                    _buildHeaderCell('Função na Empresa', funcaoWidth, 3),
-                    _buildHeaderCell('Data de Entrada', dataEntradaWidth, 4),
+                    _buildHeaderCell('Local de Trabalho', localTrabalhoWidth, 2),
+                    _buildHeaderCell('Data de Entrada', dataEntradaWidth, 3),
                     _buildHeaderCell('Ações', acoesWidth, -1, isLast: true),
                   ],
                 ),
@@ -271,40 +259,21 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   ),
                                 ),
                                 _buildDataCell(
-                                  width: setorWidth,
+                                  width: localTrabalhoWidth,
                                   context: context,
                                   child: Row(
                                     children: [
                                       const Icon(
-                                        Icons.business_outlined,
+                                        Icons.location_on_outlined,
                                         size: 16,
                                         color: Colors.grey,
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          employee.setor ?? '-',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                _buildDataCell(
-                                  width: funcaoWidth,
-                                  context: context,
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.work_outline,
-                                        size: 16,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          employee.cargo ?? '-',
+                                          employee.localTrabalho?.isNotEmpty == true 
+                                              ? employee.localTrabalho!
+                                              : '-',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -343,7 +312,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      // MODIFICADO: Usa callbacks
                                       IconButton(
                                         icon: const Icon(
                                           Icons.visibility_outlined,

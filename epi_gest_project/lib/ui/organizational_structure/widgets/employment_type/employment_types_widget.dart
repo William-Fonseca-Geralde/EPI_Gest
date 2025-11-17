@@ -11,17 +11,16 @@ class EmploymentTypesWidget extends StatefulWidget {
 
 class EmploymentTypesWidgetState extends State<EmploymentTypesWidget> {
   final _formKey = GlobalKey<FormState>();
-  final _codigoController = TextEditingController();
-  String _descricaoVinculo = 'CLT';
+  final _descricaoController = TextEditingController();
 
   final List<EmploymentType> _vinculosCadastrados = [
-    EmploymentType(id: 'VIN001', codigo: 'VIN001', descricao: 'CLT'),
-    EmploymentType(id: 'VIN002', codigo: 'VIN002', descricao: 'PJ')
+  EmploymentType(id: '1', codigo: '', descricao: 'CLT'),
+  EmploymentType(id: '2', codigo: '', descricao: 'PJ')
   ];
 
   @override
   void dispose() {
-    _codigoController.dispose();
+    _descricaoController.dispose();
     super.dispose();
   }
 
@@ -34,7 +33,7 @@ class EmploymentTypesWidgetState extends State<EmploymentTypesWidget> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Gerenciar Vínculo',
-      pageBuilder: (context, _, __) => EmploymentTypeDrawer( // <-- 4. Chama o drawer
+      pageBuilder: (context, _, __) => EmploymentTypeDrawer(
         typeToEdit: tipo,
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
@@ -113,7 +112,7 @@ class EmploymentTypesWidgetState extends State<EmploymentTypesWidget> {
               vinculo.descricao,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text('Código: ${vinculo.codigo}'),
+            // ⬅️ REMOVIDO o subtítulo com código
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -130,13 +129,55 @@ class EmploymentTypesWidgetState extends State<EmploymentTypesWidget> {
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Excluir',
-                  onPressed: () { /* TODO */ },
+                  onPressed: () => _showDeleteConfirmation(vinculo),
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  void _showDeleteConfirmation(EmploymentType vinculo) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: Text(
+              'Tem certeza que deseja excluir o vínculo "${vinculo.descricao}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                _deleteVinculo(vinculo);
+                Navigator.of(context).pop();
+              },
+              child: const Text(
+                'Excluir',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteVinculo(EmploymentType vinculo) {
+    setState(() {
+      _vinculosCadastrados.removeWhere((v) => v.id == vinculo.id);
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Vínculo "${vinculo.descricao}" excluído com sucesso!'),
+        backgroundColor: Colors.green,
+      ),
     );
   }
 }

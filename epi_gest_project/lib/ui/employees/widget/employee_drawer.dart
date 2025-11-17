@@ -41,9 +41,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   DateTime? _dataRetornoFerias;
   bool _statusAtivo = true;
   bool _statusFerias = false;
-  final List<String> _epis = [];
-  final List<String> _riscos = [];
-
   bool get _isEditing => widget.employeeToEdit != null && !widget.view;
   bool get _isAdding => widget.employeeToEdit == null && !widget.view;
   bool get _isViewing => widget.view;
@@ -54,9 +51,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     'nome': TextEditingController(),
     'cpf': TextEditingController(),
     'rg': TextEditingController(),
-    'setor': TextEditingController(),
-    'funcao': TextEditingController(),
-    'vinculo': TextEditingController(),
     'dataEntrada': TextEditingController(),
     'dataNascimento': TextEditingController(),
     'telefone': TextEditingController(),
@@ -67,70 +61,31 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     'turno': TextEditingController(),
     'dataDesligamento': TextEditingController(),
     'motivoDesligamento': TextEditingController(),
-    'newSetor': TextEditingController(),
-    'newFuncao': TextEditingController(),
-    'newVinculo': TextEditingController(),
     'newTurno': TextEditingController(),
+    'newLocalTrabalho': TextEditingController(),
   };
 
   final Map<String, GlobalKey> _overlayKeys = {
-    'setor': GlobalKey(),
-    'funcao': GlobalKey(),
-    'vinculo': GlobalKey(),
     'turno': GlobalKey(),
-    'epis': GlobalKey(),
-    'riscos': GlobalKey(),
+    'localTrabalho': GlobalKey(),
   };
   final Map<String, OverlayEntry?> _overlays = {
-    'setor': null,
-    'funcao': null,
-    'vinculo': null,
     'turno': null,
-    'epis': null,
-    'riscos': null,
+    'localTrabalho': null,
   };
 
   bool _isLoading = true;
   String? _loadingError;
-  List<String> _setoresSugeridos = [];
-  List<String> _funcoesSugeridas = [];
-  List<String> _vinculosSugeridos = [];
   List<String> _turnosSugeridos = [];
+  List<String> _locaisTrabalhoSugeridos = [];
 
   final Map<String, List<String>> _suggestions = {
-    'epis': [
-      'Capacete',
-      'Óculos de Proteção',
-      'Protetor Auricular',
-      'Luvas',
-      'Botas de Segurança',
-      'Cinto de Segurança',
-      'Máscara',
-      'Avental',
-      'Protetor Facial',
-    ],
     'funcionarios': [
       'João Silva',
       'Maria Santos',
       'Pedro Oliveira',
       'Ana Costa',
       'Carlos Souza',
-    ],
-    'locaisTrabalho': [
-      'Empresa Principal Matriz',
-      'Filial São Paulo',
-      'Filial Rio de Janeiro',
-      'Filial Belo Horizonte',
-    ],
-    'riscos': [
-      'Risco Físico',
-      'Risco Químico',
-      'Risco Biológico',
-      'Risco Ergonômico',
-      'Risco de Acidente',
-      'Ruído Excessivo',
-      'Calor Intenso',
-      'Produtos Químicos',
     ],
   };
   
@@ -155,27 +110,21 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     );
     try {
       final results = await Future.wait([
-        employeeService.getAllSetores(),
-        employeeService.getAllCargos(),
-        employeeService.getAllVinculo(),
         employeeService.getAllTurnos(),
       ]);
 
       if (!mounted) return;
 
       setState(() {
-        _setoresSugeridos = (results[0] as List<Setor>)
-            .map((s) => s.nome)
-            .toList();
-        _funcoesSugeridas = (results[1] as List<Cargo>)
-            .map((c) => c.nome)
-            .toList();
-        _vinculosSugeridos = (results[2] as List<Vinculo>)
-            .map((v) => v.nome)
-            .toList();
-        _turnosSugeridos = (results[3] as List<Turno>)
+        _turnosSugeridos = (results[0] as List<Turno>)
             .map((t) => t.nome)
             .toList();
+        _locaisTrabalhoSugeridos = [
+          'Matriz Araras',
+          'Filial São Paulo',
+          'Filial Rio de Janeiro',
+          'Filial Belo Horizonte',
+        ];
         _isLoading = false;
         _loadingError = null;
       });
@@ -195,9 +144,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _controllers['nome']!.text = employee.nome;
     _controllers['cpf']!.text = employee.cpf ?? '';
     _controllers['rg']!.text = employee.rg ?? '';
-    _controllers['setor']!.text = employee.setor ?? '';
-    _controllers['funcao']!.text = employee.cargo ?? '';
-    _controllers['vinculo']!.text = employee.vinculo ?? '';
     _controllers['dataEntrada']!.text = DateFormat(
       'dd/MM/yyyy',
     ).format(employee.dataEntrada);
@@ -223,8 +169,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       _dataRetornoFerias = employee.dataRetornoFerias;
       _statusAtivo = employee.statusAtivo;
       _statusFerias = employee.statusFerias;
-      _epis.addAll(employee.epis);
-      _riscos.addAll(employee.riscos);
       _imagemPath = employee.imagemPath;
     });
   }
@@ -248,6 +192,484 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     widget.onClose();
   }
 
+  // ------------------------------
+  // MODAIS MODERNOS PARA LOCAL E TURNO
+  // ------------------------------
+
+  void _showLocalTrabalhoModal() {
+    final theme = Theme.of(context);
+    String nomeUnidade = '';
+    String cnpj = '';
+    String tipoUnidade = 'Matriz';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // HEADER DO MODAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Adicionar Local de Trabalho',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // CAMPO NOME DA UNIDADE
+                    _buildModalTextField(
+                      label: 'Nome da Unidade*',
+                      hint: 'Ex: Matriz Araras, Filial São Paulo',
+                      icon: Icons.business_outlined,
+                      onChanged: (value) => nomeUnidade = value,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // CAMPO CNPJ
+                    _buildModalTextField(
+                      label: 'CNPJ*',
+                      hint: 'Ex: 12.345.678/0001-90',
+                      icon: Icons.numbers_outlined,
+                      onChanged: (value) => cnpj = value,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // CAMPO TIPO DE UNIDADE
+                    _buildModalDropdown(
+                      label: 'Tipo de Unidade*',
+                      value: tipoUnidade,
+                      items: const ['Matriz', 'Filial'],
+                      onChanged: (value) => setState(() => tipoUnidade = value!),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // BOTÕES DO MODAL
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              if (nomeUnidade.isNotEmpty && cnpj.isNotEmpty) {
+                                final novoLocal = '$nomeUnidade - $tipoUnidade';
+                                setState(() {
+                                  if (!_locaisTrabalhoSugeridos.contains(novoLocal)) {
+                                    _locaisTrabalhoSugeridos.add(novoLocal);
+                                  }
+                                  _controllers['localTrabalho']!.text = novoLocal;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessSnackBar('Local de trabalho adicionado com sucesso!');
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Adicionar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showTurnoTrabalhoModal() {
+    final theme = Theme.of(context);
+    
+    // Estado para os horários (igual ao ShiftDrawer)
+    TimeOfDay _entrada = const TimeOfDay(hour: 8, minute: 0);
+    TimeOfDay _saida = const TimeOfDay(hour: 18, minute: 0);
+    TimeOfDay _almocoInicio = const TimeOfDay(hour: 12, minute: 0);
+    TimeOfDay _almocoFim = const TimeOfDay(hour: 13, minute: 0);
+    String _nomeTurno = '';
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: 500,
+                height: 600,
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    // HEADER DO MODAL
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Adicionar Turno de Trabalho',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            // CAMPO NOME (CÓDIGO REMOVIDO)
+                            _buildModalTextField(
+                              label: 'Nome do Turno*',
+                              hint: 'Ex: Turno Administrativo, Manhã, Tarde',
+                              icon: Icons.work_outlined,
+                              onChanged: (value) => _nomeTurno = value,
+                            ),
+                            const SizedBox(height: 24),
+
+                            // SEÇÃO HORÁRIOS DA JORNADA
+                            _buildModalSectionHeader(
+                              title: 'Horários da Jornada',
+                              icon: Icons.schedule_outlined,
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildModalTimePickerTile(
+                              label: 'Horário de Entrada',
+                              time: _entrada,
+                              onTap: () => _selectTimeModal(
+                                context, 
+                                _entrada, 
+                                (time) => setState(() => _entrada = time)
+                              ),
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildModalTimePickerTile(
+                              label: 'Horário de Saída',
+                              time: _saida,
+                              onTap: () => _selectTimeModal(
+                                context, 
+                                _saida, 
+                                (time) => setState(() => _saida = time)
+                              ),
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 24),
+
+                            // SEÇÃO INTERVALO DE ALMOÇO
+                            _buildModalSectionHeader(
+                              title: 'Intervalo de Almoço',
+                              icon: Icons.restaurant_outlined,
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildModalTimePickerTile(
+                              label: 'Início do Almoço',
+                              time: _almocoInicio,
+                              onTap: () => _selectTimeModal(
+                                context, 
+                                _almocoInicio, 
+                                (time) => setState(() => _almocoInicio = time)
+                              ),
+                              theme: theme,
+                            ),
+                            const SizedBox(height: 16),
+
+                            _buildModalTimePickerTile(
+                              label: 'Fim do Almoço',
+                              time: _almocoFim,
+                              onTap: () => _selectTimeModal(
+                                context, 
+                                _almocoFim, 
+                                (time) => setState(() => _almocoFim = time)
+                              ),
+                              theme: theme,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // BOTÕES DO MODAL
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              if (_nomeTurno.isNotEmpty) {
+                                final novoTurno = _nomeTurno;
+                                setState(() {
+                                  if (!_turnosSugeridos.contains(novoTurno)) {
+                                    _turnosSugeridos.add(novoTurno);
+                                  }
+                                  _controllers['turno']!.text = novoTurno;
+                                });
+                                Navigator.pop(context);
+                                _showSuccessSnackBar('Turno de trabalho adicionado com sucesso!');
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                            child: const Text('Adicionar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // COMPONENTES DOS MODAIS
+  Widget _buildModalTextField({
+    required String label,
+    required String hint,
+    required IconData icon,
+    required Function(String) onChanged,
+  }) {
+    final theme = Theme.of(context);
+
+    return TextFormField(
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        hintText: hint,
+        prefixIcon: Icon(
+          icon,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+    );
+  }
+
+  Widget _buildModalDropdown({
+    required String label,
+    required String value,
+    required List<String> items,
+    required Function(String?) onChanged,
+  }) {
+    final theme = Theme.of(context);
+
+    return DropdownButtonFormField<String>(
+      value: value,
+      items: items.map((String item) {
+        return DropdownMenuItem(
+          value: item,
+          child: Text(item),
+        );
+      }).toList(),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+        prefixIcon: Icon(
+          Icons.category_outlined,
+          color: theme.colorScheme.onSurfaceVariant,
+          size: 20,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalSectionHeader({
+    required String title,
+    required IconData icon,
+    required ThemeData theme,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: theme.colorScheme.primary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModalTimePickerTile({
+    required String label,
+    required TimeOfDay time,
+    required VoidCallback onTap,
+    required ThemeData theme,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: theme.colorScheme.outline.withOpacity(0.3),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.access_time_outlined,
+            color: theme.colorScheme.onPrimaryContainer,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            time.format(context),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectTimeModal(
+    BuildContext context,
+    TimeOfDay initialTime,
+    Function(TimeOfDay) onTimeSelected,
+  ) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+    if (picked != null && picked != initialTime) {
+      onTimeSelected(picked);
+    }
+  }
+
+  // MÉTODOS EXISTENTES (mantidos da versão anterior)
   Future<void> _selectDate(
     String field,
     Function(DateTime) onDateSelected,
@@ -329,56 +751,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     Overlay.of(context).insert(_overlays[type]!);
   }
 
-  void _showMultiSelectOverlay(
-    String type,
-    String title,
-    IconData icon,
-    List<String> items,
-    List<String> selectedItems,
-  ) {
-    if (_overlays[type] != null) {
-      _overlays[type]!.remove();
-      _overlays[type] = null;
-      return;
-    }
-    final RenderBox renderBox =
-        _overlayKeys[type]!.currentContext!.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
-    _overlays[type] = OverlayEntry(
-      builder: (context) => MultiSelectOverlay(
-        theme: Theme.of(context),
-        title: title,
-        icon: icon,
-        position: position,
-        buttonSize: size,
-        items: items,
-        selectedItems: List.from(selectedItems),
-        onChanged: (updatedList) {
-          setState(() {
-            if (type == 'epis') {
-              _epis.clear();
-              _epis.addAll(updatedList);
-            } else if (type == 'riscos') {
-              _riscos.clear();
-              _riscos.addAll(updatedList);
-            }
-          });
-        },
-        onCancel: () {
-          _overlays[type]?.remove();
-          _overlays[type] = null;
-        },
-        onConfirm: () {
-          _overlays[type]?.remove();
-          _overlays[type] = null;
-          setState(() {});
-        },
-      ),
-    );
-    Overlay.of(context).insert(_overlays[type]!);
-  }
-
   void _addNewItem(
     String type,
     List<String> suggestionList,
@@ -389,7 +761,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       final newItem = controller.text.trim();
       if (!suggestionList.contains(newItem)) {
         suggestionList.add(newItem);
-        _controllers[type]!.text = newItem;
+        if (type == 'turno') {
+          _controllers['turno']!.text = newItem;
+        } else if (type == 'localTrabalho') {
+          _controllers['localTrabalho']!.text = newItem;
+        }
       }
       controller.clear();
     });
@@ -398,14 +774,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _showSuccessSnackBar('${_capitalize(type)} adicionado com sucesso!');
   }
 
-  void _addNovoSetor() =>
-      _addNewItem('setor', _setoresSugeridos, _controllers['newSetor']!);
-  void _addNovaFuncao() =>
-      _addNewItem('funcao', _funcoesSugeridas, _controllers['newFuncao']!);
-  void _addNovoVinculo() =>
-      _addNewItem('vinculo', _vinculosSugeridos, _controllers['newVinculo']!);
   void _addNovoTurno() =>
       _addNewItem('turno', _turnosSugeridos, _controllers['newTurno']!);
+
+  void _addNovoLocalTrabalho() =>
+      _addNewItem('localTrabalho', _locaisTrabalhoSugeridos, _controllers['newLocalTrabalho']!);
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
@@ -431,15 +804,15 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         dataNascimento: _dataNascimento,
         telefone: _controllers['telefone']!.text.trim(),
         email: _controllers['email']!.text.trim(),
-        setor: _controllers['setor']!.text.trim(),
-        cargo: _controllers['funcao']!.text.trim(),
-        vinculo: _controllers['vinculo']!.text.trim(),
+        setor: null,
+        cargo: null,
+        vinculo: null,
         lider: _controllers['lider']!.text.trim(),
         gestor: _controllers['gestor']!.text.trim(),
         localTrabalho: _controllers['localTrabalho']!.text.trim(),
         turno: _controllers['turno']!.text.trim(),
-        epis: _epis,
-        riscos: _riscos,
+        epis: const [],
+        riscos: const [],
         statusAtivo: _statusAtivo,
         statusFerias: _statusFerias,
         dataRetornoFerias: _dataRetornoFerias,
@@ -742,34 +1115,12 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 ),
               ),
               InfoSection(
-                title: 'Cargo e Setor',
-                icon: Icons.work_outline,
-                child: JobSection(
+                title: 'Contato',
+                icon: Icons.contact_phone_outlined,
+                child: ContactSection(
+                  telefoneController: _controllers['telefone']!,
+                  emailController: _controllers['email']!,
                   enabled: isEnabled,
-                  setorController: _controllers['setor']!,
-                  funcaoController: _controllers['funcao']!,
-                  vinculoController: _controllers['vinculo']!,
-                  setoresSugeridos: _setoresSugeridos,
-                  funcoesSugeridas: _funcoesSugeridas,
-                  vinculosSugeridos: _vinculosSugeridos,
-                  setorButtonKey: _overlayKeys['setor']!,
-                  funcaoButtonKey: _overlayKeys['funcao']!,
-                  vinculoButtonKey: _overlayKeys['vinculo']!,
-                  onAddSetor: () => _showAddOverlay(
-                    'setor',
-                    'Adicionar Novo Setor',
-                    _addNovoSetor,
-                  ),
-                  onAddFuncao: () => _showAddOverlay(
-                    'funcao',
-                    'Adicionar Nova Função',
-                    _addNovaFuncao,
-                  ),
-                  onAddVinculo: () => _showAddOverlay(
-                    'vinculo',
-                    'Adicionar Novo Tipo de Vínculo',
-                    _addNovoVinculo,
-                  ),
                 ),
               ),
               InfoSection(
@@ -779,32 +1130,12 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   enabled: isEnabled,
                   localTrabalhoController: _controllers['localTrabalho']!,
                   turnoController: _controllers['turno']!,
-                  locaisTrabalhoSugeridos: _suggestions['locaisTrabalho']!,
+                  locaisTrabalhoSugeridos: _locaisTrabalhoSugeridos,
                   turnosSugeridos: _turnosSugeridos,
-                  episSelecionados: _epis,
-                  riscosSelecionados: _riscos,
+                  localTrabalhoButtonKey: _overlayKeys['localTrabalho']!,
                   turnoButtonKey: _overlayKeys['turno']!,
-                  episButtonKey: _overlayKeys['epis']!,
-                  riscosButtonKey: _overlayKeys['riscos']!,
-                  onAddTurno: () => _showAddOverlay(
-                    'turno',
-                    'Adicionar Novo Turno',
-                    _addNovoTurno,
-                  ),
-                  onSelectEpis: () => _showMultiSelectOverlay(
-                    'epis',
-                    'Selecionar EPIs Necessários',
-                    Icons.security_outlined,
-                    _suggestions['epis']!,
-                    _epis,
-                  ),
-                  onSelectRiscos: () => _showMultiSelectOverlay(
-                    'riscos',
-                    'Selecionar Riscos Associados',
-                    Icons.warning_outlined,
-                    _suggestions['riscos']!,
-                    _riscos,
-                  ),
+                  onAddLocalTrabalho: _showLocalTrabalhoModal,
+                  onAddTurno: _showTurnoTrabalhoModal,
                 ),
               ),
               InfoSection(
@@ -865,35 +1196,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           ),
         ),
         InfoSection(
-          title: 'Cargo e Setor',
-          icon: Icons.work_outline,
-          child: JobSection(
-            enabled: isEnabled,
-            setorController: _controllers['setor']!,
-            funcaoController: _controllers['funcao']!,
-            vinculoController: _controllers['vinculo']!,
-            // MODIFICADO: Passando as listas carregadas do Appwrite
-            setoresSugeridos: _setoresSugeridos,
-            funcoesSugeridas: _funcoesSugeridas,
-            vinculosSugeridos: _vinculosSugeridos,
-            setorButtonKey: _overlayKeys['setor']!,
-            funcaoButtonKey: _overlayKeys['funcao']!,
-            vinculoButtonKey: _overlayKeys['vinculo']!,
-            onAddSetor: () =>
-                _showAddOverlay('setor', 'Adicionar Novo Setor', _addNovoSetor),
-            onAddFuncao: () => _showAddOverlay(
-              'funcao',
-              'Adicionar Nova Função',
-              _addNovaFuncao,
-            ),
-            onAddVinculo: () => _showAddOverlay(
-              'vinculo',
-              'Adicionar Novo Tipo de Vínculo',
-              _addNovoVinculo,
-            ),
-          ),
-        ),
-        InfoSection(
           title: 'Contato',
           icon: Icons.contact_phone_outlined,
           child: ContactSection(
@@ -909,30 +1211,12 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
             enabled: isEnabled,
             localTrabalhoController: _controllers['localTrabalho']!,
             turnoController: _controllers['turno']!,
-            locaisTrabalhoSugeridos: _suggestions['locaisTrabalho']!,
-            // MODIFICADO: Passando a lista carregada do Appwrite
+            locaisTrabalhoSugeridos: _locaisTrabalhoSugeridos,
             turnosSugeridos: _turnosSugeridos,
-            episSelecionados: _epis,
-            riscosSelecionados: _riscos,
+            localTrabalhoButtonKey: _overlayKeys['localTrabalho']!,
             turnoButtonKey: _overlayKeys['turno']!,
-            episButtonKey: _overlayKeys['epis']!,
-            riscosButtonKey: _overlayKeys['riscos']!,
-            onAddTurno: () =>
-                _showAddOverlay('turno', 'Adicionar Novo Turno', _addNovoTurno),
-            onSelectEpis: () => _showMultiSelectOverlay(
-              'epis',
-              'Selecionar EPIs Necessários',
-              Icons.security_outlined,
-              _suggestions['epis']!,
-              _epis,
-            ),
-            onSelectRiscos: () => _showMultiSelectOverlay(
-              'riscos',
-              'Selecionar Riscos Associados',
-              Icons.warning_outlined,
-              _suggestions['riscos']!,
-              _riscos,
-            ),
+            onAddLocalTrabalho: _showLocalTrabalhoModal,
+            onAddTurno: _showTurnoTrabalhoModal,
           ),
         ),
         InfoSection(
