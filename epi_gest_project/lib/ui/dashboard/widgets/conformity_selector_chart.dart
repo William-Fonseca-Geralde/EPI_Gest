@@ -14,23 +14,48 @@ class ConformitySelectorChart extends StatefulWidget {
 class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     with SingleTickerProviderStateMixin {
   String _selectedView = 'Geral';
-
-  // Valor geral (poderia vir de uma API)
   double _conformidadeGeral = 78.5;
-
-  // Simula atualização (apenas demonstração)
   bool _animStarted = false;
 
-  // Dados por setor
+  // Dados otimizados com cores mais modernas
   final List<Map<String, dynamic>> _sectorConformity = [
-    {'setor': 'Qualidade', 'conformidade': 92.5, 'cor': Colors.green, 'icon': Icons.verified_rounded},
-    {'setor': 'Produção', 'conformidade': 78.3, 'cor': Colors.orange, 'icon': Icons.engineering_rounded},
-    {'setor': 'Administrativo', 'conformidade': 85.7, 'cor': Colors.blue, 'icon': Icons.work_rounded},
-    {'setor': 'Manutenção', 'conformidade': 71.2, 'cor': Colors.red, 'icon': Icons.build_rounded},
-    {'setor': 'Logística', 'conformidade': 68.9, 'cor': Colors.purple, 'icon': Icons.local_shipping_rounded},
+    {
+      'setor': 'Qualidade', 
+      'conformidade': 92.5, 
+      'cor': Color(0xFF10B981), 
+      'icon': Icons.verified_rounded,
+      'gradient': [Color(0xFF10B981), Color(0xFF34D399)]
+    },
+    {
+      'setor': 'Produção', 
+      'conformidade': 78.3, 
+      'cor': Color(0xFFF59E0B), 
+      'icon': Icons.engineering_rounded,
+      'gradient': [Color(0xFFF59E0B), Color(0xFFFBBF24)]
+    },
+    {
+      'setor': 'Administrativo', 
+      'conformidade': 85.7, 
+      'cor': Color(0xFF3B82F6), 
+      'icon': Icons.work_rounded,
+      'gradient': [Color(0xFF3B82F6), Color(0xFF60A5FA)]
+    },
+    {
+      'setor': 'Manutenção', 
+      'conformidade': 71.2, 
+      'cor': Color(0xFFEF4444), 
+      'icon': Icons.build_rounded,
+      'gradient': [Color(0xFFEF4444), Color(0xFFF87171)]
+    },
+    {
+      'setor': 'Logística', 
+      'conformidade': 68.9, 
+      'cor': Color(0xFF8B5CF6), 
+      'icon': Icons.local_shipping_rounded,
+      'gradient': [Color(0xFF8B5CF6), Color(0xFFA78BFA)]
+    },
   ];
 
-  // Controller para transições do segmento
   late final AnimationController _segController;
 
   @override
@@ -41,7 +66,6 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
       duration: const Duration(milliseconds: 300),
     );
 
-    // Inicia animação única do gauge ao montar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() => _animStarted = true);
     });
@@ -57,96 +81,55 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       margin: EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // Fundo com glassmorphism
-            _buildFrostedBackground(context),
-
-            // Conteúdo
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(theme, cs),
-                  const SizedBox(height: 18),
-
-                  // Conteúdo principal com animação de troca
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 450),
-                    switchInCurve: Curves.easeOutBack,
-                    switchOutCurve: Curves.easeInBack,
-                    child: _selectedView == 'Geral'
-                        ? _buildPremiumGeralView(theme, cs, key: const ValueKey('Geral'))
-                        : _buildPremiumSetorView(theme, cs, key: const ValueKey('Setores')),
-                  ),
-
-                  const SizedBox(height: 16),
-                  _buildPremiumLegend(theme, cs),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Fundo com blur e brilho sutil
-  Widget _buildFrostedBackground(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
-    return Positioned.fill(
-      child: Stack(
-        children: [
-          // Gradiente sutil por trás (substituição segura das propriedades antigas)
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  cs.surfaceContainerHighest.withValues(alpha: 0.7),
-                  cs.surfaceContainerHigh.withValues(alpha: 0.6),
-                ],
-              ),
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark 
+                ? [cs.surfaceContainerHigh, cs.surfaceContainerHighest]
+                : [cs.surface, cs.surfaceContainerLow],
             ),
           ),
-
-          // Blur (glass)
-          BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Container(
-              color: Colors.transparent,
-            ),
-          ),
-
-          // Luz decorativa (top-left)
-          Positioned(
-            left: -60,
-            top: -40,
-            child: Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    cs.surfaceBright.withValues(alpha: 0.06),
-                    Colors.transparent,
-                  ],
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(theme, cs),
+                const SizedBox(height: 24),
+                
+                // Conteúdo principal responsivo
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isLargeScreen = constraints.maxWidth > 1200;
+                    final isMediumScreen = constraints.maxWidth > 600;
+                    
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 500),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      child: _selectedView == 'Geral'
+                          ? _buildResponsiveGeralView(theme, cs, isLargeScreen, isMediumScreen)
+                          : _buildResponsiveSetorView(theme, cs, isLargeScreen, isMediumScreen),
+                    );
+                  },
                 ),
-              ),
+
+                const SizedBox(height: 20),
+                _buildModernLegend(theme, cs),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -154,50 +137,49 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
   Widget _buildHeader(ThemeData theme, ColorScheme cs) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Título + descrição
+        // Ícone e título
         Expanded(
           child: Row(
             children: [
-              // Ícone com aura
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [
-                      cs.primary.withValues(alpha: 0.95),
-                      cs.primaryContainer.withValues(alpha: 0.85),
-                    ],
+                    colors: [cs.primary, cs.primaryContainer],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
+                  shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: cs.primary.withValues(alpha: 0.18),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
+                      color: cs.primary.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 4),
                     )
                   ],
                 ),
-                child: Icon(Icons.verified_user_rounded, color: cs.onPrimary, size: 20),
+                child: Icon(Icons.analytics_rounded, color: cs.onPrimary, size: 24),
               ),
-
-              const SizedBox(width: 12),
-
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Conformidade de EPIs',
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: cs.onSurface),
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: cs.onSurface,
+                      ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
-                      'Taxa de colaboradores com EPIs válidos e insights automáticos',
-                      style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                      'Monitoramento em tempo real do uso adequado de equipamentos',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -205,178 +187,901 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
             ],
           ),
         ),
-
-        const SizedBox(width: 12),
-
-        // Segment control custom
-        _buildAnimatedSegmentControl(),
+        
+        const SizedBox(width: 16),
+        
+        // Segment control moderno
+        _buildModernSegmentControl(),
       ],
     );
   }
 
-  Widget _buildAnimatedSegmentControl() {
+  Widget _buildModernSegmentControl() {
     final cs = Theme.of(context).colorScheme;
-    final isGeral = _selectedView == 'Geral';
-
+    
     return Container(
-      padding: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.06)),
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _segmentButton('Geral', Icons.auto_graph_rounded),
-          const SizedBox(width: 6),
-          _segmentButton('Setores', Icons.pie_chart_rounded),
+          _modernSegmentButton('Geral', Icons.donut_large_rounded),
+          const SizedBox(width: 8),
+          _modernSegmentButton('Setores', Icons.pie_chart_rounded),
         ],
       ),
     );
   }
 
-  Widget _segmentButton(String label, IconData icon) {
+  Widget _modernSegmentButton(String label, IconData icon) {
     final cs = Theme.of(context).colorScheme;
     final isSelected = _selectedView == label;
-    final baseColor = isSelected ? cs.primary : null;
-
+    
     return GestureDetector(
       onTap: () {
-        setState(() {
-          _selectedView = label;
-        });
+        setState(() => _selectedView = label);
       },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 350),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? baseColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
+          gradient: isSelected 
+              ? LinearGradient(
+                  colors: [cs.primary, cs.primaryContainer],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          borderRadius: BorderRadius.circular(16),
           boxShadow: isSelected
-              ? [BoxShadow(color: baseColor!.withValues(alpha: 0.18), blurRadius: 14, offset: const Offset(0, 6))]
+              ? [
+                  BoxShadow(
+                    color: cs.primary.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  )
+                ]
               : null,
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 16, color: isSelected ? cs.onPrimary : cs.onSurfaceVariant),
+            Icon(
+              icon, 
+              size: 18, 
+              color: isSelected ? cs.onPrimary : cs.onSurfaceVariant,
+            ),
             const SizedBox(width: 8),
-            Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? cs.onPrimary : cs.onSurfaceVariant)),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+                color: isSelected ? cs.onPrimary : cs.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPremiumGeralView(ThemeData theme, ColorScheme cs, {Key? key}) {
-    return Container(
-      key: key,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 300,
-            child: LayoutBuilder(builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 600;
+  Widget _buildResponsiveGeralView(ThemeData theme, ColorScheme cs, bool isLarge, bool isMedium) {
+    return Column(
+      children: [
+        // Gauge principal com layout responsivo
+        isLarge
+            ? _buildLargeGeralLayout(theme, cs)
+            : isMedium
+                ? _buildMediumGeralLayout(theme, cs)
+                : _buildSmallGeralLayout(theme, cs),
+        
+        const SizedBox(height: 24),
+        
+        // Estatísticas adicionais
+        _buildModernStats(theme, cs),
+      ],
+    );
+  }
 
-              return Row(
-                children: [
-                  Expanded(
-                    flex: isNarrow ? 0 : 6,
-                    child: _buildAnimatedGauge(isNarrow, theme, cs),
+  Widget _buildLargeGeralLayout(ThemeData theme, ColorScheme cs) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 3,
+          child: _buildModernGauge(theme, cs, 280),
+        ),
+        const SizedBox(width: 32),
+        Expanded(
+          flex: 2,
+          child: _buildGeralInsights(theme, cs),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMediumGeralLayout(ThemeData theme, ColorScheme cs) {
+    return Column(
+      children: [
+        _buildModernGauge(theme, cs, 240),
+        const SizedBox(height: 24),
+        _buildGeralInsights(theme, cs),
+      ],
+    );
+  }
+
+  Widget _buildSmallGeralLayout(ThemeData theme, ColorScheme cs) {
+    return Column(
+      children: [
+        _buildModernGauge(theme, cs, 200),
+        const SizedBox(height: 20),
+        _buildGeralInsights(theme, cs),
+      ],
+    );
+  }
+
+  Widget _buildModernGauge(ThemeData theme, ColorScheme cs, double size) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: _animStarted ? _conformidadeGeral : 0),
+      duration: const Duration(milliseconds: 1800),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) {
+        final gradientColors = _getConformityGradient(value);
+        
+        return Container(
+          height: size,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Efeito de brilho
+              if (value > 70)
+                Positioned.fill(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 1000),
+                    margin: EdgeInsets.all(size * 0.15),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          gradientColors.last.withValues(alpha: 0.1),
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
                   ),
-
-                  if (!isNarrow) const SizedBox(width: 18),
-
-                  Expanded(
-                    flex: isNarrow ? 0 : 4,
-                    child: _buildGeralRightColumn(theme, cs),
+                ),
+              
+              // Gauge principal
+              SfRadialGauge(
+                axes: <RadialAxis>[
+                  RadialAxis(
+                    minimum: 0,
+                    maximum: 100,
+                    showLabels: false,
+                    showTicks: false,
+                    startAngle: 140,
+                    endAngle: 40,
+                    axisLineStyle: const AxisLineStyle(
+                      thickness: 0.08,
+                      color: Colors.transparent,
+                    ),
+                    pointers: <GaugePointer>[
+                      // Fundo do gauge
+                      RangePointer(
+                        value: 100,
+                        width: 0.28,
+                        cornerStyle: CornerStyle.bothCurve,
+                        color: cs.onSurfaceVariant.withValues(alpha: 0.1),
+                        dashArray: const [4, 8],
+                      ),
+                      
+                      // Valor principal
+                      RangePointer(
+                        value: value,
+                        width: 0.24,
+                        cornerStyle: CornerStyle.bothCurve,
+                        gradient: SweepGradient(
+                          colors: gradientColors,
+                          stops: const [0.2, 0.8],
+                        ),
+                      ),
+                      
+                      // Marcador
+                      MarkerPointer(
+                        value: value,
+                        markerHeight: 24,
+                        markerWidth: 24,
+                        markerType: MarkerType.circle,
+                        color: cs.surface,
+                        borderWidth: 4,
+                        borderColor: _getConformityColor(value),
+                      ),
+                    ],
+                    annotations: <GaugeAnnotation>[
+                      GaugeAnnotation(
+                        positionFactor: 0.1,
+                        angle: 90,
+                        widget: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TweenAnimationBuilder<int>(
+                              tween: IntTween(begin: 0, end: value.round()),
+                              duration: const Duration(milliseconds: 1400),
+                              builder: (context, val, _) {
+                                return Text(
+                                  '$val%',
+                                  style: TextStyle(
+                                    fontSize: size * 0.16,
+                                    fontWeight: FontWeight.w900,
+                                    color: _getConformityColor(value),
+                                    height: 1,
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: _getConformityColor(value).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: _getConformityColor(value).withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Text(
+                                _getConformityStatus(value),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: _getConformityColor(value),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
-              );
-            }),
+              ),
+            ],
           ),
+        );
+      },
+    );
+  }
 
-          const SizedBox(height: 18),
+  Widget _buildGeralInsights(ThemeData theme, ColorScheme cs) {
+    final avg = _calculateAverageSector();
+    final delta = _conformidadeGeral - avg;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Análise Detalhada',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface,
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        // Média dos setores
+        _buildInsightCard(
+          theme,
+          cs,
+          'Média dos Setores',
+          '${avg.toStringAsFixed(1)}%',
+          delta >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
+          delta >= 0 ? Colors.green : Colors.red,
+          '${delta.abs().toStringAsFixed(1)}pts ${delta >= 0 ? 'acima' : 'abaixo'}',
+        ),
+        
+        const SizedBox(height: 12),
+        
+        // Insights rápidos
+        ..._buildQuickInsights(theme, cs),
+      ],
+    );
+  }
 
-          // Estatísticas e insights
-          _buildAdditionalStats(theme, cs),
+  Widget _buildInsightCard(ThemeData theme, ColorScheme cs, String title, String value, 
+                          IconData icon, Color color, String subtitle) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                const SizedBox(height: 4),
+                Text(value, style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                )),
+              ],
+            ),
+          ),
+          Text(subtitle, style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          )),
         ],
       ),
     );
   }
 
-  Widget _buildAnimatedGauge(bool isNarrow, ThemeData theme, ColorScheme cs) {
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: _animStarted ? _conformidadeGeral : 0),
-      duration: const Duration(milliseconds: 1400),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        final gradientColors = _getConformityColors(value);
+  List<Widget> _buildQuickInsights(ThemeData theme, ColorScheme cs) {
+    final best = _sectorConformity.reduce((a, b) => 
+        (a['conformidade'] as double) > (b['conformidade'] as double) ? a : b);
+    final worst = _sectorConformity.reduce((a, b) => 
+        (a['conformidade'] as double) < (b['conformidade'] as double) ? a : b);
+        
+    return [
+      _quickInsightItem(
+        'Melhor desempenho: ${best['setor']}',
+        '${best['conformidade'].toStringAsFixed(1)}%',
+        Icons.emoji_events_rounded,
+        Colors.green,
+      ),
+      const SizedBox(height: 8),
+      _quickInsightItem(
+        'Setor mais crítico: ${worst['setor']}',
+        '${worst['conformidade'].toStringAsFixed(1)}%',
+        Icons.warning_rounded,
+        Colors.orange,
+      ),
+    ];
+  }
 
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            // Halo dinâmico
-            Positioned.fill(
-              child: IgnorePointer(
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 400),
-                  opacity: (value / 100).clamp(0.08, 0.28),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        colors: [gradientColors.last.withValues(alpha: 0.08), Colors.transparent],
-                        radius: 0.9,
+  Widget _quickInsightItem(String title, String value, IconData icon, Color color) {
+    final cs = Theme.of(context).colorScheme;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Expanded(child: Text(title, style: TextStyle(fontSize: 13, color: cs.onSurface))),
+          Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResponsiveSetorView(ThemeData theme, ColorScheme cs, bool isLarge, bool isMedium) {
+    final crossAxisCount = isLarge ? 3 : isMedium ? 2 : 1;
+    
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: crossAxisCount,
+      mainAxisSpacing: 20,
+      crossAxisSpacing: 20,
+      childAspectRatio: isLarge ? 1.0 : 1.1,
+      children: _sectorConformity.map((sector) => _buildModernSectorCard(theme, cs, sector)).toList(),
+    );
+  }
+
+  Widget _buildModernSectorCard(ThemeData theme, ColorScheme cs, Map<String, dynamic> sector) {
+    final conformity = sector['conformidade'] as double;
+    final gradient = sector['gradient'] as List<Color>;
+    
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () => _showSectorDetails(sector),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+            border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header do card - MAIOR
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(colors: gradient),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(sector['icon'] as IconData, size: 22, color: Colors.white),
                       ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            sector['setor'] as String,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: cs.onSurface,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${conformity.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: _getConformityColor(conformity),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  _buildStatusBadge(conformity),
+                ],
+              ),
+              
+              const SizedBox(height: 20),
+              
+              // Mini gauge - MAIOR
+              Expanded(
+                child: Center(
+                  child: SizedBox(
+                    width: 140,
+                    height: 140,
+                    child: SfRadialGauge(
+                      axes: [
+                        RadialAxis(
+                          minimum: 0,
+                          maximum: 100,
+                          showTicks: false,
+                          showLabels: false,
+                          axisLineStyle: AxisLineStyle(
+                            thickness: 0.15,
+                            color: cs.outlineVariant.withValues(alpha: 0.2),
+                          ),
+                          pointers: [
+                            RangePointer(
+                              value: conformity,
+                              width: 0.12,
+                              cornerStyle: CornerStyle.bothCurve,
+                              gradient: SweepGradient(colors: gradient),
+                            ),
+                            MarkerPointer(
+                              value: conformity,
+                              markerType: MarkerType.circle,
+                              markerHeight: 18,
+                              markerWidth: 18,
+                              color: cs.surface,
+                              borderWidth: 3,
+                              borderColor: _getConformityColor(conformity),
+                            ),
+                          ],
+                          annotations: [
+                            GaugeAnnotation(
+                              widget: Text(
+                                '${conformity.toStringAsFixed(0)}%',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: cs.onSurface,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-            ),
+              
+              const SizedBox(height: 16),
+              
+              // Informações compactas - MAIOR
+              _buildSectorCompactInfo(sector['setor'] as String),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-            // GAUGE COM ESPESSURA AUMENTADA
-            SfRadialGauge(
+  Widget _buildStatusBadge(double conformity) {
+    final color = _getConformityColor(conformity);
+    final status = _getConformityStatus(conformity);
+    final icon = conformity >= 90 ? Icons.verified_rounded : 
+                 conformity >= 70 ? Icons.check_circle_rounded : 
+                 Icons.warning_rounded;
+                 
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            status,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectorCompactInfo(String setor) {
+    final details = _getSectorDetails(setor);
+    final cs = Theme.of(context).colorScheme;
+    
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _compactInfoItem(Icons.people_rounded, '${details['funcionarios']}', 'Pessoas'),
+          _compactInfoItem(Icons.security_rounded, '${details['epis']}', 'EPIs'),
+        ],
+      ),
+    );
+  }
+
+  Widget _compactInfoItem(IconData icon, String value, String label) {
+    final cs = Theme.of(context).colorScheme;
+    
+    return Column(
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 18, color: cs.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: cs.onSurface,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernStats(ThemeData theme, ColorScheme cs) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatItem('Setores Ativos', '${_sectorConformity.length}', 
+                        Icons.business_center_rounded, Color(0xFF3B82F6)),
+          _buildVerticalDivider(),
+          _buildStatItem('Colaboradores', '${_sumEmployees()}', 
+                        Icons.people_alt_rounded, Color(0xFF10B981)),
+          _buildVerticalDivider(),
+          _buildStatItem('EPIs Monitorados', '${_sumEpis()}', 
+                        Icons.security_rounded, Color(0xFFF59E0B)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(
+      width: 1,
+      height: 40,
+      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.2),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+    final cs = Theme.of(context).colorScheme;
+    
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 20, color: color),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: cs.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernLegend(ThemeData theme, ColorScheme cs) {
+    return Wrap(
+      spacing: 20,
+      runSpacing: 12,
+      alignment: WrapAlignment.center,
+      children: [
+        _buildLegendItem('Crítico (<70%)', Colors.red),
+        _buildLegendItem('Moderado (70-90%)', Colors.orange),
+        _buildLegendItem('Excelente (>90%)', Colors.green),
+      ],
+    );
+  }
+
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ========== MODAL DETALHADO ==========
+
+  void _showSectorDetails(Map<String, dynamic> sector) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _buildSectorModal(theme, cs, sector),
+    );
+  }
+
+  Widget _buildSectorModal(ThemeData theme, ColorScheme cs, Map<String, dynamic> sector) {
+    final conformity = sector['conformidade'] as double;
+    final gradient = sector['gradient'] as List<Color>;
+    final sectorDetails = _getSectorDetails(sector['setor'] as String);
+    final employees = _getSectorEmployees(sector['setor'] as String);
+    final epis = _getSectorEpis(sector['setor'] as String);
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(28),
+          topRight: Radius.circular(28),
+        ),
+      ),
+      child: Column(
+        children: [
+          // Header do Modal
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradient,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(28),
+                topRight: Radius.circular(28),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: cs.surface.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(sector['icon'] as IconData, size: 24, color: gradient[0]),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        sector['setor'] as String,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: cs.onPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${conformity.toStringAsFixed(1)}% de conformidade',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: cs.onPrimary.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: Icon(Icons.close_rounded, color: cs.onPrimary),
+                ),
+              ],
+            ),
+          ),
+
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Gráfico do Setor
+                  _buildSectorModalGauge(theme, cs, conformity, gradient),
+                  const SizedBox(height: 32),
+
+                  // Estatísticas Rápidas
+                  _buildModalStats(theme, cs, sectorDetails, sector['setor'] as String),
+                  const SizedBox(height: 32),
+
+                  // Lista de Colaboradores
+                  _buildEmployeesSection(theme, cs, employees),
+                  const SizedBox(height: 32),
+
+                  // EPIs do Setor
+                  _buildEpisSection(theme, cs, epis),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectorModalGauge(ThemeData theme, ColorScheme cs, double conformity, List<Color> gradient) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Conformidade do Setor',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: cs.onSurface,
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: SfRadialGauge(
               axes: <RadialAxis>[
                 RadialAxis(
                   minimum: 0,
                   maximum: 100,
                   showLabels: false,
                   showTicks: false,
-                  startAngle: 150,
-                  endAngle: 30,
-                  canRotateLabels: false,
+                  startAngle: 140,
+                  endAngle: 40,
                   axisLineStyle: const AxisLineStyle(
-                    thickness: 0.00,
+                    thickness: 0.08,
                     color: Colors.transparent,
                   ),
                   pointers: <GaugePointer>[
-                    // 1) Fundo tracejado completo - ESPESSURA AUMENTADA
                     RangePointer(
                       value: 100,
-                      width: 0.32, // Aumentado de 0.24 para 0.32
+                      width: 0.20,
                       cornerStyle: CornerStyle.bothCurve,
-                      color: cs.onSurfaceVariant.withValues(alpha: 0.25), // Opacidade aumentada
-                      dashArray: const <double>[8, 6],
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.1),
                     ),
-
-                    // 2) Ponteiro de valor real - ESPESSURA AUMENTADA
                     RangePointer(
-                      value: value,
-                      width: 0.24, // Aumentado de 0.16 para 0.24
+                      value: conformity,
+                      width: 0.18,
                       cornerStyle: CornerStyle.bothCurve,
-                      gradient: SweepGradient(colors: gradientColors, stops: const [0.0, 1.0]),
+                      gradient: SweepGradient(colors: gradient),
                     ),
-
-                    // 3) Marcador - TAMANHO AUMENTADO
                     MarkerPointer(
-                      value: value,
-                      markerHeight: 28, // Aumentado de 24 para 28
-                      markerWidth: 28,  // Aumentado de 24 para 28
+                      value: conformity,
+                      markerHeight: 20,
+                      markerWidth: 20,
                       markerType: MarkerType.circle,
                       color: cs.surface,
-                      borderWidth: 4,   // Aumentado de 3 para 4
-                      borderColor: _getConformityColor(value),
+                      borderWidth: 4,
+                      borderColor: _getConformityColor(conformity),
                     ),
                   ],
                   annotations: <GaugeAnnotation>[
@@ -385,32 +1090,28 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                       angle: 90,
                       widget: Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          TweenAnimationBuilder<int>(
-                            tween: IntTween(begin: 0, end: value.round()),
-                            duration: const Duration(milliseconds: 1100),
-                            builder: (context, val, _) {
-                              return Text(
-                                '$val%',
-                                style: TextStyle(
-                                  fontSize: 42,
-                                  fontWeight: FontWeight.w800,
-                                  color: _getConformityColor(value),
-                                ),
-                              );
-                            },
+                        children: [
+                          Text(
+                            '${conformity.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: _getConformityColor(conformity),
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             decoration: BoxDecoration(
-                              color: _getConformityColor(value).withValues(alpha: 0.12),
+                              color: _getConformityColor(conformity).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: _getConformityColor(value).withValues(alpha: 0.22)),
                             ),
                             child: Text(
-                              _getConformityStatus(value),
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _getConformityColor(value)),
+                              _getConformityStatus(conformity),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: _getConformityColor(conformity),
+                              ),
                             ),
                           ),
                         ],
@@ -420,244 +1121,97 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                 ),
               ],
             ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildGeralRightColumn(ThemeData theme, ColorScheme cs) {
-    final avg = _calculateAverageSector();
-    final delta = (_conformidadeGeral - avg).toStringAsFixed(1);
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Média dos setores', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold, color: cs.onSurface)),
-        const SizedBox(height: 8),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text('${avg.toStringAsFixed(1)}%', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, color: cs.onSurface)),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: (_conformidadeGeral >= avg ? Colors.green : Colors.red).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(_conformidadeGeral >= avg ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded, size: 14, color: _conformidadeGeral >= avg ? Colors.green : Colors.red),
-                  const SizedBox(width: 6),
-                  Text('${delta}pt', style: TextStyle(fontWeight: FontWeight.w700, color: _conformidadeGeral >= avg ? Colors.green : Colors.red)),
-                ],
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 12),
-
-        // Micro-insights
-        _buildMicroInsights(),
-      ],
-    );
-  }
-
-  Widget _buildMicroInsights() {
-    // Gera 2 insights simples com base nos dados
-    final worst = _sectorConformity.reduce((a, b) => (a['conformidade'] as double) < (b['conformidade'] as double) ? a : b);
-    final best = _sectorConformity.reduce((a, b) => (a['conformidade'] as double) > (b['conformidade'] as double) ? a : b);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _insightTile('Melhor setor: ${best['setor']}', 'Conformidade ${best['conformidade'].toStringAsFixed(1)}%'),
-        const SizedBox(height: 8),
-        _insightTile('Setor mais crítico: ${worst['setor']}', 'Conformidade ${worst['conformidade'].toStringAsFixed(1)}%'),
-      ],
-    );
-  }
-
-  Widget _insightTile(String title, String subtitle) {
-    final cs = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.04)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.lightbulb_rounded, size: 18, color: cs.primary),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: TextStyle(fontWeight: FontWeight.w700, color: cs.onSurface)),
-              const SizedBox(height: 2),
-              Text(subtitle, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPremiumSetorView(ThemeData theme, ColorScheme cs, {Key? key}) {
-    return Container(
-      key: key,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: GridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisCount: MediaQuery.of(context).size.width > 900 ? 3 : 2,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 16,
-        childAspectRatio: 1.15,
-        children: _sectorConformity.map((sector) => _buildSectorGauge(theme, cs, sector)).toList(),
-      ),
+  Widget _buildModalStats(ThemeData theme, ColorScheme cs, Map<String, dynamic> details, String setor) {
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.8,
+      children: [
+        _buildModalStatCard(
+          theme,
+          cs,
+          'Colaboradores',
+          '${details['funcionarios']}',
+          Icons.people_rounded,
+          Colors.blue,
+        ),
+        _buildModalStatCard(
+          theme,
+          cs,
+          'EPIs Ativos',
+          '${details['epis']}',
+          Icons.security_rounded,
+          Colors.green,
+        ),
+        _buildModalStatCard(
+          theme,
+          cs,
+          'Conformidade',
+          '${_getSectorConformity(setor).toStringAsFixed(1)}%',
+          Icons.verified_rounded,
+          _getConformityColor(_getSectorConformity(setor)),
+        ),
+        _buildModalStatCard(
+          theme,
+          cs,
+          'EPIs por Pessoa',
+          '${(details['epis'] / details['funcionarios']).toStringAsFixed(1)}',
+          Icons.assignment_rounded,
+          Colors.orange,
+        ),
+      ],
     );
   }
 
-  Widget _buildSectorGauge(ThemeData theme, ColorScheme cs, Map<String, dynamic> sector) {
-    final conformity = sector['conformidade'] as double;
-    final color = sector['cor'] as Color;
-    final icon = sector['icon'] as IconData;
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {
-          // Exemplo: ação ao tocar no card
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${sector['setor']} - ${conformity.toStringAsFixed(1)}%')));
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 6)),
-            ],
-            border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.04)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildModalStatCard(ThemeData theme, ColorScheme cs, String title, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-                      child: Icon(icon, size: 18, color: color),
-                    ),
-                    const SizedBox(width: 10),
-                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(sector['setor'], style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurface)),
-                      const SizedBox(height: 4),
-                      Text('${conformity.toStringAsFixed(1)}%', style: TextStyle(fontWeight: FontWeight.w800, color: _getConformityColor(conformity))),
-                    ])
-                  ]),
-
-                  // Indicador lateral
-                  _miniPerformanceBadge(conformity),
-                ],
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 16, color: color),
               ),
-
-              // Mini gauge ATUALIZADO
-              SizedBox(
-                height: 84,
-                child: SfRadialGauge(
-                  axes: [
-                    RadialAxis(
-                      minimum: 0,
-                      maximum: 100,
-                      showTicks: false,
-                      showLabels: false,
-                      axisLineStyle: AxisLineStyle(thickness: 0.12, color: Theme.of(context).dividerColor.withValues(alpha: 0.05)),
-                      pointers: [
-                        RangePointer(
-                          value: conformity, 
-                          width: 0.20, // Aumentado de 0.12 para 0.20
-                          cornerStyle: CornerStyle.bothCurve, 
-                          gradient: SweepGradient(colors: _getConformityColors(conformity))
-                        ),
-                        MarkerPointer(
-                          value: conformity, 
-                          markerType: MarkerType.circle, 
-                          markerHeight: 16, // Aumentado de 12 para 16
-                          markerWidth: 16,  // Aumentado de 12 para 16
-                          color: Theme.of(context).colorScheme.surface, 
-                          borderWidth: 3,   // Aumentado de 2 para 3
-                          borderColor: _getConformityColor(conformity)
-                        ),
-                      ],
-                      annotations: [
-                        GaugeAnnotation(widget: Text('${conformity.toStringAsFixed(0)}%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurface)), positionFactor: 0.1, angle: 90),
-                      ],
-                    )
-                  ],
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-
-              // Info compacto
-              _buildSectorCompactInfo(sector['setor']),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _miniPerformanceBadge(double conformity) {
-    final color = _getConformityColor(conformity);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(10)),
-      child: Row(children: [
-        Icon(conformity >= 90 ? Icons.emoji_events_rounded : conformity >= 70 ? Icons.thumb_up_rounded : Icons.warning_rounded, size: 14, color: color),
-        const SizedBox(width: 8),
-        Text(_getConformityStatus(conformity), style: TextStyle(fontWeight: FontWeight.w700, color: color, fontSize: 12)),
-      ]),
-    );
-  }
-
-  Widget _buildSectorCompactInfo(String setor) {
-    final details = _getSectorDetails(setor);
-    final cs = Theme.of(context).colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.only(top: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: BoxDecoration(color: cs.surfaceContainerLow.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Row(
-            children: [
-              _iconStat(Icons.people_rounded, details['funcionarios'].toString()),
-              const SizedBox(width: 14),
-            ],
-          ),
-          Row(
-            children: [
-              _iconStat(Icons.security_rounded, details['epis'].toString()),
-              const SizedBox(width: 14),
-            ],
-          ),
-          Expanded(
-            child: Text(
-              details['tiposEpis'],
-              style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: cs.onSurface,
             ),
           ),
         ],
@@ -665,85 +1219,179 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     );
   }
 
-  Widget _iconStat(IconData ic, String value) {
-    final cs = Theme.of(context).colorScheme;
-    return Column(children: [
-      Icon(ic, size: 16, color: cs.onSurfaceVariant),
-      const SizedBox(height: 6),
-      Text(value, style: TextStyle(fontWeight: FontWeight.w700, color: cs.onSurface)),
-    ]);
+  Widget _buildEmployeesSection(ThemeData theme, ColorScheme cs, List<Map<String, dynamic>> employees) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Colaboradores',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: cs.onSurface,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${employees.length}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: cs.primary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...employees.map((employee) => _buildEmployeeCard(theme, cs, employee)).toList(),
+      ],
+    );
   }
 
-  Widget _buildAdditionalStats(ThemeData theme, ColorScheme colorScheme) {
-    final cs = colorScheme;
+  Widget _buildEmployeeCard(ThemeData theme, ColorScheme cs, Map<String, dynamic> employee) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh.withValues(alpha: 0.45),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.04)),
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildStatItem('Setores', '${_sectorConformity.length}', Icons.business_rounded, Colors.blue),
-          _buildStatItem('Colaboradores', '${_sumEmployees()}', Icons.people_rounded, Colors.green),
-          _buildStatItem('EPIs distintos', '${_sumEpis()}', Icons.security_rounded, Colors.orange),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (employee['conformidade'] >= 90 ? Colors.green : 
+                     employee['conformidade'] >= 70 ? Colors.orange : Colors.red)
+                     .withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              employee['conformidade'] >= 90 ? Icons.verified_rounded :
+              employee['conformidade'] >= 70 ? Icons.check_circle_rounded : Icons.warning_rounded,
+              size: 20,
+              color: employee['conformidade'] >= 90 ? Colors.green : 
+                     employee['conformidade'] >= 70 ? Colors.orange : Colors.red,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  employee['nome'],
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: cs.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  employee['cargo'],
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: _getConformityColor(employee['conformidade']).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '${employee['conformidade'].toStringAsFixed(0)}%',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: _getConformityColor(employee['conformidade']),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
-    final cs = Theme.of(context).colorScheme;
+  Widget _buildEpisSection(ThemeData theme, ColorScheme cs, List<Map<String, dynamic>> epis) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
-          child: Icon(icon, size: 18, color: color),
+        Row(
+          children: [
+            Text(
+              'EPIs do Setor',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: cs.onSurface,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: cs.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${epis.length}',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: cs.primary,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: cs.onSurface)),
-        Text(label, style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: epis.map((epi) => _buildEpiChip(theme, cs, epi)).toList(),
+        ),
       ],
     );
   }
 
-  Widget _buildPremiumLegend(ThemeData theme, ColorScheme cs) {
+  Widget _buildEpiChip(ThemeData theme, ColorScheme cs, Map<String, dynamic> epi) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: const BoxDecoration(color: Colors.transparent),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 8,
-        alignment: WrapAlignment.spaceBetween,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildPremiumStatusIndicator('Crítico (<70%)', Colors.red),
-          _buildPremiumStatusIndicator('Moderado (70-90%)', Colors.orange),
-          _buildPremiumStatusIndicator('Excelente (>90%)', Colors.green),
+          Icon(epi['obrigatorio'] ? Icons.security_rounded : Icons.help_rounded, 
+               size: 16, 
+               color: epi['obrigatorio'] ? Colors.green : Colors.orange),
+          const SizedBox(width: 8),
+          Text(
+            epi['nome'],
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w500,
+              color: cs.onSurface,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPremiumStatusIndicator(String label, Color color) {
-    final cs = Theme.of(context).colorScheme;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 14,
-          height: 14,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle, boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 6)]),
-        ),
-        const SizedBox(width: 8),
-        Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: cs.onSurface)),
-      ],
-    );
-  }
-
-  // ---------- Helpers ----------
+  // ========== MÉTODOS AUXILIARES ==========
 
   double _calculateAverageSector() {
     final sum = _sectorConformity.fold<double>(0, (prev, e) => prev + (e['conformidade'] as double));
@@ -762,46 +1410,108 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
 
   Map<String, dynamic> _getSectorDetails(String setor) {
     final details = {
-      'Qualidade': {
-        'funcionarios': 28,
-        'epis': 5,
-        'tiposEpis': 'Luvas, Óculos, Máscara, Avental, Calçado'
-      },
-      'Produção': {
-        'funcionarios': 65,
-        'epis': 8,
-        'tiposEpis': 'Capacete, Prot. Auditivo, Luvas, Botas, Óculos'
-      },
-      'Administrativo': {
-        'funcionarios': 22,
-        'epis': 3,
-        'tiposEpis': 'Nenhum ou Avental, Calçado'
-      },
-      'Manutenção': {
-        'funcionarios': 18,
-        'epis': 7,
-        'tiposEpis': 'Luvas, Óculos, Máscara, Capacete, Botas'
-      },
-      'Logística': {
-        'funcionarios': 9,
-        'epis': 5,
-        'tiposEpis': 'Capacete, Luvas, Colete, Botas, Óculos'
-      },
+      'Qualidade': {'funcionarios': 28, 'epis': 5},
+      'Produção': {'funcionarios': 65, 'epis': 8},
+      'Administrativo': {'funcionarios': 22, 'epis': 3},
+      'Manutenção': {'funcionarios': 18, 'epis': 7},
+      'Logística': {'funcionarios': 9, 'epis': 5},
     };
-
-    return details[setor] ?? {'funcionarios': 0, 'epis': 0, 'tiposEpis': ''};
+    return details[setor] ?? {'funcionarios': 0, 'epis': 0};
   }
 
-  List<Color> _getConformityColors(double value) {
-    if (value >= 90) return [Colors.green.shade600, Colors.lightGreenAccent.shade100];
-    if (value >= 70) return [Colors.orange.shade700, Colors.amberAccent.shade100];
-    return [Colors.red.shade600, Colors.deepOrangeAccent.shade200];
+  double _getSectorConformity(String setor) {
+    final sector = _sectorConformity.firstWhere((s) => s['setor'] == setor);
+    return sector['conformidade'] as double;
+  }
+
+  List<Map<String, dynamic>> _getSectorEmployees(String setor) {
+    final employees = {
+      'Qualidade': [
+        {'nome': 'Ana Silva', 'cargo': 'Analista QA', 'conformidade': 95.0},
+        {'nome': 'Carlos Santos', 'cargo': 'Inspetor', 'conformidade': 90.0},
+        {'nome': 'Marina Oliveira', 'cargo': 'Coordenadora', 'conformidade': 100.0},
+        {'nome': 'Roberto Alves', 'cargo': 'Técnico', 'conformidade': 85.0},
+      ],
+      'Produção': [
+        {'nome': 'João Pereira', 'cargo': 'Operador', 'conformidade': 85.0},
+        {'nome': 'Pedro Costa', 'cargo': 'Supervisor', 'conformidade': 92.0},
+        {'nome': 'Lucia Fernandes', 'cargo': 'Operadora', 'conformidade': 76.0},
+        {'nome': 'Fernando Lima', 'cargo': 'Auxiliar', 'conformidade': 68.0},
+      ],
+      'Administrativo': [
+        {'nome': 'Patricia Santos', 'cargo': 'Assistente', 'conformidade': 88.0},
+        {'nome': 'Ricardo Oliveira', 'cargo': 'Analista', 'conformidade': 92.0},
+        {'nome': 'Camila Rodrigues', 'cargo': 'Gerente', 'conformidade': 95.0},
+      ],
+      'Manutenção': [
+        {'nome': 'Marcos Silva', 'cargo': 'Técnico', 'conformidade': 72.0},
+        {'nome': 'Juliana Costa', 'cargo': 'Eletricista', 'conformidade': 85.0},
+        {'nome': 'Rodrigo Almeida', 'cargo': 'Mecânico', 'conformidade': 65.0},
+      ],
+      'Logística': [
+        {'nome': 'Bruno Santos', 'cargo': 'Conferente', 'conformidade': 70.0},
+        {'nome': 'Amanda Lima', 'cargo': 'Auxiliar', 'conformidade': 75.0},
+        {'nome': 'Thiago Oliveira', 'cargo': 'Motorista', 'conformidade': 62.0},
+      ],
+    };
+    return employees[setor] ?? [];
+  }
+
+  List<Map<String, dynamic>> _getSectorEpis(String setor) {
+    final epis = {
+      'Qualidade': [
+        {'nome': 'Luvas de Proteção', 'obrigatorio': true},
+        {'nome': 'Óculos de Segurança', 'obrigatorio': true},
+        {'nome': 'Máscara', 'obrigatorio': true},
+        {'nome': 'Avental', 'obrigatorio': false},
+        {'nome': 'Calçado Safety', 'obrigatorio': true},
+      ],
+      'Produção': [
+        {'nome': 'Capacete', 'obrigatorio': true},
+        {'nome': 'Protetor Auditivo', 'obrigatorio': true},
+        {'nome': 'Luvas', 'obrigatorio': true},
+        {'nome': 'Botas', 'obrigatorio': true},
+        {'nome': 'Óculos', 'obrigatorio': true},
+        {'nome': 'Máscara', 'obrigatorio': true},
+        {'nome': 'Colete Reflexivo', 'obrigatorio': true},
+        {'nome': 'Avental', 'obrigatorio': false},
+      ],
+      'Administrativo': [
+        {'nome': 'Calçado Safety', 'obrigatorio': true},
+        {'nome': 'Avental', 'obrigatorio': false},
+        {'nome': 'Máscara', 'obrigatorio': false},
+      ],
+      'Manutenção': [
+        {'nome': 'Capacete', 'obrigatorio': true},
+        {'nome': 'Óculos', 'obrigatorio': true},
+        {'nome': 'Luvas', 'obrigatorio': true},
+        {'nome': 'Botas', 'obrigatorio': true},
+        {'nome': 'Máscara', 'obrigatorio': true},
+        {'nome': 'Protetor Auditivo', 'obrigatorio': false},
+        {'nome': 'Cinto de Segurança', 'obrigatorio': true},
+      ],
+      'Logística': [
+        {'nome': 'Capacete', 'obrigatorio': true},
+        {'nome': 'Luvas', 'obrigatorio': true},
+        {'nome': 'Colete Reflexivo', 'obrigatorio': true},
+        {'nome': 'Botas', 'obrigatorio': true},
+        {'nome': 'Óculos', 'obrigatorio': false},
+      ],
+    };
+    return epis[setor] ?? [];
+  }
+
+  // Métodos de cores e status
+  List<Color> _getConformityGradient(double value) {
+    if (value >= 90) return [Color(0xFF10B981), Color(0xFF34D399)];
+    if (value >= 70) return [Color(0xFFF59E0B), Color(0xFFFBBF24)];
+    return [Color(0xFFEF4444), Color(0xFFF87171)];
   }
 
   Color _getConformityColor(double value) {
-    if (value >= 90) return Colors.green.shade600;
-    if (value >= 70) return Colors.orange.shade700;
-    return Colors.red.shade600;
+    if (value >= 90) return Color(0xFF10B981);
+    if (value >= 70) return Color(0xFFF59E0B);
+    return Color(0xFFEF4444);
   }
 
   String _getConformityStatus(double value) {
