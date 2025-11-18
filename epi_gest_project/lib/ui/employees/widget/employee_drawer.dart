@@ -3,6 +3,7 @@ import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_form_sections.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:epi_gest_project/ui/widgets/image_picker_widget.dart';
 import 'package:epi_gest_project/ui/widgets/info_section.dart';
 import 'package:epi_gest_project/ui/widgets/overlays.dart';
@@ -88,7 +89,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       'Carlos Souza',
     ],
   };
-  
+
   bool _isSaving = false;
 
   @override
@@ -109,9 +110,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       listen: false,
     );
     try {
-      final results = await Future.wait([
-        employeeService.getAllTurnos(),
-      ]);
+      final results = await Future.wait([employeeService.getAllTurnos()]);
 
       if (!mounted) return;
 
@@ -192,10 +191,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     widget.onClose();
   }
 
-  // ------------------------------
-  // MODAIS MODERNOS PARA LOCAL E TURNO
-  // ------------------------------
-
   void _showLocalTrabalhoModal() {
     final theme = Theme.of(context);
     String nomeUnidade = '';
@@ -217,7 +212,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // HEADER DO MODAL
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -235,7 +229,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                     ),
                     const SizedBox(height: 20),
 
-                    // CAMPO NOME DA UNIDADE
                     _buildModalTextField(
                       label: 'Nome da Unidade*',
                       hint: 'Ex: Matriz Araras, Filial São Paulo',
@@ -244,25 +237,32 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                     ),
                     const SizedBox(height: 16),
 
-                    // CAMPO CNPJ
-                    _buildModalTextField(
-                      label: 'CNPJ*',
-                      hint: 'Ex: 12.345.678/0001-90',
-                      icon: Icons.numbers_outlined,
-                      onChanged: (value) => cnpj = value,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // CAMPO TIPO DE UNIDADE
-                    _buildModalDropdown(
-                      label: 'Tipo de Unidade*',
-                      value: tipoUnidade,
-                      items: const ['Matriz', 'Filial'],
-                      onChanged: (value) => setState(() => tipoUnidade = value!),
+                    Row(
+                      spacing: 16,
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: _buildModalTextField(
+                            label: 'CNPJ*',
+                            hint: 'Ex: 12.345.678/0001-90',
+                            icon: Icons.numbers_outlined,
+                            onChanged: (value) => cnpj = value,
+                          ),
+                        ),
+                        Expanded(
+                          flex: 1,
+                          child: _buildModalDropdown(
+                            label: 'Tipo de Unidade*',
+                            value: tipoUnidade,
+                            items: const ['Matriz', 'Filial'],
+                            onChanged: (value) =>
+                                setState(() => tipoUnidade = value!),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
 
-                    // BOTÕES DO MODAL
                     Row(
                       children: [
                         Expanded(
@@ -284,13 +284,18 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                               if (nomeUnidade.isNotEmpty && cnpj.isNotEmpty) {
                                 final novoLocal = '$nomeUnidade - $tipoUnidade';
                                 setState(() {
-                                  if (!_locaisTrabalhoSugeridos.contains(novoLocal)) {
+                                  if (!_locaisTrabalhoSugeridos.contains(
+                                    novoLocal,
+                                  )) {
                                     _locaisTrabalhoSugeridos.add(novoLocal);
                                   }
-                                  _controllers['localTrabalho']!.text = novoLocal;
+                                  _controllers['localTrabalho']!.text =
+                                      novoLocal;
                                 });
                                 Navigator.pop(context);
-                                _showSuccessSnackBar('Local de trabalho adicionado com sucesso!');
+                                _showSuccessSnackBar(
+                                  'Local de trabalho adicionado com sucesso!',
+                                );
                               }
                             },
                             style: FilledButton.styleFrom(
@@ -316,8 +321,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   void _showTurnoTrabalhoModal() {
     final theme = Theme.of(context);
-    
-    // Estado para os horários (igual ao ShiftDrawer)
+
     TimeOfDay _entrada = const TimeOfDay(hour: 8, minute: 0);
     TimeOfDay _saida = const TimeOfDay(hour: 18, minute: 0);
     TimeOfDay _almocoInicio = const TimeOfDay(hour: 12, minute: 0);
@@ -335,11 +339,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
               ),
               child: Container(
                 width: 500,
-                height: 600,
                 padding: const EdgeInsets.all(24),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: 20,
                   children: [
-                    // HEADER DO MODAL
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -355,91 +359,79 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(
+                          spacing: 24,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            // CAMPO NOME (CÓDIGO REMOVIDO)
+                            SizedBox(height: 5),
                             _buildModalTextField(
                               label: 'Nome do Turno*',
                               hint: 'Ex: Turno Administrativo, Manhã, Tarde',
                               icon: Icons.work_outlined,
                               onChanged: (value) => _nomeTurno = value,
                             ),
-                            const SizedBox(height: 24),
-
-                            // SEÇÃO HORÁRIOS DA JORNADA
-                            _buildModalSectionHeader(
+                            InfoSection(
                               title: 'Horários da Jornada',
                               icon: Icons.schedule_outlined,
-                              theme: theme,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _buildModalTimePickerTile(
-                              label: 'Horário de Entrada',
-                              time: _entrada,
-                              onTap: () => _selectTimeModal(
-                                context, 
-                                _entrada, 
-                                (time) => setState(() => _entrada = time)
+                              child: Column(
+                                spacing: 16,
+                                children: [
+                                  CustomTimeField(
+                                    label: 'Horário de Entrada',
+                                    time: _entrada,
+                                    onTap: () => _selectTimeModal(
+                                      context,
+                                      _entrada,
+                                      (time) => setState(() => _entrada = time),
+                                    ),
+                                  ),
+                                  CustomTimeField(
+                                    label: 'Horário de Saída',
+                                    time: _saida,
+                                    onTap: () => _selectTimeModal(
+                                      context,
+                                      _saida,
+                                      (time) => setState(() => _saida = time),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              theme: theme,
                             ),
-                            const SizedBox(height: 16),
-
-                            _buildModalTimePickerTile(
-                              label: 'Horário de Saída',
-                              time: _saida,
-                              onTap: () => _selectTimeModal(
-                                context, 
-                                _saida, 
-                                (time) => setState(() => _saida = time)
-                              ),
-                              theme: theme,
-                            ),
-                            const SizedBox(height: 24),
-
-                            // SEÇÃO INTERVALO DE ALMOÇO
-                            _buildModalSectionHeader(
+                            InfoSection(
                               title: 'Intervalo de Almoço',
                               icon: Icons.restaurant_outlined,
-                              theme: theme,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _buildModalTimePickerTile(
-                              label: 'Início do Almoço',
-                              time: _almocoInicio,
-                              onTap: () => _selectTimeModal(
-                                context, 
-                                _almocoInicio, 
-                                (time) => setState(() => _almocoInicio = time)
+                              child: Column(
+                                spacing: 16,
+                                children: [
+                                  CustomTimeField(
+                                    label: 'Início do Almoço',
+                                    time: _almocoInicio,
+                                    onTap: () => _selectTimeModal(
+                                      context,
+                                      _almocoInicio,
+                                      (time) =>
+                                          setState(() => _almocoInicio = time),
+                                    ),
+                                  ),
+                                  CustomTimeField(
+                                    label: 'Fim do Almoço',
+                                    time: _almocoFim,
+                                    onTap: () => _selectTimeModal(
+                                      context,
+                                      _almocoFim,
+                                      (time) =>
+                                          setState(() => _almocoFim = time),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              theme: theme,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _buildModalTimePickerTile(
-                              label: 'Fim do Almoço',
-                              time: _almocoFim,
-                              onTap: () => _selectTimeModal(
-                                context, 
-                                _almocoFim, 
-                                (time) => setState(() => _almocoFim = time)
-                              ),
-                              theme: theme,
                             ),
                           ],
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    // BOTÕES DO MODAL
                     Row(
                       children: [
                         Expanded(
@@ -467,7 +459,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                   _controllers['turno']!.text = novoTurno;
                                 });
                                 Navigator.pop(context);
-                                _showSuccessSnackBar('Turno de trabalho adicionado com sucesso!');
+                                _showSuccessSnackBar(
+                                  'Turno de trabalho adicionado com sucesso!',
+                                );
                               }
                             },
                             style: FilledButton.styleFrom(
@@ -491,7 +485,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     );
   }
 
-  // COMPONENTES DOS MODAIS
   Widget _buildModalTextField({
     required String label,
     required String hint,
@@ -504,9 +497,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
         hintText: hint,
         prefixIcon: Icon(
           icon,
@@ -519,13 +510,18 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
+          borderSide: BorderSide(
+            color: theme.colorScheme.outline.withValues(alpha: 0.8),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
     );
   }
@@ -541,25 +537,18 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     return DropdownButtonFormField<String>(
       value: value,
       items: items.map((String item) {
-        return DropdownMenuItem(
-          value: item,
-          child: Text(item),
-        );
+        return DropdownMenuItem(value: item, child: Text(item));
       }).toList(),
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
+        labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
         prefixIcon: Icon(
           Icons.category_outlined,
           color: theme.colorScheme.onSurfaceVariant,
           size: 20,
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -575,17 +564,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.2),
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: theme.colorScheme.primary,
-            size: 20,
-          ),
+          Icon(icon, color: theme.colorScheme.primary, size: 20),
           const SizedBox(width: 12),
           Text(
             title,
@@ -607,9 +590,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   }) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(
-          color: theme.colorScheme.outline.withOpacity(0.3),
-        ),
+        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -648,9 +629,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           ),
         ),
         onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -777,8 +756,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   void _addNovoTurno() =>
       _addNewItem('turno', _turnosSugeridos, _controllers['newTurno']!);
 
-  void _addNovoLocalTrabalho() =>
-      _addNewItem('localTrabalho', _locaisTrabalhoSugeridos, _controllers['newLocalTrabalho']!);
+  void _addNovoLocalTrabalho() => _addNewItem(
+    'localTrabalho',
+    _locaisTrabalhoSugeridos,
+    _controllers['newLocalTrabalho']!,
+  );
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
@@ -1036,7 +1018,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   Widget _buildTwoColumnLayout(ThemeData theme) {
     final bool isEnabled = !_isViewing;
-    
+
     return Row(
       spacing: 24,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1055,7 +1037,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
               InfoSection(
                 title: 'Documentos Pessoais',
                 icon: Icons.assignment_outlined,
-                child:  DocumentsSection(
+                child: DocumentsSection(
                   cpfController: _controllers['cpf']!,
                   rgController: _controllers['rg']!,
                   dataNascimentoController: _controllers['dataNascimento']!,
@@ -1074,7 +1056,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
               ),
               InfoSection(
                 title: 'Hierarquia',
-                icon:  Icons.people_outline,
+                icon: Icons.people_outline,
                 child: HierarchySection(
                   liderController: _controllers['lider']!,
                   gestorController: _controllers['gestor']!,
@@ -1082,20 +1064,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   enabled: isEnabled,
                 ),
               ),
-              if (!_statusAtivo) ...[
-                InfoSection(
-                  title: 'Desligamento',
-                  icon: Icons.logout_outlined,
-                  child: TerminationSection(
-                    dataDesligamentoController:
-                        _controllers['dataDesligamento']!,
-                    motivoDesligamentoController:
-                        _controllers['motivoDesligamento']!,
-                    onSelectDateDesligamento: _selectDateDesligamento,
-                    enabled: isEnabled,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -1153,6 +1121,20 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   onSelectDateRetornoFerias: _selectDateRetornoFerias,
                 ),
               ),
+              if (!_statusAtivo) ...[
+                InfoSection(
+                  title: 'Desligamento',
+                  icon: Icons.logout_outlined,
+                  child: TerminationSection(
+                    dataDesligamentoController:
+                        _controllers['dataDesligamento']!,
+                    motivoDesligamentoController:
+                        _controllers['motivoDesligamento']!,
+                    onSelectDateDesligamento: _selectDateDesligamento,
+                    enabled: isEnabled,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1162,7 +1144,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   Widget _buildSingleColumnLayout(ThemeData theme) {
     final bool isEnabled = !_isViewing;
-    
+
     return Column(
       spacing: 32,
       children: [
@@ -1270,40 +1252,54 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         ),
       ),
       child: Row(
+        spacing: 12,
         children: [
           Expanded(
-            child: OutlinedButton(
-              onPressed: _isSaving ? null : _closeDrawer,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SizedBox(
+              height: 48,
+              child: OutlinedButton.icon(
+                icon: Icon(Icons.close),
+                onPressed: _isSaving ? null : _closeDrawer,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: theme.colorScheme.onSurface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                label: const Text('Cancelar'),
               ),
-              child: const Text('Cancelar'),
             ),
           ),
-          const SizedBox(width: 12),
           Expanded(
             flex: 2,
-            child: FilledButton.icon(
-              onPressed: _isSaving || _isLoading ? null : _handleSave,
-              icon: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(
-                _isSaving
-                    ? 'Salvando...'
-                    : (_isEditing
-                          ? 'Salvar Alterações'
-                          : 'Adicionar Funcionário'),
-              ),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+            child: SizedBox(
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: _isSaving || _isLoading ? null : _handleSave,
+                icon: _isSaving
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      )
+                    : const Icon(Icons.save),
+                label: Text(
+                  _isSaving
+                      ? 'Salvando...'
+                      : (_isEditing
+                            ? 'Salvar Alterações'
+                            : 'Adicionar Funcionário'),
+                ),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
               ),
             ),
           ),

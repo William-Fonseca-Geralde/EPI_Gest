@@ -275,9 +275,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     );
   }
 
-  // ------------------------------
-  // COMPONENTES MODERNOS
-  // ------------------------------
 
   Widget _buildModernTextField({
     required TextEditingController controller,
@@ -422,9 +419,6 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
     );
   }
 
-  // ------------------------------
-  // FOOTER (EDITAR) - BOTÕES MODERNOS
-  // ------------------------------
 
   Widget _buildEditFooter(ThemeData theme) {
     return Container(
@@ -450,7 +444,8 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
           Expanded(
             child: SizedBox(
               height: 48,
-              child: OutlinedButton(
+              child: OutlinedButton.icon(
+                icon: Icon(Icons.close),
                 onPressed: _isSaving ? null : widget.onClose,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.colorScheme.onSurface,
@@ -462,11 +457,9 @@ class _ShiftDrawerState extends State<ShiftDrawer> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: Row(
+                label: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.close, size: 18),
-                    const SizedBox(width: 8),
                     Text(
                       "Cancelar",
                       style: TextStyle(

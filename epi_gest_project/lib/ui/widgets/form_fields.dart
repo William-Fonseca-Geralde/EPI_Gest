@@ -97,7 +97,72 @@ class CustomDateField extends StatelessWidget {
   }
 }
 
-class CustomAutocompleteField extends StatefulWidget {
+class CustomTimeField extends StatelessWidget {
+  final String label;
+  final TimeOfDay time;
+  final VoidCallback onTap;
+
+  const CustomTimeField({
+    super.key,
+    required this.label,
+    required this.time,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+        ),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.primaryContainer.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            Icons.access_time_outlined,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+            size: 20,
+          ),
+        ),
+        title: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            time.format(context),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+}
+
+class CustomAutocompleteField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
   final String hint;
@@ -122,97 +187,56 @@ class CustomAutocompleteField extends StatefulWidget {
   });
 
   @override
-  State<CustomAutocompleteField> createState() =>
-      _CustomAutocompleteFieldState();
-}
-
-class _CustomAutocompleteFieldState extends State<CustomAutocompleteField> {
-  late final TextEditingController _internalController;
-
-  @override
-  void initState() {
-    _internalController = TextEditingController(text: widget.controller.text);
-    widget.controller.addListener(_onExternalControllerChanged);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_onExternalControllerChanged);
-    _internalController.dispose();
-    super.dispose();
-  }
-
-  void _onExternalControllerChanged() {
-    if (widget.controller.text != _internalController.text) {
-      _internalController.text = widget.controller.text;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final autocompleteField = Autocomplete<String>(
-      initialValue: TextEditingValue(text: _internalController.text),
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return widget.suggestions;
-        }
-        return widget.suggestions.where((String option) {
-          return option.toLowerCase().contains(
-            textEditingValue.text.toLowerCase(),
-          );
-        });
-      },
-      onSelected: (String selection) {
-        widget.controller.text = selection;
-        _internalController.text = selection;
-      },
-      fieldViewBuilder:
-          (
-            BuildContext context,
-            TextEditingController fieldController,
-            FocusNode focusNode,
-            VoidCallback onFieldSubmitted,
-          ) {
-            return TextFormField(
-              controller: fieldController,
-              focusNode: focusNode,
-              enabled: widget.enabled,
-              decoration: InputDecoration(
-                labelText: widget.label,
-                hintText: widget.hint,
-                prefixIcon: Icon(widget.icon),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: !widget.enabled,
-                fillColor: widget.enabled
-                    ? null
-                    : Theme.of(context).colorScheme.surfaceContainerHighest,
-              ),
+    final String? currentValue =
+        controller.text.isNotEmpty && suggestions.contains(controller.text)
+        ? controller.text
+        : null;
+
+    final dropdownField = DropdownButtonFormField<String>(
+      initialValue: currentValue,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: !enabled,
+        fillColor: enabled
+            ? null
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+      onChanged: enabled
+          ? (String? newValue) {
+              if (newValue != null) {
+                controller.text = newValue;
+              }
+            }
+          : null,
+      items: suggestions.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(value: value, child: Text(value));
+      }).toList(),
+      disabledHint: controller.text.isNotEmpty
+          ? Text(
+              controller.text,
               style: TextStyle(
-                color: widget.enabled
-                    ? Theme.of(context).colorScheme.onSurface
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-              onChanged: (value) {
-                widget.controller.text = value;
-              },
-            );
-          },
+            )
+          : null,
     );
 
-    if (!widget.showAddButton) {
-      return autocompleteField;
+    if (!showAddButton) {
+      return dropdownField;
     }
 
     return Row(
       children: [
-        Expanded(child: autocompleteField),
+        Expanded(child: dropdownField),
         const SizedBox(width: 8),
         IconButton.filledTonal(
-          key: widget.addButtonKey,
-          onPressed: widget.enabled ? widget.onAddPressed : null,
+          key: addButtonKey,
+          onPressed: enabled ? onAddPressed : null,
           icon: const Icon(Icons.add),
           tooltip: 'Adicionar novo',
         ),

@@ -1,5 +1,6 @@
 import 'package:epi_gest_project/domain/models/organizational/unit_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:flutter/material.dart';
 
 class UnitDrawer extends StatefulWidget {
@@ -188,20 +189,20 @@ class _UnitDrawerState extends State<UnitDrawer> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Campo Nome
-            _buildModernTextField(
+            CustomTextField(
               controller: _nomeController,
               label: 'Nome da Unidade*',
+              hint: '',
               enabled: isEnabled,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
               icon: Icons.business_outlined,
             ),
             const SizedBox(height: 20),
 
-            // Campo CNPJ
-            _buildModernTextField(
+            CustomTextField(
               controller: _cnpjController,
               label: 'CNPJ*',
+              hint: '',
               enabled: isEnabled,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
               icon: Icons.badge_outlined,
@@ -209,10 +210,10 @@ class _UnitDrawerState extends State<UnitDrawer> {
             ),
             const SizedBox(height: 20),
 
-            // Campo Endereço
-            _buildModernTextField(
+            CustomTextField(
               controller: _enderecoController,
               label: 'Endereço Completo*',
+              hint: '',
               enabled: isEnabled,
               maxLines: 2,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
@@ -220,7 +221,6 @@ class _UnitDrawerState extends State<UnitDrawer> {
             ),
             const SizedBox(height: 20),
 
-            // Dropdown Tipo de Unidade
             _buildModernDropdown(
               value: _tipoUnidade,
               items: const [
@@ -233,17 +233,16 @@ class _UnitDrawerState extends State<UnitDrawer> {
             ),
             const SizedBox(height: 20),
 
-            // Campo Responsável
-            _buildModernTextField(
+            CustomTextField(
               controller: _responsavelController,
               label: 'Responsável Local*',
+              hint: '',
               enabled: isEnabled,
               validator: (v) => (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
               icon: Icons.person_outlined,
             ),
             const SizedBox(height: 20),
 
-            // Switch Status - Estilo Moderno
             _buildModernSwitch(
               value: _statusAtiva,
               onChanged: isEnabled ? (v) => setState(() => _statusAtiva = v) : null,
@@ -257,64 +256,6 @@ class _UnitDrawerState extends State<UnitDrawer> {
     );
   }
 
-  // ------------------------------
-  // COMPONENTES MODERNOS
-  // ------------------------------
-
-  Widget _buildModernTextField({
-    required TextEditingController controller,
-    required String label,
-    required bool enabled,
-    String? Function(String?)? validator,
-    IconData? icon,
-    int maxLines = 1,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    final theme = Theme.of(context);
-
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      style: TextStyle(
-        color: enabled ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withOpacity(0.6),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-        prefixIcon: icon != null ? Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ) : null,
-        enabled: enabled,
-        filled: !enabled,
-        fillColor: !enabled ? theme.colorScheme.surfaceVariant.withOpacity(0.3) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.8)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline.withOpacity(0.3)),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-      validator: validator,
-    );
-  }
-
   Widget _buildModernDropdown({
     required String value,
     required List<DropdownMenuItem<String>> items,
@@ -325,7 +266,7 @@ class _UnitDrawerState extends State<UnitDrawer> {
     final theme = Theme.of(context);
 
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       items: items,
       onChanged: onChanged,
       style: TextStyle(

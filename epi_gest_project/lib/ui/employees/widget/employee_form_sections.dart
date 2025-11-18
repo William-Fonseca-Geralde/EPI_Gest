@@ -94,6 +94,7 @@ class DocumentsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      spacing: 16,
       children: [
         CustomTextField(
           controller: cpfController,
@@ -108,7 +109,6 @@ class DocumentsSection extends StatelessWidget {
             CpfInputFormatter(),
           ],
         ),
-        const SizedBox(height: 16),
         CustomTextField(
           controller: rgController,
           label: 'RG',
@@ -117,7 +117,6 @@ class DocumentsSection extends StatelessWidget {
           enabled: enabled,
           inputFormatters: [RgInputFormatter()],
         ),
-        const SizedBox(height: 16),
         CustomDateField(
           controller: dataNascimentoController,
           label: 'Data de Nascimento',
@@ -205,8 +204,8 @@ class WorkConditionsSection extends StatelessWidget {
           icon: Icons.location_on_outlined,
           suggestions: locaisTrabalhoSugeridos,
           showAddButton: enabled,
-          onAddPressed: onAddLocalTrabalho, // NOVO: usando o callback
-          addButtonKey: localTrabalhoButtonKey, // NOVO: usando a key
+          onAddPressed: onAddLocalTrabalho,
+          addButtonKey: localTrabalhoButtonKey,
           enabled: enabled,
         ),
         const SizedBox(height: 16),
