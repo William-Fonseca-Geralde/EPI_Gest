@@ -68,7 +68,6 @@ class _BaseDrawerState extends State<BaseDrawer>
 
     return Stack(
       children: [
-        // Fundo que fecha o drawer ao ser clicado
         GestureDetector(
           onTap: _closeDrawer,
           child: Container(color: Colors.black.withValues(alpha: 0.5)),

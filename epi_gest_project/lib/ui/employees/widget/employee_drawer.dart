@@ -6,7 +6,6 @@ import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:epi_gest_project/ui/widgets/image_picker_widget.dart';
 import 'package:epi_gest_project/ui/widgets/info_section.dart';
-import 'package:epi_gest_project/ui/widgets/overlays.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -553,87 +552,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     );
   }
 
-  Widget _buildModalSectionHeader({
-    required String title,
-    required IconData icon,
-    required ThemeData theme,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: theme.colorScheme.primary, size: 20),
-          const SizedBox(width: 12),
-          Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.primary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModalTimePickerTile({
-    required String label,
-    required TimeOfDay time,
-    required VoidCallback onTap,
-    required ThemeData theme,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            Icons.access_time_outlined,
-            color: theme.colorScheme.onPrimaryContainer,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-        trailing: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceVariant,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            time.format(context),
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
   Future<void> _selectTimeModal(
     BuildContext context,
     TimeOfDay initialTime,
@@ -700,34 +618,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       _imagemPath = null;
     });
     _showSuccessSnackBar('Imagem removida');
-  }
-
-  void _showAddOverlay(String type, String title, VoidCallback onAdd) {
-    if (_overlays[type] != null) {
-      _overlays[type]!.remove();
-      _overlays[type] = null;
-      return;
-    }
-    final RenderBox renderBox =
-        _overlayKeys[type]!.currentContext!.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    final size = renderBox.size;
-    _overlays[type] = OverlayEntry(
-      builder: (context) => AddItemOverlay(
-        theme: Theme.of(context),
-        title: title,
-        controller: _controllers['new${_capitalize(type)}']!,
-        position: position,
-        buttonSize: size,
-        onAdd: onAdd,
-        onCancel: () {
-          _overlays[type]?.remove();
-          _overlays[type] = null;
-          _controllers['new${_capitalize(type)}']!.clear();
-        },
-      ),
-    );
-    Overlay.of(context).insert(_overlays[type]!);
   }
 
   void _addNewItem(

@@ -1,142 +1,66 @@
+import 'package:epi_gest_project/ui/dashboard/widgets/cost_charts/analysis_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
-import 'dart:convert';
 
-class CostPerEpiChart extends StatefulWidget {
-  const CostPerEpiChart({super.key});
+class CostPerSectorChart extends StatefulWidget {
+  const CostPerSectorChart({super.key});
 
   @override
-  State<CostPerEpiChart> createState() => _CostPerEpiChartState();
+  State<CostPerSectorChart> createState() => _CostPerSectorChartState();
 }
 
-class _CostPerEpiChartState extends State<CostPerEpiChart> {
+class _CostPerSectorChartState extends State<CostPerSectorChart> {
   bool _showValues = true;
   bool _sortedByValue = true;
-  List<Map<String, dynamic>> _epiData = [];
+  List<Map<String, dynamic>> _sectorData = [];
   bool _isExporting = false;
 
-  // ========== DADOS FICTÍCIOS ESTRATÉGICOS ==========
-  final List<Map<String, dynamic>> _dadosHistoricosCompras = [
+  // ========== DADOS DE EVOLUÇÃO MENSAL POR SETOR ==========
+  final List<Map<String, dynamic>> _evolucaoMensalSetores = [
     {
-      'epi': 'Capacete',
-      'compras': [
-        {
-          'data': '2024-01-15',
-          'fornecedor': 'Segurança Total Ltda',
-          'quantidade': 50,
-          'custoUnitario': 118.00,
-        },
-        {
-          'data': '2024-02-10',
-          'fornecedor': 'Proteção Max',
-          'quantidade': 60,
-          'custoUnitario': 122.00,
-        },
-        {
-          'data': '2024-03-05',
-          'fornecedor': 'Segurança Total Ltda',
-          'quantidade': 40,
-          'custoUnitario': 125.00,
-        },
+      'setor': 'Produção',
+      'evolucao': [
+        {'mes': 'Jan/2024', 'custo': 26500, 'quantidade': 1050},
+        {'mes': 'Fev/2024', 'custo': 27800, 'quantidade': 1100},
+        {'mes': 'Mar/2024', 'custo': 28500, 'quantidade': 1130},
       ],
     },
     {
-      'epi': 'Botas',
-      'compras': [
-        {
-          'data': '2024-01-20',
-          'fornecedor': 'Calçados Seguros',
-          'quantidade': 80,
-          'custoUnitario': 58.00,
-        },
-        {
-          'data': '2024-02-15',
-          'fornecedor': 'Proteção Pesada',
-          'quantidade': 70,
-          'custoUnitario': 62.50,
-        },
-        {
-          'data': '2024-03-12',
-          'fornecedor': 'Calçados Seguros',
-          'quantidade': 50,
-          'custoUnitario': 65.00,
-        },
+      'setor': 'Manutenção',
+      'evolucao': [
+        {'mes': 'Jan/2024', 'custo': 14200, 'quantidade': 380},
+        {'mes': 'Fev/2024', 'custo': 14900, 'quantidade': 390},
+        {'mes': 'Mar/2024', 'custo': 15600, 'quantidade': 400},
       ],
     },
     {
-      'epi': 'Luvas',
-      'compras': [
-        {
-          'data': '2024-01-10',
-          'fornecedor': 'Proteção Fina',
-          'quantidade': 200,
-          'custoUnitario': 16.50,
-        },
-        {
-          'data': '2024-02-08',
-          'fornecedor': 'Safety Hands',
-          'quantidade': 180,
-          'custoUnitario': 17.00,
-        },
-        {
-          'data': '2024-03-20',
-          'fornecedor': 'Proteção Fina',
-          'quantidade': 120,
-          'custoUnitario': 17.50,
-        },
+      'setor': 'Logística',
+      'evolucao': [
+        {'mes': 'Jan/2024', 'custo': 9200, 'quantidade': 580},
+        {'mes': 'Fev/2024', 'custo': 9500, 'quantidade': 590},
+        {'mes': 'Mar/2024', 'custo': 9800, 'quantidade': 600},
       ],
     },
     {
-      'epi': 'Óculos',
-      'compras': [
-        {
-          'data': '2024-01-25',
-          'fornecedor': 'Visão Protegida',
-          'quantidade': 100,
-          'custoUnitario': 18.50,
-        },
-        {
-          'data': '2024-02-20',
-          'fornecedor': 'Safety Vision',
-          'quantidade': 110,
-          'custoUnitario': 19.50,
-        },
-        {
-          'data': '2024-03-15',
-          'fornecedor': 'Visão Protegida',
-          'quantidade': 100,
-          'custoUnitario': 20.00,
-        },
+      'setor': 'Qualidade',
+      'evolucao': [
+        {'mes': 'Jan/2024', 'custo': 11800, 'quantidade': 240},
+        {'mes': 'Fev/2024', 'custo': 12000, 'quantidade': 248},
+        {'mes': 'Mar/2024', 'custo': 12300, 'quantidade': 255},
       ],
     },
     {
-      'epi': 'Prot. Auditivo',
-      'compras': [
-        {
-          'data': '2024-01-30',
-          'fornecedor': 'Som Seguro',
-          'quantidade': 60,
-          'custoUnitario': 23.00,
-        },
-        {
-          'data': '2024-02-25',
-          'fornecedor': 'Proteção Auricular',
-          'quantidade': 70,
-          'custoUnitario': 24.50,
-        },
-        {
-          'data': '2024-03-18',
-          'fornecedor': 'Som Seguro',
-          'quantidade': 50,
-          'custoUnitario': 25.00,
-        },
+      'setor': 'Administrativo',
+      'evolucao': [
+        {'mes': 'Jan/2024', 'custo': 8200, 'quantidade': 185},
+        {'mes': 'Fev/2024', 'custo': 8400, 'quantidade': 190},
+        {'mes': 'Mar/2024', 'custo': 8700, 'quantidade': 195},
       ],
     },
   ];
@@ -148,41 +72,36 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
   }
 
   void _initializeData() {
-    _epiData = [
+    _sectorData = [
       {
-        'epi': 'Capacete',
-        'custo': 18300,
-        'cor': Colors.blue.shade700,
-        'quantidade': 150,
-        'custoUnitario': 122.00,
+        'setor': 'Produção',
+        'custo': 28500,
+        'cor': const Color(0xFF2196F3),
+        'quantidade': 1130,
       },
       {
-        'epi': 'Botas',
-        'custo': 12500,
-        'cor': Colors.green.shade700,
-        'quantidade': 200,
-        'custoUnitario': 62.50,
+        'setor': 'Manutenção',
+        'custo': 15600,
+        'cor': const Color(0xFF4CAF50),
+        'quantidade': 400,
       },
       {
-        'epi': 'Luvas',
-        'custo': 8500,
-        'cor': Colors.orange.shade700,
-        'quantidade': 500,
-        'custoUnitario': 17.00,
+        'setor': 'Logística',
+        'custo': 9800,
+        'cor': const Color(0xFFFFC107),
+        'quantidade': 600,
       },
       {
-        'epi': 'Óculos',
-        'custo': 6200,
-        'cor': Colors.purple.shade700,
-        'quantidade': 310,
-        'custoUnitario': 20.00,
+        'setor': 'Qualidade',
+        'custo': 12300,
+        'cor': const Color(0xFFFF5722),
+        'quantidade': 255,
       },
       {
-        'epi': 'Prot. Auditivo',
-        'custo': 4500,
-        'cor': Colors.red.shade700,
-        'quantidade': 180,
-        'custoUnitario': 25.00,
+        'setor': 'Administrativo',
+        'custo': 8700,
+        'cor': const Color(0xFF9C27B0),
+        'quantidade': 195,
       },
     ];
     _sortDataByValue();
@@ -190,14 +109,14 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
 
   void _sortDataByValue() {
     setState(() {
-      _epiData.sort((a, b) => b['custo'].compareTo(a['custo']));
+      _sectorData.sort((a, b) => b['custo'].compareTo(a['custo']));
       _sortedByValue = true;
     });
   }
 
   void _sortDataByName() {
     setState(() {
-      _epiData.sort((a, b) => a['epi'].compareTo(b['epi']));
+      _sectorData.sort((a, b) => a['setor'].compareTo(b['setor']));
       _sortedByValue = false;
     });
   }
@@ -208,154 +127,148 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     });
   }
 
-  // ========== CÁLCULO DO IMPACTO UNITÁRIO ==========
-  double _calcularImpactoUnitario(double custoUnitario, int totalGeral) {
-    return (custoUnitario / totalGeral) * 100;
-  }
-
-  // ========== ANÁLISE DE HISTÓRICO DE COMPRAS ==========
-  Map<String, dynamic> _analisarHistoricoCompras(String epiNome) {
-    final historico = _dadosHistoricosCompras.firstWhere(
-      (item) => item['epi'] == epiNome,
-      orElse: () => {'compras': []},
+  // ========== ANÁLISE DE EVOLUÇÃO MENSAL ==========
+  Map<String, dynamic> _analisarEvolucaoSetor(String setorNome) {
+    final evolucao = _evolucaoMensalSetores.firstWhere(
+      (item) => item['setor'] == setorNome,
+      orElse: () => {'evolucao': []},
     );
 
-    final compras = List<Map<String, dynamic>>.from(historico['compras']);
-    if (compras.isEmpty) {
+    final dadosEvolucao = List<Map<String, dynamic>>.from(evolucao['evolucao']);
+    if (dadosEvolucao.isEmpty) {
       return {
         'tendencia': 'estavel',
         'variacaoPercentual': 0.0,
-        'menorPreco': 0.0,
-        'maiorPreco': 0.0,
-        'fornecedorMaisBarato': 'N/A',
-        'amplitude': 0.0,
-        'mediaPrecos': 0.0,
+        'custoAtual': 0,
+        'custoAnterior': 0,
+        'crescimentoQuantidade': 0,
       };
     }
 
-    final precos = compras.map((c) => c['custoUnitario'] as double).toList();
-    final menorPreco = precos.reduce((a, b) => a < b ? a : b);
-    final maiorPreco = precos.reduce((a, b) => a > b ? a : b);
-    final mediaPrecos = precos.reduce((a, b) => a + b) / precos.length;
-    final amplitude = maiorPreco - menorPreco;
+    final custos = dadosEvolucao.map((c) => c['custo'] as int).toList();
+    final quantidades = dadosEvolucao
+        .map((c) => c['quantidade'] as int)
+        .toList();
 
-    // Calcular variação percentual (última vs primeira compra)
+    final custoAtual = custos.last;
+    final custoAnterior = custos.first;
     final variacaoPercentual =
-        ((precos.last - precos.first) / precos.first) * 100;
+        ((custoAtual - custoAnterior) / custoAnterior) * 100;
+
+    final crescimentoQuantidade = quantidades.last - quantidades.first;
 
     // Determinar tendência
     String tendencia;
-    if (variacaoPercentual > 2) {
+    if (variacaoPercentual > 5) {
       tendencia = 'alta';
-    } else if (variacaoPercentual < -2) {
+    } else if (variacaoPercentual < -5) {
       tendencia = 'baixa';
     } else {
       tendencia = 'estavel';
     }
 
-    // Encontrar fornecedor mais barato
-    final fornecedorMaisBarato = compras.reduce(
-      (a, b) => (a['custoUnitario'] as double) < (b['custoUnitario'] as double)
-          ? a
-          : b,
-    )['fornecedor'];
-
     return {
       'tendencia': tendencia,
       'variacaoPercentual': variacaoPercentual,
-      'menorPreco': menorPreco,
-      'maiorPreco': maiorPreco,
-      'fornecedorMaisBarato': fornecedorMaisBarato,
-      'amplitude': amplitude,
-      'mediaPrecos': mediaPrecos,
-      'compras': compras,
+      'custoAtual': custoAtual,
+      'custoAnterior': custoAnterior,
+      'crescimentoQuantidade': crescimentoQuantidade,
+      'evolucao': dadosEvolucao,
     };
   }
 
-  // ========== MODAL DE HISTÓRICO DE COMPRAS ==========
-  void _showHistoricoCompras(String epiNome) {
-    final analise = _analisarHistoricoCompras(epiNome);
+  // ========== MODAL DE EVOLUÇÃO MENSAL ==========
+  void _showEvolucaoSetor(String setorNome) {
+    final analise = _analisarEvolucaoSetor(setorNome);
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withOpacity(0.1),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
-              ),
-              child: Row(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: SizedBox(
+              width: MediaQuery.of(context).size.width * 0.30,
+              height: MediaQuery.of(context).size.height * 0.85,
+              child: Column(
                 children: [
-                  Icon(Icons.history, color: colorScheme.primary, size: 28),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer.withValues(
+                        alpha: 0.1,
+                      ),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          'Histórico de Compras - $epiNome',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
+                        Icon(
+                          Icons.trending_up,
+                          color: colorScheme.primary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Evolução Mensal - $setorNome',
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              Text(
+                                'Análise temporal dos custos nos últimos 3 meses',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          'Análise temporal e estratégica de preços',
-                          style: theme.textTheme.bodyMedium?.copyWith(
+                        IconButton(
+                          icon: Icon(
+                            Icons.close,
                             color: colorScheme.onSurfaceVariant,
                           ),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      color: colorScheme.onSurfaceVariant,
+
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          // Card de Insights
+                          _buildInsightsCard(theme, colorScheme, analise),
+                          const SizedBox(height: 24),
+
+                          // Tabela de Evolução
+                          _buildEvolucaoTable(
+                            theme,
+                            colorScheme,
+                            analise['evolucao'],
+                          ),
+                        ],
+                      ),
                     ),
-                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
             ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Card de Insights
-                    _buildInsightsCard(theme, colorScheme, analise),
-                    const SizedBox(height: 24),
-
-                    // Tabela de Histórico
-                    _buildHistoricoTable(
-                      theme,
-                      colorScheme,
-                      analise['compras'],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -373,14 +286,13 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '📈 Insights do Histórico',
+              '📈 Análise da Evolução',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -397,24 +309,21 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                   theme,
                 ),
                 _buildInsightChip(
-                  'Variação',
+                  'Variação 3 meses',
                   '${analise['variacaoPercentual'].toStringAsFixed(1)}%',
                   tendenciaColor,
                   theme,
                 ),
                 _buildInsightChip(
-                  'Amplitude',
-                  'R\$${analise['amplitude'].toStringAsFixed(2)}'.replaceAll(
-                    '.',
-                    ',',
-                  ),
+                  'Crescimento EPIs',
+                  '+${analise['crescimentoQuantidade']} unidades',
                   Colors.orange,
                   theme,
                 ),
                 _buildInsightChip(
-                  'Fornecedor + Barato',
-                  analise['fornecedorMaisBarato'].toString().split(' ').first,
-                  Colors.green,
+                  'Custo Atual',
+                  _formatarReal(analise['custoAtual']),
+                  Colors.blue,
                   theme,
                 ),
               ],
@@ -434,9 +343,9 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,10 +369,10 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
-  Widget _buildHistoricoTable(
+  Widget _buildEvolucaoTable(
     ThemeData theme,
     ColorScheme colorScheme,
-    List<dynamic> compras,
+    List<dynamic> evolucao,
   ) {
     return Card(
       elevation: 2,
@@ -474,7 +383,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '📋 Últimas 3 Compras',
+              '📊 Evolução dos Últimos 3 Meses',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -482,51 +391,47 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
             const SizedBox(height: 16),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columnSpacing: 20,
-                dataRowMinHeight: 40,
-                headingRowColor: MaterialStateProperty.all(
-                  colorScheme.primaryContainer.withOpacity(0.1),
-                ),
-                columns: [
-                  DataColumn(
-                    label: Text('Data', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Text('Fornecedor', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Text('Quantidade', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Text('Custo Unit.', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Text('Custo Total', style: _getHeaderStyle(theme)),
-                  ),
-                ],
-                rows: compras.map((compra) {
-                  final custoTotal =
-                      (compra['quantidade'] as int) *
-                      (compra['custoUnitario'] as double);
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(compra['data'])),
-                      DataCell(Text(compra['fornecedor'])),
-                      DataCell(Text(compra['quantidade'].toString())),
-                      DataCell(
-                        Text(
-                          'R\$${compra['custoUnitario'].toStringAsFixed(2).replaceAll('.', ',')}',
+              child: Card.outlined(
+                child: ClipRRect(
+                  borderRadius: BorderRadiusGeometry.circular(12),
+                  child: DataTable(
+                    columnSpacing: 20,
+                    dataRowMinHeight: 40,
+                    border: TableBorder.all(
+                      width: 1,
+                      color: colorScheme.surfaceContainerHighest,
+                    ),
+                    headingRowColor: WidgetStateProperty.all(
+                      colorScheme.primaryContainer.withValues(alpha: 0.1),
+                    ),
+                    columns: [
+                      DataColumn(
+                        label: Text('Mês', style: _getHeaderStyle(theme)),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          'Custo Total',
+                          style: _getHeaderStyle(theme),
                         ),
                       ),
-                      DataCell(
-                        Text(
-                          'R\$${custoTotal.toStringAsFixed(2).replaceAll('.', ',')}',
+                      DataColumn(
+                        label: Text(
+                          'Quantidade',
+                          style: _getHeaderStyle(theme),
                         ),
                       ),
                     ],
-                  );
-                }).toList(),
+                    rows: evolucao.map((mes) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(mes['mes'])),
+                          DataCell(Text(_formatarReal(mes['custo']))),
+                          DataCell(Text(mes['quantidade'].toString())),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ),
           ],
@@ -543,97 +448,46 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
         const TextStyle();
   }
 
-  // ========== ANÁLISE DETALHADA COMPLETA ==========
-  void _showDetailedAnalysis() {
-    final totalGeral = _epiData.fold(
+  void _openAnalysisDrawer() {
+    final totalGeral = _sectorData.fold(
       0,
-      (sum, epi) => sum + (epi['custo'] as int),
+      (sum, setor) => sum + (setor['custo'] as int),
     );
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildAnalysisSheet(totalGeral),
-    );
-  }
-
-  Widget _buildAnalysisSheet(int totalGeral) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      child: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer.withOpacity(0.1),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(24),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Análise Estratégica - Custos de EPI',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Visão completa com impacto unitário e histórico',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(Icons.close, color: colorScheme.onSurfaceVariant),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ),
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierDismissible: true,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return AnalysisDrawer(
+            title: 'Análise de Custos de EPI por Setor',
+            subtitle:
+                'Visão completa com distribuição percentual e evolução mensal',
+            children: [
+              // Resumo Geral
+              _buildEnhancedSummaryCard(theme, colorScheme, totalGeral),
 
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Resumo Geral
-                  _buildEnhancedSummaryCard(theme, colorScheme, totalGeral),
+              const SizedBox(height: 24),
 
-                  const SizedBox(height: 24),
+              // Card de Porcentagem Total
+              _buildPorcentagemTotalCard(theme, colorScheme, totalGeral),
 
-                  // Card de Porcentagem Total
-                  _buildPorcentagemTotalCard(theme, colorScheme, totalGeral),
+              const SizedBox(height: 24),
 
-                  const SizedBox(height: 24),
-
-                  // Tabela Detalhada
-                  _buildDetailedTable(theme, colorScheme, totalGeral),
-                ],
-              ),
-            ),
-          ),
-        ],
+              // Tabela Detalhada
+              _buildDetailedTable(theme, colorScheme, totalGeral),
+            ],
+            onExportPdf: () {
+              _exportToPdf();
+            },
+            onExportExcel: () {
+              _exportToExcel();
+            },
+          );
+        },
       ),
     );
   }
@@ -644,18 +498,10 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     int totalGeral,
   ) {
     // Ordenar por porcentagem total (maior primeiro)
-    final epiComPorcentagem =
-        _epiData.map((epi) {
-          final porcentagemTotal = (epi['custo'] / totalGeral * 100);
-          final impactoUnitario = _calcularImpactoUnitario(
-            epi['custoUnitario'],
-            totalGeral,
-          );
-          return {
-            ...epi,
-            'porcentagemTotal': porcentagemTotal,
-            'impactoUnitario': impactoUnitario,
-          };
+    final setoresComPorcentagem =
+        _sectorData.map((setor) {
+          final porcentagemTotal = (setor['custo'] / totalGeral * 100);
+          return {...setor, 'porcentagemTotal': porcentagemTotal};
         }).toList()..sort(
           (a, b) => b['porcentagemTotal'].compareTo(a['porcentagemTotal']),
         );
@@ -689,19 +535,19 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Participação de cada item no custo total - Para priorização de investimentos',
+              'Participação de cada setor no custo total - Para alocação estratégica de recursos',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 16),
-            ...epiComPorcentagem.map((epi) {
+            ...setoresComPorcentagem.map((setor) {
               return _buildPorcentagemTotalRow(
-                epi['epi'],
-                epi['custo'],
-                epi['porcentagemTotal'],
-                epi['impactoUnitario'],
-                epi['cor'],
+                setor['setor'],
+                setor['custo'],
+                setor['porcentagemTotal'],
+                setor['quantidade'],
+                setor['cor'],
                 theme,
                 colorScheme,
               );
@@ -713,10 +559,10 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
   }
 
   Widget _buildPorcentagemTotalRow(
-    String epi,
+    String setor,
     int custoTotal,
     double porcentagemTotal,
-    double impactoUnitario,
+    int quantidade,
     Color cor,
     ThemeData theme,
     ColorScheme colorScheme,
@@ -742,7 +588,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  epi,
+                  setor,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -755,7 +601,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Impacto unitário: ${impactoUnitario.toStringAsFixed(2)}%',
+                  '$quantidade EPIs utilizados',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant.withOpacity(0.7),
                     fontSize: 10,
@@ -794,8 +640,8 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     ColorScheme colorScheme,
     int totalGeral,
   ) {
-    final maiorCusto = _epiData.first;
-    final menorCusto = _epiData.last;
+    final maiorCusto = _sectorData.first;
+    final menorCusto = _sectorData.last;
     final percentualMaiorCusto = (maiorCusto['custo'] / totalGeral * 100);
 
     return Card(
@@ -835,7 +681,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                   child: _buildMetricCard(
                     theme,
                     colorScheme,
-                    'Total Investido',
+                    'Custo Total Mensal',
                     _formatarReal(totalGeral),
                     Icons.attach_money,
                     colorScheme.primary,
@@ -846,9 +692,9 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                   child: _buildMetricCard(
                     theme,
                     colorScheme,
-                    'Itens Analisados',
-                    '${_epiData.length}',
-                    Icons.inventory_2,
+                    'Setores Analisados',
+                    '${_sectorData.length}',
+                    Icons.business,
                     Colors.green,
                   ),
                 ),
@@ -875,18 +721,18 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                   ),
                   const SizedBox(height: 12),
                   _buildHighlightItem(
-                    '🎯 Maior Investimento',
-                    '${maiorCusto['epi']} - ${_formatarReal(maiorCusto['custo'])} (${percentualMaiorCusto.toStringAsFixed(1)}% do total)',
+                    '🎯 Maior Custo',
+                    '${maiorCusto['setor']} - ${_formatarReal(maiorCusto['custo'])} (${percentualMaiorCusto.toStringAsFixed(1)}% do total)',
                     colorScheme.primary,
                   ),
                   _buildHighlightItem(
-                    '💰 Menor Investimento',
-                    '${menorCusto['epi']} - ${_formatarReal(menorCusto['custo'])}',
+                    '💰 Menor Custo',
+                    '${menorCusto['setor']} - ${_formatarReal(menorCusto['custo'])}',
                     Colors.green,
                   ),
                   _buildHighlightItem(
-                    '📊 Total de Itens',
-                    '${_epiData.length} tipos de EPI analisados',
+                    '📊 Total de EPIs',
+                    '${_sectorData.fold(0, (sum, setor) => sum + (setor['quantidade'] as int))} unidades',
                     Colors.blue,
                   ),
                 ],
@@ -1003,9 +849,9 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              spacing: 12,
               children: [
                 Container(
                   width: 4,
@@ -1015,7 +861,6 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(width: 12),
                 Text(
                   'Detalhamento por Item',
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -1027,89 +872,96 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
             const SizedBox(height: 16),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columnSpacing: 20,
-                dataRowMinHeight: 40,
-                dataRowMaxHeight: 60,
-                headingRowColor: MaterialStateProperty.all(
-                  colorScheme.primaryContainer.withOpacity(0.1),
-                ),
-                columns: [
-                  DataColumn(label: Text('EPI', style: _getHeaderStyle(theme))),
-                  DataColumn(
-                    label: Text('Custo Total', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Text('Quantidade', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Text('Custo Unit.', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Text('% Unitário', style: _getHeaderStyle(theme)),
-                  ),
-                  DataColumn(
-                    label: Container(
-                      width: 50, // largura tabela
-                      child: Text('Ações', style: _getHeaderStyle(theme)),
+              child: Card.outlined(
+                child: ClipRRect(
+                  borderRadius: BorderRadiusGeometry.circular(12),
+                  child: DataTable(
+                    columnSpacing: 20,
+                    dataRowMinHeight: 40,
+                    dataRowMaxHeight: 60,
+                    border: TableBorder.all(
+                      width: 1,
+                      color: colorScheme.surfaceContainerHighest,
                     ),
-                  ),
-                ],
-                rows: _epiData.map((epi) {
-                  final impactoUnitario = _calcularImpactoUnitario(
-                    epi['custoUnitario'],
-                    totalGeral,
-                  );
-                  final porcentagemTotal = (epi['custo'] / totalGeral * 100);
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                        Row(
-                          children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: BoxDecoration(
-                                color: epi['cor'],
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(epi['epi']),
-                          ],
+                    headingRowColor: WidgetStateProperty.all(
+                      colorScheme.primaryContainer.withValues(alpha: 0.1),
+                    ),
+                    columns: [
+                      DataColumn(
+                        label: Text('Setor', style: _getHeaderStyle(theme)),
+                      ),
+                      DataColumn(
+                        label: Text(
+                          'Custo Total',
+                          style: _getHeaderStyle(theme),
                         ),
                       ),
-                      DataCell(Text(_formatarReal(epi['custo']))),
-                      DataCell(Text(epi['quantidade'].toString())),
-                      DataCell(
-                        Text(
-                          'R\$${epi['custoUnitario'].toStringAsFixed(2).replaceAll('.', ',')}',
+                      DataColumn(
+                        label: Text(
+                          'Quantidade',
+                          style: _getHeaderStyle(theme),
                         ),
                       ),
-                      DataCell(
-                        Tooltip(
-                          message:
-                              '${porcentagemTotal.toStringAsFixed(1)}% do total',
-                          child: Text('${impactoUnitario.toStringAsFixed(2)}%'),
+                      DataColumn(
+                        label: Text(
+                          '% do Total',
+                          style: _getHeaderStyle(theme),
                         ),
                       ),
-                      DataCell(
-                        Container(
-                          width: 50, // LARGURA FIXA MAIOR
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.history,
-                              size: 20,
-                              color: colorScheme.primary,
-                            ),
-                            onPressed: () => _showHistoricoCompras(epi['epi']),
-                            tooltip: 'Ver histórico de compras',
-                          ),
+                      DataColumn(
+                        label: SizedBox(
+                          width: 50,
+                          child: Text('Ações', style: _getHeaderStyle(theme)),
                         ),
                       ),
                     ],
-                  );
-                }).toList(),
+                    rows: _sectorData.map((setor) {
+                      final porcentagemTotal =
+                          (setor['custo'] / totalGeral * 100);
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                            Row(
+                              children: [
+                                Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: setor['cor'],
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(setor['setor']),
+                              ],
+                            ),
+                          ),
+                          DataCell(Text(_formatarReal(setor['custo']))),
+                          DataCell(Text(setor['quantidade'].toString())),
+                          DataCell(
+                            Text('${porcentagemTotal.toStringAsFixed(1)}%'),
+                          ),
+                          DataCell(
+                            SizedBox(
+                              width: 50,
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.trending_up,
+                                  size: 20,
+                                  color: colorScheme.primary,
+                                ),
+                                onPressed: () =>
+                                    _showEvolucaoSetor(setor['setor']),
+                                tooltip: 'Ver evolução mensal',
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
             ),
           ],
@@ -1118,7 +970,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
-  // ========== EXPORT PDF - ATUALIZADO ==========
+  // ========== EXPORT PDF ==========
   Future<void> _exportToPdf() async {
     setState(() {
       _isExporting = true;
@@ -1126,9 +978,9 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
 
     try {
       final pdf = pw.Document();
-      final totalGeral = _epiData.fold(
+      final totalGeral = _sectorData.fold(
         0,
-        (sum, epi) => sum + (epi['custo'] as int),
+        (sum, setor) => sum + (setor['custo'] as int),
       );
 
       // PRIMEIRA PÁGINA - RESUMO E DISTRIBUIÇÃO
@@ -1148,7 +1000,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
         ),
       );
 
-      // SEGUNDA PÁGINA - DETALHAMENTO E HISTÓRICO
+      // SEGUNDA PÁGINA - DETALHAMENTO E EVOLUÇÃO
       pdf.addPage(
         pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
@@ -1159,7 +1011,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
               pw.SizedBox(height: 20),
               _buildPdfTable(totalGeral),
               pw.SizedBox(height: 25),
-              _buildPdfHistoricoCompras(),
+              _buildPdfEvolucaoMensal(),
             ];
           },
         ),
@@ -1167,7 +1019,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
 
       final output = await getTemporaryDirectory();
       final file = File(
-        '${output.path}/relatorio_estrategico_epi_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        '${output.path}/relatorio_setores_epi_${DateTime.now().millisecondsSinceEpoch}.pdf',
       );
       await file.writeAsBytes(await pdf.save());
 
@@ -1188,7 +1040,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
-          'Detalhamento por Item',
+          'Detalhamento por Setor',
           style: pw.TextStyle(
             fontSize: 20,
             fontWeight: pw.FontWeight.bold,
@@ -1197,7 +1049,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
         ),
         pw.SizedBox(height: 8),
         pw.Text(
-          'Análise detalhada de custos e quantidades por tipo de EPI',
+          'Análise detalhada de custos e quantidades por área da empresa',
           style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
         ),
       ],
@@ -1205,18 +1057,10 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
   }
 
   pw.Widget _buildPdfPorcentagemTotal(int totalGeral) {
-    final epiComPorcentagem =
-        _epiData.map((epi) {
-          final porcentagemTotal = (epi['custo'] / totalGeral * 100);
-          final impactoUnitario = _calcularImpactoUnitario(
-            epi['custoUnitario'],
-            totalGeral,
-          );
-          return {
-            ...epi,
-            'porcentagemTotal': porcentagemTotal,
-            'impactoUnitario': impactoUnitario,
-          };
+    final setoresComPorcentagem =
+        _sectorData.map((setor) {
+          final porcentagemTotal = (setor['custo'] / totalGeral * 100);
+          return {...setor, 'porcentagemTotal': porcentagemTotal};
         }).toList()..sort(
           (a, b) => b['porcentagemTotal'].compareTo(a['porcentagemTotal']),
         );
@@ -1234,11 +1078,11 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
         ),
         pw.SizedBox(height: 12),
         pw.Text(
-          'Participação de cada item no custo total - Para priorização de investimentos',
+          'Participação de cada setor no custo total - Para alocação estratégica de recursos',
           style: pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
         ),
         pw.SizedBox(height: 16),
-        ...epiComPorcentagem.map((epi) {
+        ...setoresComPorcentagem.map((setor) {
           return pw.Container(
             margin: pw.EdgeInsets.only(bottom: 8),
             padding: pw.EdgeInsets.all(12),
@@ -1263,14 +1107,14 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
                       pw.Text(
-                        epi['epi'],
+                        setor['setor'],
                         style: pw.TextStyle(
                           fontSize: 11,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
                       pw.Text(
-                        '${_formatarReal(epi['custo'])} | ${epi['porcentagemTotal'].toStringAsFixed(1)}% do total',
+                        '${_formatarReal(setor['custo'])} | ${setor['porcentagemTotal'].toStringAsFixed(1)}% do total',
                         style: pw.TextStyle(
                           fontSize: 9,
                           color: PdfColors.grey600,
@@ -1278,7 +1122,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                       ),
                       pw.SizedBox(height: 2),
                       pw.Text(
-                        'Impacto unitário: ${epi['impactoUnitario'].toStringAsFixed(2)}%',
+                        '${setor['quantidade']} EPIs utilizados',
                         style: pw.TextStyle(
                           fontSize: 8,
                           color: PdfColors.grey500,
@@ -1290,15 +1134,15 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                 pw.Container(
                   padding: pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: pw.BoxDecoration(
-                    color: epi['porcentagemTotal'] > 30
+                    color: setor['porcentagemTotal'] > 30
                         ? PdfColors.red
-                        : epi['porcentagemTotal'] > 15
+                        : setor['porcentagemTotal'] > 15
                         ? PdfColors.orange
                         : PdfColors.green,
                     borderRadius: pw.BorderRadius.circular(12),
                   ),
                   child: pw.Text(
-                    '${epi['porcentagemTotal'].toStringAsFixed(1)}%',
+                    '${setor['porcentagemTotal'].toStringAsFixed(1)}%',
                     style: pw.TextStyle(
                       fontSize: 9,
                       color: PdfColors.white,
@@ -1314,12 +1158,12 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
-  pw.Widget _buildPdfHistoricoCompras() {
+  pw.Widget _buildPdfEvolucaoMensal() {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Text(
-          'HISTÓRICO ESTRATÉGICO DE COMPRAS',
+          'EVOLUÇÃO MENSAL POR SETOR',
           style: pw.TextStyle(
             fontSize: 16,
             fontWeight: pw.FontWeight.bold,
@@ -1327,15 +1171,15 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
           ),
         ),
         pw.SizedBox(height: 12),
-        ..._dadosHistoricosCompras.map((epiHistorico) {
-          final analise = _analisarHistoricoCompras(epiHistorico['epi']);
+        ..._evolucaoMensalSetores.map((setorEvolucao) {
+          final analise = _analisarEvolucaoSetor(setorEvolucao['setor']);
           return pw.Container(
             margin: pw.EdgeInsets.only(bottom: 16),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  '${epiHistorico['epi']} - Tendência: ${analise['tendencia'].toString().toUpperCase()} (${analise['variacaoPercentual'].toStringAsFixed(1)}%)',
+                  '${setorEvolucao['setor']} - Tendência: ${analise['tendencia'].toString().toUpperCase()} (${analise['variacaoPercentual'].toStringAsFixed(1)}%)',
                   style: pw.TextStyle(
                     fontSize: 12,
                     fontWeight: pw.FontWeight.bold,
@@ -1345,23 +1189,12 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                 pw.SizedBox(height: 8),
                 pw.TableHelper.fromTextArray(
                   context: null,
-                  headers: [
-                    'Data',
-                    'Fornecedor',
-                    'Qtd',
-                    'Custo Unit.',
-                    'Total',
-                  ],
-                  data: (epiHistorico['compras'] as List).map((compra) {
-                    final total =
-                        (compra['quantidade'] as int) *
-                        (compra['custoUnitario'] as double);
+                  headers: ['Mês', 'Custo Total', 'Quantidade'],
+                  data: (setorEvolucao['evolucao'] as List).map((mes) {
                     return [
-                      compra['data'],
-                      compra['fornecedor'],
-                      compra['quantidade'].toString(),
-                      'R\$${compra['custoUnitario'].toStringAsFixed(2).replaceAll('.', ',')}',
-                      'R\$${total.toStringAsFixed(2).replaceAll('.', ',')}',
+                      mes['mes'],
+                      _formatarReal(mes['custo']).replaceAll('R\$', '').trim(),
+                      mes['quantidade'].toString(),
                     ];
                   }).toList(),
                   border: pw.TableBorder.all(
@@ -1377,10 +1210,8 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                   cellStyle: pw.TextStyle(fontSize: 7),
                   cellAlignments: {
                     0: pw.Alignment.centerLeft,
-                    1: pw.Alignment.centerLeft,
+                    1: pw.Alignment.centerRight,
                     2: pw.Alignment.center,
-                    3: pw.Alignment.centerRight,
-                    4: pw.Alignment.centerRight,
                   },
                 ),
                 pw.SizedBox(height: 8),
@@ -1416,7 +1247,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
                 pw.Text(
-                  'Relatório Estratégico de Custos de EPI',
+                  'Relatório Estratégico - Custos por Setor',
                   style: pw.TextStyle(
                     fontSize: 22,
                     fontWeight: pw.FontWeight.bold,
@@ -1425,7 +1256,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                 ),
                 pw.SizedBox(height: 5),
                 pw.Text(
-                  'Análise completa com distribuição percentual e histórico de compras',
+                  'Análise completa da distribuição de custos de EPI por área da empresa',
                   style: pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
                 ),
                 pw.SizedBox(height: 8),
@@ -1457,26 +1288,26 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
   }
 
   pw.Widget _buildPdfSummaryCards(int totalGeral) {
-    final maiorCusto = _epiData.first;
+    final maiorCusto = _sectorData.first;
     final porcentagemMaior = (maiorCusto['custo'] / totalGeral * 100);
 
     return pw.Row(
       children: [
         _buildPdfSummaryCard(
-          'Total Investido',
+          'Custo Total Mensal',
           _formatarReal(totalGeral),
           PdfColors.blue700,
         ),
         pw.SizedBox(width: 12),
         _buildPdfSummaryCard(
-          'Itens Analisados',
-          '${_epiData.length} tipos',
+          'Setores Analisados',
+          '${_sectorData.length} áreas',
           PdfColors.green700,
         ),
         pw.SizedBox(width: 12),
         _buildPdfSummaryCard(
           'Maior Custo',
-          '${maiorCusto['epi']} (${porcentagemMaior.toStringAsFixed(1)}%)',
+          '${maiorCusto['setor']} (${porcentagemMaior.toStringAsFixed(1)}%)',
           PdfColors.orange700,
         ),
       ],
@@ -1525,26 +1356,13 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
         pw.SizedBox(height: 12),
         pw.TableHelper.fromTextArray(
           context: null,
-          headers: [
-            'EPI',
-            'Custo Total',
-            'Quantidade',
-            'Custo Unitário',
-            '% Unitário',
-            '% Total',
-          ],
-          data: _epiData.map((epi) {
-            final impactoUnitario = _calcularImpactoUnitario(
-              epi['custoUnitario'],
-              totalGeral,
-            );
-            final porcentagemTotal = (epi['custo'] / totalGeral * 100);
+          headers: ['Setor', 'Custo Total', 'Quantidade', '% do Total'],
+          data: _sectorData.map((setor) {
+            final porcentagemTotal = (setor['custo'] / totalGeral * 100);
             return [
-              epi['epi'],
-              _formatarReal(epi['custo']).replaceAll('R\$', '').trim(),
-              epi['quantidade'].toString(),
-              'R\$${(epi['custoUnitario'] as double).toStringAsFixed(2).replaceAll('.', ',')}',
-              '${impactoUnitario.toStringAsFixed(2)}%',
+              setor['setor'],
+              _formatarReal(setor['custo']).replaceAll('R\$', '').trim(),
+              setor['quantidade'].toString(),
               '${porcentagemTotal.toStringAsFixed(1)}%',
             ];
           }).toList(),
@@ -1560,9 +1378,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
             0: pw.Alignment.centerLeft,
             1: pw.Alignment.centerRight,
             2: pw.Alignment.center,
-            3: pw.Alignment.centerRight,
-            4: pw.Alignment.center,
-            5: pw.Alignment.center,
+            3: pw.Alignment.center,
           },
         ),
       ],
@@ -1573,115 +1389,90 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     return pw.Font.courier();
   }
 
-  // ========== EXPORT EXCEL ATUALIZADO ==========
+  // ========== EXPORT EXCEL ==========
   Future<void> _exportToExcel() async {
     setState(() {
       _isExporting = true;
     });
 
     try {
-      final totalGeral = _epiData.fold(
+      final totalGeral = _sectorData.fold(
         0,
-        (sum, epi) => sum + (epi['custo'] as int),
+        (sum, setor) => sum + (setor['custo'] as int),
       );
       List<List<dynamic>> csvData = [];
 
       // Cabecalho SEM ACENTOS
-      csvData.add(['RELATORIO ESTRATEGICO DE CUSTOS DE EPI']);
+      csvData.add(['RELATORIO ESTRATEGICO - CUSTOS POR SETOR']);
       csvData.add(['Gerado em:', '${DateTime.now().toString().split(' ')[0]}']);
       csvData.add([]);
 
       // Resumo
       csvData.add(['RESUMO GERAL']);
-      csvData.add(['Total Investido:', '${_formatarReal(totalGeral)}']);
-      csvData.add(['Quantidade de Itens:', '${_epiData.length} tipos']);
+      csvData.add(['Custo Total Mensal:', '${_formatarReal(totalGeral)}']);
+      csvData.add(['Setores Analisados:', '${_sectorData.length} areas']);
+      csvData.add([
+        'Total de EPIs:',
+        '${_sectorData.fold(0, (sum, setor) => sum + (setor['quantidade'] as int))} unidades',
+      ]);
       csvData.add([]);
 
       // Distribuicao Percentual
       csvData.add(['DISTRIBUICAO PERCENTUAL - ANALISE ESTRATEGICA']);
       csvData.add([
-        'EPI',
+        'Setor',
         'Custo Total (R\$)',
         'Quantidade',
         '% do Total',
-        '% Unitario',
         'Classificacao',
       ]);
 
-      for (var epi in _epiData) {
-        final porcentagemTotal = (epi['custo'] / totalGeral * 100);
-        final impactoUnitario = _calcularImpactoUnitario(
-          epi['custoUnitario'],
-          totalGeral,
-        );
+      for (var setor in _sectorData) {
+        final porcentagemTotal = (setor['custo'] / totalGeral * 100);
         String classificacao = porcentagemTotal > 30
-            ? 'ALTO IMPACTO'
+            ? 'ALTO CUSTO'
             : porcentagemTotal > 15
-            ? 'MEDIO IMPACTO'
-            : 'BAIXO IMPACTO';
+            ? 'MEDIO CUSTO'
+            : 'BAIXO CUSTO';
         csvData.add([
-          epi['epi'],
-          _formatarReal(epi['custo']).replaceAll('R\$', '').trim(),
-          epi['quantidade'].toString(),
+          setor['setor'],
+          _formatarReal(setor['custo']).replaceAll('R\$', '').trim(),
+          setor['quantidade'].toString(),
           '${porcentagemTotal.toStringAsFixed(1)}%',
-          '${impactoUnitario.toStringAsFixed(2)}%',
           classificacao,
         ]);
       }
       csvData.add([]);
 
       // Tabela detalhada
-      csvData.add(['DETALHAMENTO POR ITEM']);
-      csvData.add([
-        'EPI',
-        'Custo Total (R\$)',
-        'Quantidade',
-        'Custo Unitario (R\$)',
-        '% Unitario',
-        '% Total',
-      ]);
+      csvData.add(['DETALHAMENTO POR SETOR']);
+      csvData.add(['Setor', 'Custo Total (R\$)', 'Quantidade', '% do Total']);
 
-      for (var epi in _epiData) {
-        final impactoUnitario = _calcularImpactoUnitario(
-          epi['custoUnitario'],
-          totalGeral,
-        );
-        final porcentagemTotal = (epi['custo'] / totalGeral * 100);
+      for (var setor in _sectorData) {
+        final porcentagemTotal = (setor['custo'] / totalGeral * 100);
         csvData.add([
-          epi['epi'],
-          _formatarReal(epi['custo']).replaceAll('R\$', '').trim(),
-          epi['quantidade'].toString(),
-          (epi['custoUnitario'] as double)
-              .toStringAsFixed(2)
-              .replaceAll('.', ','),
-          '${impactoUnitario.toStringAsFixed(2)}%',
+          setor['setor'],
+          _formatarReal(setor['custo']).replaceAll('R\$', '').trim(),
+          setor['quantidade'].toString(),
           '${porcentagemTotal.toStringAsFixed(1)}%',
         ]);
       }
       csvData.add([]);
 
-      // Historico de Compras
-      csvData.add(['HISTORICO ESTRATEGICO DE COMPRAS']);
-      for (var historico in _dadosHistoricosCompras) {
-        csvData.add(['ITEM: ${historico['epi']}']);
+      // Evolucao Mensal
+      csvData.add(['EVOLUCAO MENSAL POR SETOR']);
+      for (var evolucao in _evolucaoMensalSetores) {
+        final analise = _analisarEvolucaoSetor(evolucao['setor']);
         csvData.add([
-          'Data',
-          'Fornecedor',
-          'Quantidade',
-          'Custo Unitario',
-          'Total',
+          'SETOR: ${evolucao['setor']} - Tendencia: ${analise['tendencia'].toString().toUpperCase()} (${analise['variacaoPercentual'].toStringAsFixed(1)}%)',
         ]);
+        csvData.add(['Mes', 'Custo Total (R\$)', 'Quantidade']);
 
-        for (var compra in historico['compras']) {
-          final total =
-              (compra['quantidade'] as int) *
-              (compra['custoUnitario'] as double);
+        for (var mes in evolucao['evolucao']) {
           csvData.add([
-            compra['data'],
-            compra['fornecedor'],
-            compra['quantidade'],
-            compra['custoUnitario'].toStringAsFixed(2).replaceAll('.', ','),
-            total.toStringAsFixed(2).replaceAll('.', ','),
+            mes['mes'],
+            _formatarReal(mes['custo']).replaceAll('R\$', '').trim(),
+            mes['quantidade'].toString(),
           ]);
         }
         csvData.add([]);
@@ -1690,7 +1481,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
       String csv = const ListToCsvConverter().convert(csvData);
       final output = await getTemporaryDirectory();
       final file = File(
-        '${output.path}/relatorio_estrategico_epi_${DateTime.now().millisecondsSinceEpoch}.csv',
+        '${output.path}/relatorio_setores_epi_${DateTime.now().millisecondsSinceEpoch}.csv',
       );
       await file.writeAsString(csv);
 
@@ -1719,11 +1510,11 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
   }
 
   Widget _buildMainContent(ThemeData theme, ColorScheme colorScheme) {
-    final totalGeral = _epiData.fold(
+    final totalGeral = _sectorData.fold(
       0,
-      (sum, epi) => sum + (epi['custo'] as int),
+      (sum, setor) => sum + (setor['custo'] as int),
     );
-    final double maxCost = 20000;
+    final double maxCost = 30000;
 
     return Stack(
       children: [
@@ -1746,29 +1537,123 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Análise Estratégica de Custos por EPI',
+                          'Custos de EPI por Setor',
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Distribuição de custos com percentual total e histórico',
+                          'Distribuição mensal por área da empresa',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
                     ),
-                    IconButton(
-                      icon: _isExporting
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.more_vert_rounded),
-                      onPressed: _isExporting ? null : _showMenuActions,
+                    PopupMenuButton<String>(
+                      icon: const Icon(
+                        Icons.more_vert,
+                      ),
+                      tooltip: 'Opções',
+                      offset: const Offset(0, 40),
+                      onSelected: (String value) {
+                        _handleMenuAction(value);
+                      },
+                      itemBuilder: (BuildContext context) {
+                        return [
+                          PopupMenuItem(
+                            value: 'export_pdf',
+                            child: Row(
+                              children: [
+                                _isExporting
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.picture_as_pdf,
+                                        size: 20,
+                                      ),
+                                const SizedBox(width: 8),
+                                const Text('Exportar para PDF'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'export_excel',
+                            child: Row(
+                              children: [
+                                _isExporting
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.table_chart, size: 20),
+                                const SizedBox(width: 8),
+                                const Text('Exportar para Excel'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            enabled: false,
+                            child: Divider(height: 1),
+                          ),
+                          PopupMenuItem(
+                            value: 'toggle_values',
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _showValues
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _showValues
+                                      ? 'Ocultar Valores'
+                                      : 'Mostrar Valores',
+                                ),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'sort',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.sort, size: 20),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _sortedByValue
+                                      ? 'Ordenar por Nome'
+                                      : 'Ordenar por Valor',
+                                ),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            enabled: false,
+                            child: Divider(height: 1),
+                          ),
+                          PopupMenuItem(
+                            value: 'analysis',
+                            child: Row(
+                              children: [
+                                const Icon(Icons.analytics, size: 20),
+                                const SizedBox(width: 8),
+                                const Text('Análise Estratégica'),
+                              ],
+                            ),
+                          ),
+                        ];
+                      },
                     ),
                   ],
                 ),
@@ -1780,6 +1665,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                   height: 320,
                   child: Stack(
                     children: [
+                      // Gráfico principal
                       BarChart(
                         BarChartData(
                           alignment: BarChartAlignment.spaceAround,
@@ -1792,13 +1678,14 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                                 showTitles: true,
                                 reservedSize: 30,
                                 getTitlesWidget: (value, meta) {
-                                  if (value >= 0 && value < _epiData.length) {
-                                    final epi = _epiData[value.toInt()];
+                                  if (value >= 0 &&
+                                      value < _sectorData.length) {
+                                    final setor = _sectorData[value.toInt()];
                                     return SideTitleWidget(
                                       axisSide: meta.axisSide,
                                       space: 4,
                                       child: Text(
-                                        epi['epi'],
+                                        setor['setor'],
                                         style: theme.textTheme.bodySmall
                                             ?.copyWith(
                                               color:
@@ -1818,9 +1705,9 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                               sideTitles: SideTitles(
                                 showTitles: true,
                                 reservedSize: 40,
-                                interval: 5000,
+                                interval: 10000,
                                 getTitlesWidget: (value, meta) {
-                                  if (value % 5000 == 0) {
+                                  if (value % 10000 == 0) {
                                     return Text(
                                       _formatarRealCompacta(value.toInt()),
                                       style: theme.textTheme.bodySmall
@@ -1844,7 +1731,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                             show: true,
                             drawHorizontalLine: true,
                             drawVerticalLine: false,
-                            horizontalInterval: 5000,
+                            horizontalInterval: 10000,
                             getDrawingHorizontalLine: (value) {
                               return FlLine(
                                 color: colorScheme.outlineVariant.withAlpha(50),
@@ -1859,7 +1746,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                               width: 1,
                             ),
                           ),
-                          barGroups: _epiData.asMap().entries.map((entry) {
+                          barGroups: _sectorData.asMap().entries.map((entry) {
                             final index = entry.key;
                             final data = entry.value;
                             return BarChartGroupData(
@@ -1887,11 +1774,14 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                               final double chartHeight = constraints.maxHeight;
                               final double barWidth = 32.0;
                               final double spaceBetweenBars =
-                                  (chartWidth - (_epiData.length * barWidth)) /
-                                  (_epiData.length + 1);
+                                  (chartWidth -
+                                      (_sectorData.length * barWidth)) /
+                                  (_sectorData.length + 1);
 
                               return Stack(
-                                children: _epiData.asMap().entries.map((entry) {
+                                children: _sectorData.asMap().entries.map((
+                                  entry,
+                                ) {
                                   final index = entry.key;
                                   final data = entry.value;
 
@@ -1955,7 +1845,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Total Investido:',
+                        'Custo Total Mensal:',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -2000,106 +1890,6 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
     );
   }
 
-  // ========== MENU TRADICIONAL ==========
-  void _showMenuActions() {
-    if (_isExporting) return;
-
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
-      Offset.zero & overlay.size,
-    );
-
-    showMenu(
-      context: context,
-      position: position,
-      items: [
-        PopupMenuItem(
-          value: 'export_pdf',
-          child: Row(
-            children: [
-              _isExporting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.picture_as_pdf, size: 20),
-              const SizedBox(width: 8),
-              const Text('Exportar para PDF'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'export_excel',
-          child: Row(
-            children: [
-              _isExporting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.table_chart, size: 20),
-              const SizedBox(width: 8),
-              const Text('Exportar para Excel'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(enabled: false, child: Divider(height: 1)),
-        PopupMenuItem(
-          value: 'toggle_values',
-          child: Row(
-            children: [
-              Icon(
-                _showValues ? Icons.visibility_off : Icons.visibility,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(_showValues ? 'Ocultar Valores' : 'Mostrar Valores'),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          value: 'sort',
-          child: Row(
-            children: [
-              const Icon(Icons.sort, size: 20),
-              const SizedBox(width: 8),
-              Text(_sortedByValue ? 'Ordenar por Nome' : 'Ordenar por Valor'),
-            ],
-          ),
-        ),
-        const PopupMenuItem(enabled: false, child: Divider(height: 1)),
-        PopupMenuItem(
-          value: 'analysis',
-          child: Row(
-            children: [
-              const Icon(Icons.analytics, size: 20),
-              const SizedBox(width: 8),
-              const Text('Análise Estratégica'),
-            ],
-          ),
-        ),
-      ],
-    ).then((value) {
-      if (value != null) {
-        _handleMenuAction(value);
-      }
-    });
-  }
-
   void _handleMenuAction(String action) {
     switch (action) {
       case 'export_pdf':
@@ -2119,7 +1909,7 @@ class _CostPerEpiChartState extends State<CostPerEpiChart> {
         }
         break;
       case 'analysis':
-        _showDetailedAnalysis();
+        _openAnalysisDrawer();
         break;
     }
   }

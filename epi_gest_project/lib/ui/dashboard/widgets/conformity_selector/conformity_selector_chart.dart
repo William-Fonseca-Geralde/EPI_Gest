@@ -1,6 +1,4 @@
-import 'dart:ui';
-import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
+import 'package:epi_gest_project/ui/dashboard/widgets/conformity_selector/sector_details_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
@@ -8,51 +6,52 @@ class ConformitySelectorChart extends StatefulWidget {
   const ConformitySelectorChart({super.key});
 
   @override
-  State<ConformitySelectorChart> createState() => _ConformitySelectorChartState();
+  State<ConformitySelectorChart> createState() =>
+      _ConformitySelectorChartState();
 }
 
 class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     with SingleTickerProviderStateMixin {
   String _selectedView = 'Geral';
-  double _conformidadeGeral = 78.5;
+  final double _conformidadeGeral = 78.5;
   bool _animStarted = false;
 
   // Dados otimizados com cores mais modernas
   final List<Map<String, dynamic>> _sectorConformity = [
     {
-      'setor': 'Qualidade', 
-      'conformidade': 92.5, 
-      'cor': Color(0xFF10B981), 
+      'setor': 'Qualidade',
+      'conformidade': 92.5,
+      'cor': Color(0xFF10B981),
       'icon': Icons.verified_rounded,
-      'gradient': [Color(0xFF10B981), Color(0xFF34D399)]
+      'gradient': [Color(0xFF10B981), Color(0xFF34D399)],
     },
     {
-      'setor': 'Produção', 
-      'conformidade': 78.3, 
-      'cor': Color(0xFFF59E0B), 
+      'setor': 'Produção',
+      'conformidade': 78.3,
+      'cor': Color(0xFFF59E0B),
       'icon': Icons.engineering_rounded,
-      'gradient': [Color(0xFFF59E0B), Color(0xFFFBBF24)]
+      'gradient': [Color(0xFFF59E0B), Color(0xFFFBBF24)],
     },
     {
-      'setor': 'Administrativo', 
-      'conformidade': 85.7, 
-      'cor': Color(0xFF3B82F6), 
+      'setor': 'Administrativo',
+      'conformidade': 85.7,
+      'cor': Color(0xFF3B82F6),
       'icon': Icons.work_rounded,
-      'gradient': [Color(0xFF3B82F6), Color(0xFF60A5FA)]
+      'gradient': [Color(0xFF3B82F6), Color(0xFF60A5FA)],
     },
     {
-      'setor': 'Manutenção', 
-      'conformidade': 71.2, 
-      'cor': Color(0xFFEF4444), 
+      'setor': 'Manutenção',
+      'conformidade': 71.2,
+      'cor': Color(0xFFEF4444),
       'icon': Icons.build_rounded,
-      'gradient': [Color(0xFFEF4444), Color(0xFFF87171)]
+      'gradient': [Color(0xFFEF4444), Color(0xFFF87171)],
     },
     {
-      'setor': 'Logística', 
-      'conformidade': 68.9, 
-      'cor': Color(0xFF8B5CF6), 
+      'setor': 'Logística',
+      'conformidade': 68.9,
+      'cor': Color(0xFF8B5CF6),
       'icon': Icons.local_shipping_rounded,
-      'gradient': [Color(0xFF8B5CF6), Color(0xFFA78BFA)]
+      'gradient': [Color(0xFF8B5CF6), Color(0xFFA78BFA)],
     },
   ];
 
@@ -94,9 +93,9 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: isDark 
-                ? [cs.surfaceContainerHigh, cs.surfaceContainerHighest]
-                : [cs.surface, cs.surfaceContainerLow],
+              colors: isDark
+                  ? [cs.surfaceContainerHigh, cs.surfaceContainerHighest]
+                  : [cs.surface, cs.surfaceContainerLow],
             ),
           ),
           child: Padding(
@@ -106,20 +105,30 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
               children: [
                 _buildHeader(theme, cs),
                 const SizedBox(height: 24),
-                
+
                 // Conteúdo principal responsivo
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final isLargeScreen = constraints.maxWidth > 1200;
                     final isMediumScreen = constraints.maxWidth > 600;
-                    
+
                     return AnimatedSwitcher(
                       duration: const Duration(milliseconds: 500),
                       switchInCurve: Curves.easeOutCubic,
                       switchOutCurve: Curves.easeInCubic,
                       child: _selectedView == 'Geral'
-                          ? _buildResponsiveGeralView(theme, cs, isLargeScreen, isMediumScreen)
-                          : _buildResponsiveSetorView(theme, cs, isLargeScreen, isMediumScreen),
+                          ? _buildResponsiveGeralView(
+                              theme,
+                              cs,
+                              isLargeScreen,
+                              isMediumScreen,
+                            )
+                          : _buildResponsiveSetorView(
+                              theme,
+                              cs,
+                              isLargeScreen,
+                              isMediumScreen,
+                            ),
                     );
                   },
                 ),
@@ -156,10 +165,14 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                       color: cs.primary.withValues(alpha: 0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 4),
-                    )
+                    ),
                   ],
                 ),
-                child: Icon(Icons.analytics_rounded, color: cs.onPrimary, size: 24),
+                child: Icon(
+                  Icons.analytics_rounded,
+                  color: cs.onPrimary,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -187,9 +200,9 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
             ],
           ),
         ),
-        
+
         const SizedBox(width: 16),
-        
+
         // Segment control moderno
         _buildModernSegmentControl(),
       ],
@@ -198,7 +211,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
 
   Widget _buildModernSegmentControl() {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -220,7 +233,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
   Widget _modernSegmentButton(String label, IconData icon) {
     final cs = Theme.of(context).colorScheme;
     final isSelected = _selectedView == label;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() => _selectedView = label);
@@ -230,7 +243,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         decoration: BoxDecoration(
-          gradient: isSelected 
+          gradient: isSelected
               ? LinearGradient(
                   colors: [cs.primary, cs.primaryContainer],
                   begin: Alignment.topLeft,
@@ -244,7 +257,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                     color: cs.primary.withValues(alpha: 0.3),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -252,8 +265,8 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              icon, 
-              size: 18, 
+              icon,
+              size: 18,
               color: isSelected ? cs.onPrimary : cs.onSurfaceVariant,
             ),
             const SizedBox(width: 8),
@@ -271,18 +284,23 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     );
   }
 
-  Widget _buildResponsiveGeralView(ThemeData theme, ColorScheme cs, bool isLarge, bool isMedium) {
+  Widget _buildResponsiveGeralView(
+    ThemeData theme,
+    ColorScheme cs,
+    bool isLarge,
+    bool isMedium,
+  ) {
     return Column(
       children: [
         // Gauge principal com layout responsivo
         isLarge
             ? _buildLargeGeralLayout(theme, cs)
             : isMedium
-                ? _buildMediumGeralLayout(theme, cs)
-                : _buildSmallGeralLayout(theme, cs),
-        
+            ? _buildMediumGeralLayout(theme, cs)
+            : _buildSmallGeralLayout(theme, cs),
+
         const SizedBox(height: 24),
-        
+
         // Estatísticas adicionais
         _buildModernStats(theme, cs),
       ],
@@ -293,15 +311,9 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 3,
-          child: _buildModernGauge(theme, cs, 280),
-        ),
+        Expanded(flex: 3, child: _buildModernGauge(theme, cs, 280)),
         const SizedBox(width: 32),
-        Expanded(
-          flex: 2,
-          child: _buildGeralInsights(theme, cs),
-        ),
+        Expanded(flex: 2, child: _buildGeralInsights(theme, cs)),
       ],
     );
   }
@@ -333,7 +345,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
         final gradientColors = _getConformityGradient(value);
-        
+
         return Container(
           height: size,
           child: Stack(
@@ -356,7 +368,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                     ),
                   ),
                 ),
-              
+
               // Gauge principal
               SfRadialGauge(
                 axes: <RadialAxis>[
@@ -380,7 +392,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                         color: cs.onSurfaceVariant.withValues(alpha: 0.1),
                         dashArray: const [4, 8],
                       ),
-                      
+
                       // Valor principal
                       RangePointer(
                         value: value,
@@ -391,7 +403,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                           stops: const [0.2, 0.8],
                         ),
                       ),
-                      
+
                       // Marcador
                       MarkerPointer(
                         value: value,
@@ -427,12 +439,19 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                             ),
                             const SizedBox(height: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
-                                color: _getConformityColor(value).withValues(alpha: 0.1),
+                                color: _getConformityColor(
+                                  value,
+                                ).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: _getConformityColor(value).withValues(alpha: 0.3),
+                                  color: _getConformityColor(
+                                    value,
+                                  ).withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Text(
@@ -461,7 +480,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
   Widget _buildGeralInsights(ThemeData theme, ColorScheme cs) {
     final avg = _calculateAverageSector();
     final delta = _conformidadeGeral - avg;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -473,7 +492,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
           ),
         ),
         const SizedBox(height: 16),
-        
+
         // Média dos setores
         _buildInsightCard(
           theme,
@@ -484,17 +503,24 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
           delta >= 0 ? Colors.green : Colors.red,
           '${delta.abs().toStringAsFixed(1)}pts ${delta >= 0 ? 'acima' : 'abaixo'}',
         ),
-        
+
         const SizedBox(height: 12),
-        
+
         // Insights rápidos
         ..._buildQuickInsights(theme, cs),
       ],
     );
   }
 
-  Widget _buildInsightCard(ThemeData theme, ColorScheme cs, String title, String value, 
-                          IconData icon, Color color, String subtitle) {
+  Widget _buildInsightCard(
+    ThemeData theme,
+    ColorScheme cs,
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+    String subtitle,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -517,31 +543,46 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(value, style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: cs.onSurface,
-                )),
+                Text(
+                  value,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: cs.onSurface,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(subtitle, style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: color,
-          )),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
   }
 
   List<Widget> _buildQuickInsights(ThemeData theme, ColorScheme cs) {
-    final best = _sectorConformity.reduce((a, b) => 
-        (a['conformidade'] as double) > (b['conformidade'] as double) ? a : b);
-    final worst = _sectorConformity.reduce((a, b) => 
-        (a['conformidade'] as double) < (b['conformidade'] as double) ? a : b);
-        
+    final best = _sectorConformity.reduce(
+      (a, b) =>
+          (a['conformidade'] as double) > (b['conformidade'] as double) ? a : b,
+    );
+    final worst = _sectorConformity.reduce(
+      (a, b) =>
+          (a['conformidade'] as double) < (b['conformidade'] as double) ? a : b,
+    );
+
     return [
       _quickInsightItem(
         'Melhor desempenho: ${best['setor']}',
@@ -559,9 +600,14 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     ];
   }
 
-  Widget _quickInsightItem(String title, String value, IconData icon, Color color) {
+  Widget _quickInsightItem(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -572,16 +618,37 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
         children: [
           Icon(icon, size: 16, color: color),
           const SizedBox(width: 8),
-          Expanded(child: Text(title, style: TextStyle(fontSize: 13, color: cs.onSurface))),
-          Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color)),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(fontSize: 13, color: cs.onSurface),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildResponsiveSetorView(ThemeData theme, ColorScheme cs, bool isLarge, bool isMedium) {
-    final crossAxisCount = isLarge ? 3 : isMedium ? 2 : 1;
-    
+  Widget _buildResponsiveSetorView(
+    ThemeData theme,
+    ColorScheme cs,
+    bool isLarge,
+    bool isMedium,
+  ) {
+    final crossAxisCount = isLarge
+        ? 3
+        : isMedium
+        ? 2
+        : 1;
+
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -589,14 +656,20 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
       mainAxisSpacing: 20,
       crossAxisSpacing: 20,
       childAspectRatio: isLarge ? 1.0 : 1.1,
-      children: _sectorConformity.map((sector) => _buildModernSectorCard(theme, cs, sector)).toList(),
+      children: _sectorConformity
+          .map((sector) => _buildModernSectorCard(theme, cs, sector))
+          .toList(),
     );
   }
 
-  Widget _buildModernSectorCard(ThemeData theme, ColorScheme cs, Map<String, dynamic> sector) {
+  Widget _buildModernSectorCard(
+    ThemeData theme,
+    ColorScheme cs,
+    Map<String, dynamic> sector,
+  ) {
     final conformity = sector['conformidade'] as double;
     final gradient = sector['gradient'] as List<Color>;
-    
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
@@ -631,7 +704,11 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                           gradient: LinearGradient(colors: gradient),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(sector['icon'] as IconData, size: 22, color: Colors.white),
+                        child: Icon(
+                          sector['icon'] as IconData,
+                          size: 22,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Column(
@@ -661,9 +738,9 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                   _buildStatusBadge(conformity),
                 ],
               ),
-              
+
               const SizedBox(height: 20),
-              
+
               // Mini gauge - MAIOR
               Expanded(
                 child: Center(
@@ -716,9 +793,9 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               // Informações compactas - MAIOR
               _buildSectorCompactInfo(sector['setor'] as String),
             ],
@@ -731,10 +808,12 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
   Widget _buildStatusBadge(double conformity) {
     final color = _getConformityColor(conformity);
     final status = _getConformityStatus(conformity);
-    final icon = conformity >= 90 ? Icons.verified_rounded : 
-                 conformity >= 70 ? Icons.check_circle_rounded : 
-                 Icons.warning_rounded;
-                 
+    final icon = conformity >= 90
+        ? Icons.verified_rounded
+        : conformity >= 70
+        ? Icons.check_circle_rounded
+        : Icons.warning_rounded;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -762,7 +841,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
   Widget _buildSectorCompactInfo(String setor) {
     final details = _getSectorDetails(setor);
     final cs = Theme.of(context).colorScheme;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -772,8 +851,16 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _compactInfoItem(Icons.people_rounded, '${details['funcionarios']}', 'Pessoas'),
-          _compactInfoItem(Icons.security_rounded, '${details['epis']}', 'EPIs'),
+          _compactInfoItem(
+            Icons.people_rounded,
+            '${details['funcionarios']}',
+            'Pessoas',
+          ),
+          _compactInfoItem(
+            Icons.security_rounded,
+            '${details['epis']}',
+            'EPIs',
+          ),
         ],
       ),
     );
@@ -781,7 +868,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
 
   Widget _compactInfoItem(IconData icon, String value, String label) {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Column(
       children: [
         Row(
@@ -799,13 +886,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
           ],
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: cs.onSurfaceVariant,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
       ],
     );
   }
@@ -821,14 +902,26 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('Setores Ativos', '${_sectorConformity.length}', 
-                        Icons.business_center_rounded, Color(0xFF3B82F6)),
+          _buildStatItem(
+            'Setores Ativos',
+            '${_sectorConformity.length}',
+            Icons.business_center_rounded,
+            Color(0xFF3B82F6),
+          ),
           _buildVerticalDivider(),
-          _buildStatItem('Colaboradores', '${_sumEmployees()}', 
-                        Icons.people_alt_rounded, Color(0xFF10B981)),
+          _buildStatItem(
+            'Colaboradores',
+            '${_sumEmployees()}',
+            Icons.people_alt_rounded,
+            Color(0xFF10B981),
+          ),
           _buildVerticalDivider(),
-          _buildStatItem('EPIs Monitorados', '${_sumEpis()}', 
-                        Icons.security_rounded, Color(0xFFF59E0B)),
+          _buildStatItem(
+            'EPIs Monitorados',
+            '${_sumEpis()}',
+            Icons.security_rounded,
+            Color(0xFFF59E0B),
+          ),
         ],
       ),
     );
@@ -838,13 +931,20 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     return Container(
       width: 1,
       height: 40,
-      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.2),
+      color: Theme.of(
+        context,
+      ).colorScheme.outlineVariant.withValues(alpha: 0.2),
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     final cs = Theme.of(context).colorScheme;
-    
+
     return Column(
       children: [
         Container(
@@ -865,13 +965,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: cs.onSurfaceVariant,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
       ],
     );
   }
@@ -896,10 +990,7 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
         Container(
           width: 12,
           height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Text(
@@ -914,497 +1005,45 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
     );
   }
 
-  // ========== MODAL DETALHADO ==========
-
   void _showSectorDetails(Map<String, dynamic> sector) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _buildSectorModal(theme, cs, sector),
-    );
-  }
-
-  Widget _buildSectorModal(ThemeData theme, ColorScheme cs, Map<String, dynamic> sector) {
-    final conformity = sector['conformidade'] as double;
-    final gradient = sector['gradient'] as List<Color>;
-    final sectorDetails = _getSectorDetails(sector['setor'] as String);
-    final employees = _getSectorEmployees(sector['setor'] as String);
-    final epis = _getSectorEpis(sector['setor'] as String);
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      decoration: BoxDecoration(
-        color: cs.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(28),
-          topRight: Radius.circular(28),
-        ),
-      ),
-      child: Column(
-        children: [
-          // Header do Modal
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: gradient,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(28),
-                topRight: Radius.circular(28),
-              ),
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            SectorDetailsDrawer(
+              sector: sector,
+              getSectorDetails: _getSectorDetails,
+              getSectorConformity: _getSectorConformity,
+              getSectorEmployees: _getSectorEmployees,
+              getSectorEpis: _getSectorEpis,
+              getConformityColor: _getConformityColor,
+              getConformityStatus: _getConformityStatus,
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: cs.surface.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(sector['icon'] as IconData, size: 24, color: gradient[0]),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        sector['setor'] as String,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: cs.onPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${conformity.toStringAsFixed(1)}% de conformidade',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: cs.onPrimary.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close_rounded, color: cs.onPrimary),
-                ),
-              ],
-            ),
-          ),
-
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Gráfico do Setor
-                  _buildSectorModalGauge(theme, cs, conformity, gradient),
-                  const SizedBox(height: 32),
-
-                  // Estatísticas Rápidas
-                  _buildModalStats(theme, cs, sectorDetails, sector['setor'] as String),
-                  const SizedBox(height: 32),
-
-                  // Lista de Colaboradores
-                  _buildEmployeesSection(theme, cs, employees),
-                  const SizedBox(height: 32),
-
-                  // EPIs do Setor
-                  _buildEpisSection(theme, cs, epis),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildSectorModalGauge(ThemeData theme, ColorScheme cs, double conformity, List<Color> gradient) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Conformidade do Setor',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: cs.onSurface,
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 200,
-            child: SfRadialGauge(
-              axes: <RadialAxis>[
-                RadialAxis(
-                  minimum: 0,
-                  maximum: 100,
-                  showLabels: false,
-                  showTicks: false,
-                  startAngle: 140,
-                  endAngle: 40,
-                  axisLineStyle: const AxisLineStyle(
-                    thickness: 0.08,
-                    color: Colors.transparent,
-                  ),
-                  pointers: <GaugePointer>[
-                    RangePointer(
-                      value: 100,
-                      width: 0.20,
-                      cornerStyle: CornerStyle.bothCurve,
-                      color: cs.onSurfaceVariant.withValues(alpha: 0.1),
-                    ),
-                    RangePointer(
-                      value: conformity,
-                      width: 0.18,
-                      cornerStyle: CornerStyle.bothCurve,
-                      gradient: SweepGradient(colors: gradient),
-                    ),
-                    MarkerPointer(
-                      value: conformity,
-                      markerHeight: 20,
-                      markerWidth: 20,
-                      markerType: MarkerType.circle,
-                      color: cs.surface,
-                      borderWidth: 4,
-                      borderColor: _getConformityColor(conformity),
-                    ),
-                  ],
-                  annotations: <GaugeAnnotation>[
-                    GaugeAnnotation(
-                      positionFactor: 0.1,
-                      angle: 90,
-                      widget: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${conformity.toStringAsFixed(1)}%',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                              color: _getConformityColor(conformity),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: _getConformityColor(conformity).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _getConformityStatus(conformity),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                color: _getConformityColor(conformity),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildModalStats(ThemeData theme, ColorScheme cs, Map<String, dynamic> details, String setor) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.8,
-      children: [
-        _buildModalStatCard(
-          theme,
-          cs,
-          'Colaboradores',
-          '${details['funcionarios']}',
-          Icons.people_rounded,
-          Colors.blue,
-        ),
-        _buildModalStatCard(
-          theme,
-          cs,
-          'EPIs Ativos',
-          '${details['epis']}',
-          Icons.security_rounded,
-          Colors.green,
-        ),
-        _buildModalStatCard(
-          theme,
-          cs,
-          'Conformidade',
-          '${_getSectorConformity(setor).toStringAsFixed(1)}%',
-          Icons.verified_rounded,
-          _getConformityColor(_getSectorConformity(setor)),
-        ),
-        _buildModalStatCard(
-          theme,
-          cs,
-          'EPIs por Pessoa',
-          '${(details['epis'] / details['funcionarios']).toStringAsFixed(1)}',
-          Icons.assignment_rounded,
-          Colors.orange,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildModalStatCard(ThemeData theme, ColorScheme cs, String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 16, color: color),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: cs.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmployeesSection(ThemeData theme, ColorScheme cs, List<Map<String, dynamic>> employees) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Colaboradores',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: cs.onSurface,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${employees.length}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: cs.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        ...employees.map((employee) => _buildEmployeeCard(theme, cs, employee)).toList(),
-      ],
-    );
-  }
-
-  Widget _buildEmployeeCard(ThemeData theme, ColorScheme cs, Map<String, dynamic> employee) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh.withValues(alpha: 0.4),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: (employee['conformidade'] >= 90 ? Colors.green : 
-                     employee['conformidade'] >= 70 ? Colors.orange : Colors.red)
-                     .withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              employee['conformidade'] >= 90 ? Icons.verified_rounded :
-              employee['conformidade'] >= 70 ? Icons.check_circle_rounded : Icons.warning_rounded,
-              size: 20,
-              color: employee['conformidade'] >= 90 ? Colors.green : 
-                     employee['conformidade'] >= 70 ? Colors.orange : Colors.red,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  employee['nome'],
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: cs.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  employee['cargo'],
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: cs.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: _getConformityColor(employee['conformidade']).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '${employee['conformidade'].toStringAsFixed(0)}%',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: _getConformityColor(employee['conformidade']),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEpisSection(ThemeData theme, ColorScheme cs, List<Map<String, dynamic>> epis) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'EPIs do Setor',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: cs.onSurface,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: cs.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '${epis.length}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: cs.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: epis.map((epi) => _buildEpiChip(theme, cs, epi)).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEpiChip(ThemeData theme, ColorScheme cs, Map<String, dynamic> epi) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHigh.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(epi['obrigatorio'] ? Icons.security_rounded : Icons.help_rounded, 
-               size: 16, 
-               color: epi['obrigatorio'] ? Colors.green : Colors.orange),
-          const SizedBox(width: 8),
-          Text(
-            epi['nome'],
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w500,
-              color: cs.onSurface,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ========== MÉTODOS AUXILIARES ==========
+  // ========== MÉTODOS AUXILIARES (mantidos para serem passados ao novo widget) ==========
 
   double _calculateAverageSector() {
-    final sum = _sectorConformity.fold<double>(0, (prev, e) => prev + (e['conformidade'] as double));
+    final sum = _sectorConformity.fold<double>(
+      0,
+      (prev, e) => prev + (e['conformidade'] as double),
+    );
     return sum / _sectorConformity.length;
   }
 
   int _sumEmployees() {
-    final details = _sectorConformity.map((s) => _getSectorDetails(s['setor'])['funcionarios'] as int).toList();
+    final details = _sectorConformity
+        .map((s) => _getSectorDetails(s['setor'])['funcionarios'] as int)
+        .toList();
     return details.fold<int>(0, (p, e) => p + e);
   }
 
   int _sumEpis() {
-    final details = _sectorConformity.map((s) => _getSectorDetails(s['setor'])['epis'] as int).toList();
+    final details = _sectorConformity
+        .map((s) => _getSectorDetails(s['setor'])['epis'] as int)
+        .toList();
     return details.fold<int>(0, (p, e) => p + e);
   }
 
@@ -1429,7 +1068,11 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
       'Qualidade': [
         {'nome': 'Ana Silva', 'cargo': 'Analista QA', 'conformidade': 95.0},
         {'nome': 'Carlos Santos', 'cargo': 'Inspetor', 'conformidade': 90.0},
-        {'nome': 'Marina Oliveira', 'cargo': 'Coordenadora', 'conformidade': 100.0},
+        {
+          'nome': 'Marina Oliveira',
+          'cargo': 'Coordenadora',
+          'conformidade': 100.0,
+        },
         {'nome': 'Roberto Alves', 'cargo': 'Técnico', 'conformidade': 85.0},
       ],
       'Produção': [
@@ -1439,7 +1082,11 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
         {'nome': 'Fernando Lima', 'cargo': 'Auxiliar', 'conformidade': 68.0},
       ],
       'Administrativo': [
-        {'nome': 'Patricia Santos', 'cargo': 'Assistente', 'conformidade': 88.0},
+        {
+          'nome': 'Patricia Santos',
+          'cargo': 'Assistente',
+          'conformidade': 88.0,
+        },
         {'nome': 'Ricardo Oliveira', 'cargo': 'Analista', 'conformidade': 92.0},
         {'nome': 'Camila Rodrigues', 'cargo': 'Gerente', 'conformidade': 95.0},
       ],

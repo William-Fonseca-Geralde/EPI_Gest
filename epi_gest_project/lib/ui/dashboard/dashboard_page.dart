@@ -1,11 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-
-// Importe seus widgets aqui
 import 'widgets/status_card.dart';
-import 'widgets/cost_per_epi_chart.dart';
-import 'widgets/cost_per_sector_chart.dart';
-import 'widgets/conformity_selector_chart.dart';
+import 'widgets/cost_charts/cost_per_epi_chart.dart';
+import 'widgets/cost_charts/cost_per_sector_chart.dart';
+import 'widgets/conformity_selector/conformity_selector_chart.dart';
 import 'widgets/top_employees_chart.dart';
 import 'widgets/epi_durability_chart.dart';
 import 'widgets/critical_stock_widget.dart';
@@ -29,11 +26,9 @@ class DashboardPage extends StatelessWidget {
               children: [
                 const SizedBox(height: 8),
 
-                /// Ações Rápidas com Espaçamento Premium
                 _buildQuickActionsEnhanced(context),
                 const SizedBox(height: 40),
 
-                /// Sistema de Grid Responsivo com Proporção Áurea
                 _buildResponsiveGrid(context),
               ],
             ),
@@ -162,9 +157,6 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  // =====================================================
-  // AÇÕES RÁPIDAS APRIMORADAS
-  // =====================================================
   Widget _buildQuickActionsEnhanced(BuildContext context) {
     return PremiumSection(
       title: 'Ações Rápidas',
@@ -174,9 +166,6 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  // =====================================================
-  // SISTEMA DE GRID RESPONSIVO PREMIUM
-  // =====================================================
   Widget _buildResponsiveGrid(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -420,9 +409,6 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-// =====================================================
-// COMPONENTE DE SEÇÃO PREMIUM
-// =====================================================
 class PremiumSection extends StatelessWidget {
   final String title;
   final String? subtitle;
@@ -444,94 +430,90 @@ class PremiumSection extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 40),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// HEADER COM MICROINTERAÇÃO
-            Padding(
-              padding: const EdgeInsets.only(bottom: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            if (icon != null) ...[
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: colorScheme.primaryContainer
-                                      .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  icon,
-                                  size: 20,
-                                  color: colorScheme.primary,
-                                ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          if (icon != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: colorScheme.primaryContainer
+                                    .withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              const SizedBox(width: 12),
-                            ],
-                            Expanded(
-                              child: Text(
-                                title,
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 24,
-                                  letterSpacing: -0.4,
-                                  height: 1.2,
-                                ),
+                              child: Icon(
+                                icon,
+                                size: 20,
+                                color: colorScheme.primary,
                               ),
                             ),
+                            const SizedBox(width: 12),
                           ],
-                        ),
-                        if (subtitle != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            subtitle!,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w500,
+                          Expanded(
+                            child: Text(
+                              title,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 24,
+                                letterSpacing: -0.4,
+                                height: 1.2,
+                              ),
                             ),
                           ),
                         ],
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          subtitle!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
-                  if (onInfo != null)
-                    IconButton(
-                      icon: Icon(Icons.info_outline_rounded, size: 20),
-                      onPressed: onInfo,
-                      tooltip: 'Mais informações',
-                    ),
-                ],
-              ),
-            ),
-
-            /// CONTEÚDO COM ELEVAÇÃO SUTIL
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.shadow.withValues(alpha: 0.05),
-                    blurRadius: 30,
-                    offset: const Offset(0, 10),
+                ),
+                if (onInfo != null)
+                  IconButton(
+                    icon: Icon(Icons.info_outline_rounded, size: 20),
+                    onPressed: onInfo,
+                    tooltip: 'Mais informações',
                   ),
-                ],
-              ),
-              child: child,
+              ],
             ),
-          ],
-        ),
+          ),
+    
+          /// CONTEÚDO COM ELEVAÇÃO SUTIL
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.05),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: child,
+          ),
+        ],
       ),
     );
   }
