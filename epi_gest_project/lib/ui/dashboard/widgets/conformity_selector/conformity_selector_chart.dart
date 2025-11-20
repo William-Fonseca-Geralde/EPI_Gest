@@ -1019,20 +1019,6 @@ class _ConformitySelectorChartState extends State<ConformitySelectorChart>
               getConformityColor: _getConformityColor,
               getConformityStatus: _getConformityStatus,
             ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(1.0, 0.0); // Começa da direita
-          const end = Offset.zero;
-          const curve = Curves.easeOutCubic;
-
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
       ),
     );
   }
