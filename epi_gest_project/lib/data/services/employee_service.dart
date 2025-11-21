@@ -1,5 +1,4 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:appwrite/models.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 
 const String DATABASE_ID = '690e798d002b058839e3';
