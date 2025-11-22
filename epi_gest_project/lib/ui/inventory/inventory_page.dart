@@ -4,6 +4,7 @@ import 'package:epi_gest_project/ui/inventory/inventory_controller.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/add_epi_drawer.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/inventory_data_table.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/inventory_filters.dart';
+import 'package:epi_gest_project/ui/inventory/widgets/entries/entry_list_screen.dart';
 import 'package:flutter/material.dart';
 
 class InventoryPage extends StatefulWidget {
@@ -66,6 +67,14 @@ class _InventoryPageState extends State<InventoryPage> {
     );
   }
 
+  void _navigateToEntryScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const EntryListScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -94,7 +103,6 @@ class _InventoryPageState extends State<InventoryPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
-                  spacing: 16,
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -108,6 +116,7 @@ class _InventoryPageState extends State<InventoryPage> {
                         size: 40,
                       ),
                     ),
+                    const SizedBox(width: 16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -133,7 +142,6 @@ class _InventoryPageState extends State<InventoryPage> {
                   ],
                 ),
                 Row(
-                  spacing: 12,
                   children: [
                     IconButton.filledTonal(
                       onPressed: _toggleFilters,
@@ -144,8 +152,9 @@ class _InventoryPageState extends State<InventoryPage> {
                           ? 'Ocultar filtros'
                           : 'Mostrar filtros',
                     ),
+                    const SizedBox(width: 12),
                     FilledButton.icon(
-                      onPressed: () {},
+                      onPressed: _navigateToEntryScreen,
                       icon: const Icon(Icons.assignment_add),
                       label: const Text('Realizar Entrada'),
                       style: FilledButton.styleFrom(
@@ -155,8 +164,11 @@ class _InventoryPageState extends State<InventoryPage> {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     FilledButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        // TODO: Implementar tela de inventário
+                      },
                       icon: const Icon(Icons.inventory_outlined),
                       label: const Text('Realizar Inventário'),
                       style: FilledButton.styleFrom(
@@ -166,6 +178,7 @@ class _InventoryPageState extends State<InventoryPage> {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 12),
                     OutlinedButton.icon(
                       onPressed: _showAddEpiDrawer,
                       icon: const Icon(Icons.add),
