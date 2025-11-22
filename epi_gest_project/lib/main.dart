@@ -1,6 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/config/theme_notifier.dart';
 import 'package:epi_gest_project/data/services/employee_service.dart';
+import 'package:epi_gest_project/data/services/funcionario_repository.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:epi_gest_project/ui/home/home_page.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,9 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
+        Provider<FuncionarioRepository>(
+          create: (_) => FuncionarioRepository(TablesDB(client)),
+        ),
         Provider<EmployeeService>(create: (_) => EmployeeService(client)),
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
       ],

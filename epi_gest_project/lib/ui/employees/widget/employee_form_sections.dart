@@ -170,26 +170,26 @@ class ContactSection extends StatelessWidget {
 }
 
 class WorkConditionsSection extends StatelessWidget {
-  final TextEditingController localTrabalhoController;
+  final TextEditingController vinculoController;
   final TextEditingController turnoController;
   final List<String> locaisTrabalhoSugeridos;
   final List<String> turnosSugeridos;
   final GlobalKey turnoButtonKey;
-  final GlobalKey localTrabalhoButtonKey; // NOVO PARÂMETRO
+  final GlobalKey vinculoButtonKey; // NOVO PARÂMETRO
   final VoidCallback onAddTurno;
-  final VoidCallback onAddLocalTrabalho; // NOVO PARÂMETRO
+  final VoidCallback onAddVinculo; // NOVO PARÂMETRO
   final bool enabled;
 
   const WorkConditionsSection({
     super.key,
-    required this.localTrabalhoController,
+    required this.vinculoController,
     required this.turnoController,
     required this.locaisTrabalhoSugeridos,
     required this.turnosSugeridos,
     required this.turnoButtonKey,
-    required this.localTrabalhoButtonKey, // NOVO PARÂMETRO
+    required this.vinculoButtonKey, // NOVO PARÂMETRO
     required this.onAddTurno,
-    required this.onAddLocalTrabalho, // NOVO PARÂMETRO
+    required this.onAddVinculo, // NOVO PARÂMETRO
     this.enabled = true,
   });
 
@@ -198,14 +198,14 @@ class WorkConditionsSection extends StatelessWidget {
     return Column(
       children: [
         CustomAutocompleteField(
-          controller: localTrabalhoController,
-          label: 'Local de Trabalho',
-          hint: 'Selecione o local',
+          controller: vinculoController,
+          label: 'Vinculo',
+          hint: 'Selecione o vinculo',
           icon: Icons.location_on_outlined,
           suggestions: locaisTrabalhoSugeridos,
           showAddButton: enabled,
-          onAddPressed: onAddLocalTrabalho,
-          addButtonKey: localTrabalhoButtonKey,
+          onAddPressed: onAddVinculo,
+          addButtonKey: vinculoButtonKey,
           enabled: enabled,
         ),
         const SizedBox(height: 16),

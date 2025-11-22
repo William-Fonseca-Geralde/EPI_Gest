@@ -1,3 +1,5 @@
+import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
+
 import 'appwrite_model.dart';
 
 class FuncionarioModel extends AppWriteModel {
@@ -6,8 +8,8 @@ class FuncionarioModel extends AppWriteModel {
   final DateTime dataEntrada;
   final String email;
   final String telefone;
-  final String turnoId;
-  final String vinculoId;
+  final Turno turno;
+  final Vinculo vinculo;
   final String lider;
   final String gestor;
   final bool statusAtivo;
@@ -15,6 +17,7 @@ class FuncionarioModel extends AppWriteModel {
   final DateTime? dataRetornoFerias;
   final DateTime? dataDesligamento;
   final String? motivoDesligamento;
+  final String? imagemPath;
 
   FuncionarioModel({
     super.id,
@@ -23,8 +26,8 @@ class FuncionarioModel extends AppWriteModel {
     required this.dataEntrada,
     required this.telefone,
     required this.email,
-    required this.turnoId,
-    required this.vinculoId,
+    required this.turno,
+    required this.vinculo,
     required this.lider,
     required this.gestor,
     required this.statusAtivo,
@@ -32,6 +35,7 @@ class FuncionarioModel extends AppWriteModel {
     this.dataRetornoFerias,
     this.dataDesligamento,
     this.motivoDesligamento,
+    this.imagemPath,
     super.createdAt,
     super.updatedAt,
   });
@@ -44,8 +48,8 @@ class FuncionarioModel extends AppWriteModel {
       dataEntrada: DateTime.parse(map['data_entrada']),
       telefone: map['telefone'] ?? '',
       email: map['email'] ?? '',
-      turnoId: map['turno_id'] ?? '',
-      vinculoId: map['vinculo_id'] ?? '',
+      turno: map['turno_id'][0]['nome_turno'] ?? '',
+      vinculo: map['vinculo_id'][0]['nome_vinc'] ?? '',
       lider: map['lider'] ?? '',
       gestor: map['gestor'] ?? '',
       statusAtivo: map['status_ativo'] ?? true,
@@ -53,6 +57,7 @@ class FuncionarioModel extends AppWriteModel {
       dataRetornoFerias: map['data_retorno_ferias'] != null ? DateTime.parse(map['data_retorno_ferias']) : null,
       dataDesligamento: map['data_desligamento'] != null ? DateTime.parse(map['data_desligamento']) : null,
       motivoDesligamento: map['motivo_desligamento'],
+      imagemPath: map['urlImagem'],
       createdAt: map['\$createdAt'],
       updatedAt: map['\$updatedAt'],
     );
@@ -66,8 +71,8 @@ class FuncionarioModel extends AppWriteModel {
       'data_entrada': dataEntrada.toIso8601String(),
       'telefone': telefone,
       'email': email,
-      'turno_id': turnoId,
-      'vinculo_id': vinculoId,
+      'turno_id': turno.id,
+      'vinculo_id': vinculo.id,
       'lider': lider,
       'gestor': gestor,
       'status_ativo': statusAtivo,

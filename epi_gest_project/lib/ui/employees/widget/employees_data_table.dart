@@ -1,13 +1,13 @@
-import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
+import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EmployeesDataTable extends StatefulWidget {
-  final List<Employee> employees;
-  final Function(Employee) onView;
-  final Function(Employee) onEdit;
-  final Function(Employee) onInactivate;
-  final Function(Employee) onActivate;
+  final List<FuncionarioModel> employees;
+  final Function(FuncionarioModel) onView;
+  final Function(FuncionarioModel) onEdit;
+  final Function(FuncionarioModel) onInactivate;
+  final Function(FuncionarioModel) onActivate;
 
   const EmployeesDataTable({
     super.key,
@@ -25,7 +25,7 @@ class EmployeesDataTable extends StatefulWidget {
 class _EmployeesDataTableState extends State<EmployeesDataTable> {
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
-  late List<Employee> _sortedEmployees;
+  late List<FuncionarioModel> _sortedEmployees;
 
   final ScrollController _headerScrollController = ScrollController();
   final ScrollController _bodyScrollController = ScrollController();
@@ -33,13 +33,13 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
 
   static const double matriculaWidth = 130.0;
   static const double nomeWidth = 280.0;
-  static const double localTrabalhoWidth = 220.0;
+  static const double vinculoWidth = 220.0;
   static const double dataEntradaWidth = 160.0;
   static const double acoesWidth = 160.0;
   static const double totalTableWidth =
       matriculaWidth +
       nomeWidth +
-      localTrabalhoWidth +
+      vinculoWidth +
       dataEntradaWidth +
       acoesWidth;
 
@@ -97,10 +97,13 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
             compare = a.matricula.compareTo(b.matricula);
             break;
           case 1:
-            compare = a.nome.compareTo(b.nome);
+            compare = a.nomeFunc.compareTo(b.nomeFunc);
             break;
           case 2:
-            compare = (a.localTrabalho ?? '').compareTo(b.localTrabalho ?? '');
+            // Nota: FuncionarioModel não tem 'localTrabalho' explícito no código fornecido anteriormente.
+            // Se for necessário, deve ser mapeado ou usar um campo provisório.
+            // Assumindo string vazia se não existir no model novo:
+            compare = ''.compareTo(''); 
             break;
           case 3:
             compare = a.dataEntrada.compareTo(b.dataEntrada);
@@ -153,7 +156,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                   children: [
                     _buildHeaderCell('Matricula', matriculaWidth, 0),
                     _buildHeaderCell('Nome do Funcionário', nomeWidth, 1),
-                    _buildHeaderCell('Local de Trabalho', localTrabalhoWidth, 2),
+                    _buildHeaderCell('Vinculo', vinculoWidth, 2),
                     _buildHeaderCell('Data de Entrada', dataEntradaWidth, 3),
                     _buildHeaderCell('Ações', acoesWidth, -1, isLast: true),
                   ],
@@ -230,8 +233,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                             : null,
                                         child: employee.imagemPath == null
                                             ? Text(
-                                                employee.nome.isNotEmpty
-                                                    ? employee.nome[0]
+                                                employee.nomeFunc.isNotEmpty
+                                                    ? employee.nomeFunc[0]
                                                           .toUpperCase()
                                                     : '',
                                                 style: TextStyle(
@@ -246,7 +249,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          employee.nome,
+                                          employee.nomeFunc,
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: theme.textTheme.bodyMedium
@@ -259,7 +262,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   ),
                                 ),
                                 _buildDataCell(
-                                  width: localTrabalhoWidth,
+                                  width: vinculoWidth,
                                   context: context,
                                   child: Row(
                                     children: [
@@ -271,8 +274,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          employee.localTrabalho?.isNotEmpty == true 
-                                              ? employee.localTrabalho!
+                                          employee.vinculo.nome.isNotEmpty == true 
+                                              ? employee.vinculo.nome
                                               : '-',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,

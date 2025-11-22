@@ -1,6 +1,8 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/employee_service.dart';
+import 'package:epi_gest_project/data/services/funcionario_repository.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
+import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_form_sections.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
@@ -14,7 +16,7 @@ import 'package:provider/provider.dart';
 class EmployeeDrawer extends StatefulWidget {
   final VoidCallback onClose;
   final Function()? onSave;
-  final Employee? employeeToEdit;
+  final FuncionarioModel? employeeToEdit;
   final bool view;
 
   const EmployeeDrawer({
@@ -49,17 +51,17 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   final Map<String, GlobalKey> _overlayKeys = {
     'turno': GlobalKey(),
-    'localTrabalho': GlobalKey(),
+    'vinculo': GlobalKey(),
   };
   final Map<String, OverlayEntry?> _overlays = {
     'turno': null,
-    'localTrabalho': null,
+    'vinculo': null,
   };
 
   bool _isLoading = true;
   String? _loadingError;
   List<String> _turnosSugeridos = [];
-  List<String> _locaisTrabalhoSugeridos = [];
+  final List<String> _locaisTrabalhoSugeridos = [];
 
   final Map<String, List<String>> _suggestions = {
     'funcionarios': [
@@ -76,7 +78,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   @override
   void initState() {
     super.initState();
-    // INICIALIZAR CONTROLLERS NO initState
     _controllers = {
       'id': TextEditingController(),
       'matricula': TextEditingController(),
@@ -85,13 +86,13 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       'email': TextEditingController(),
       'lider': TextEditingController(),
       'gestor': TextEditingController(),
-      'localTrabalho': TextEditingController(),
+      'vinculo': TextEditingController(),
       'turno': TextEditingController(),
       'dataEntrada': TextEditingController(),
       'dataDesligamento': TextEditingController(),
       'motivoDesligamento': TextEditingController(),
       'newTurno': TextEditingController(),
-      'newLocalTrabalho': TextEditingController(),
+      'newVinculo': TextEditingController(),
     };
 
     _loadInitialData().then((_) {
@@ -114,15 +115,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       if (!mounted) return;
 
       setState(() {
-        _turnosSugeridos = (results[0] as List<Turno>)
+        _turnosSugeridos = (results[0])
             .map((t) => t.nome)
             .toList();
-        _locaisTrabalhoSugeridos = [
-          'Matriz Araras',
-          'Filial São Paulo',
-          'Filial Rio de Janeiro',
-          'Filial Belo Horizonte',
-        ];
         _isLoading = false;
         _loadingError = null;
       });
@@ -139,13 +134,13 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     final employee = widget.employeeToEdit!;
     _controllers['id']!.text = employee.id!;
     _controllers['matricula']!.text = employee.matricula;
-    _controllers['nome']!.text = employee.nome;
-    _controllers['telefone']!.text = employee.telefone ?? '';
-    _controllers['email']!.text = employee.email ?? '';
-    _controllers['lider']!.text = employee.lider ?? '';
-    _controllers['gestor']!.text = employee.gestor ?? '';
-    _controllers['localTrabalho']!.text = employee.localTrabalho ?? '';
-    _controllers['turno']!.text = employee.turno ?? '';
+    _controllers['nome']!.text = employee.nomeFunc;
+    _controllers['telefone']!.text = employee.telefone;
+    _controllers['email']!.text = employee.email;
+    _controllers['lider']!.text = employee.lider;
+    _controllers['gestor']!.text = employee.gestor;
+    _controllers['vinculo']!.text = employee.vinculo.nome;
+    _controllers['turno']!.text = employee.turno.nome;
     _controllers['dataEntrada']!.text = DateFormat(
       'dd/MM/yyyy',
     ).format(employee.dataEntrada);
@@ -184,7 +179,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     widget.onClose();
   }
 
-  void _showLocalTrabalhoModal() {
+  void _showVinculoModal() {
     final theme = Theme.of(context);
     String nomeUnidade = '';
     String cnpj = '';
@@ -282,7 +277,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                   )) {
                                     _locaisTrabalhoSugeridos.add(novoLocal);
                                   }
-                                  _controllers['localTrabalho']!.text =
+                                  _controllers['vinculo']!.text =
                                       novoLocal;
                                 });
                                 Navigator.pop(context);
@@ -528,7 +523,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     final theme = Theme.of(context);
 
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       items: items.map((String item) {
         return DropdownMenuItem(value: item, child: Text(item));
       }).toList(),
@@ -624,8 +619,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         suggestionList.add(newItem);
         if (type == 'turno') {
           _controllers['turno']!.text = newItem;
-        } else if (type == 'localTrabalho') {
-          _controllers['localTrabalho']!.text = newItem;
+        } else if (type == 'vinculo') {
+          _controllers['vinculo']!.text = newItem;
         }
       }
       controller.clear();
@@ -638,10 +633,10 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   void _addNovoTurno() =>
       _addNewItem('turno', _turnosSugeridos, _controllers['newTurno']!);
 
-  void _addNovoLocalTrabalho() => _addNewItem(
-    'localTrabalho',
+  void _addNovoVinculo() => _addNewItem(
+    'vinculo',
     _locaisTrabalhoSugeridos,
-    _controllers['newLocalTrabalho']!,
+    _controllers['newVinculo']!,
   );
 
   Future<void> _handleSave() async {
@@ -652,28 +647,20 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     }
 
     setState(() => _isSaving = true);
-    final employeeService = Provider.of<EmployeeService>(
-      context,
-      listen: false,
-    );
+    final repository = Provider.of<FuncionarioRepository>(context, listen: false);
 
     try {
-      final employee = Employee(
-        id: _controllers['id']!.text.trim(),
+      final employee = FuncionarioModel(
+        id: _isEditing ? widget.employeeToEdit!.id : null,
         matricula: _controllers['matricula']!.text.trim(),
-        nome: _controllers['nome']!.text.trim(),
+        nomeFunc: _controllers['nome']!.text.trim(),
         dataEntrada: _dataEntrada!,
         telefone: _controllers['telefone']!.text.trim(),
         email: _controllers['email']!.text.trim(),
-        setor: null,
-        cargo: null,
-        vinculo: null,
+        turno: Turno(nome: _controllers['turno']!.text.trim()),
+        vinculo: Vinculo(nome: _controllers['vinculo']!.text.trim()),
         lider: _controllers['lider']!.text.trim(),
         gestor: _controllers['gestor']!.text.trim(),
-        localTrabalho: _controllers['localTrabalho']!.text.trim(),
-        turno: _controllers['turno']!.text.trim(),
-        epis: const [],
-        riscos: const [],
         statusAtivo: _statusAtivo,
         statusFerias: _statusFerias,
         dataRetornoFerias: _dataRetornoFerias,
@@ -682,10 +669,10 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       );
 
       if (_isEditing) {
-        await employeeService.updateEmployee(employee.id!, employee.toJson());
+        await repository.update(employee.id!, employee.toMap());
         _showSuccessSnackBar('Funcionário atualizado com sucesso!');
       } else {
-        await employeeService.createEmployee(employee);
+        await repository.create(employee);
         _showSuccessSnackBar('Funcionário adicionado com sucesso!');
       }
 
@@ -698,9 +685,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     } catch (e) {
       _showErrorSnackBar('Erro inesperado: ${e.toString()}');
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -813,7 +798,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
     if (_isViewing) {
       title = 'Visualizar Funcionário';
-      subtitle = 'Informações de ${widget.employeeToEdit?.nome ?? ""}';
+      subtitle = 'Informações de ${widget.employeeToEdit?.nomeFunc ?? ""}';
       icon = Icons.visibility_outlined;
     } else if (_isEditing) {
       title = 'Editar Funcionário';
@@ -945,7 +930,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           child: Column(
             spacing: 32,
             children: [
-              // INFORMAÇÕES BÁSICAS AGORA NO TOPO DIREITO
               InfoSection(
                 title: 'Informações Básicas',
                 icon: Icons.info_outlined,
@@ -957,19 +941,18 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   enabled: isEnabled,
                 ),
               ),
-              // MANTÉM AS CONDIÇÕES DE TRABALHO NO MESMO LUGAR
               InfoSection(
                 title: 'Condições de Trabalho',
                 icon: Icons.settings_outlined,
                 child: WorkConditionsSection(
                   enabled: isEnabled,
-                  localTrabalhoController: _controllers['localTrabalho']!,
+                  vinculoController: _controllers['vinculo']!,
                   turnoController: _controllers['turno']!,
                   locaisTrabalhoSugeridos: _locaisTrabalhoSugeridos,
                   turnosSugeridos: _turnosSugeridos,
-                  localTrabalhoButtonKey: _overlayKeys['localTrabalho']!,
+                  vinculoButtonKey: _overlayKeys['vinculo']!,
                   turnoButtonKey: _overlayKeys['turno']!,
-                  onAddLocalTrabalho: _showLocalTrabalhoModal,
+                  onAddVinculo: _showVinculoModal,
                   onAddTurno: _showTurnoTrabalhoModal,
                 ),
               ),
@@ -1058,13 +1041,13 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           icon: Icons.settings_outlined,
           child: WorkConditionsSection(
             enabled: isEnabled,
-            localTrabalhoController: _controllers['localTrabalho']!,
+            vinculoController: _controllers['vinculo']!,
             turnoController: _controllers['turno']!,
             locaisTrabalhoSugeridos: _locaisTrabalhoSugeridos,
             turnosSugeridos: _turnosSugeridos,
-            localTrabalhoButtonKey: _overlayKeys['localTrabalho']!,
+            vinculoButtonKey: _overlayKeys['vinculo']!,
             turnoButtonKey: _overlayKeys['turno']!,
-            onAddLocalTrabalho: _showLocalTrabalhoModal,
+            onAddVinculo: _showVinculoModal,
             onAddTurno: _showTurnoTrabalhoModal,
           ),
         ),

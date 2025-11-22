@@ -1,6 +1,8 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/employee_service.dart';
+import 'package:epi_gest_project/data/services/funcionario_repository.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
+import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_drawer.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_data_table.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_filters.dart';
@@ -18,13 +20,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
   bool _showFilters = false;
 
   late Future<void> _loadEmployeesFuture;
-  List<Employee> _allEmployees = [];
-  List<Employee> _filteredEmployees = [];
+  List<FuncionarioModel> _allEmployees = [];
+  List<FuncionarioModel> _filteredEmployees = [];
   Map<String, dynamic> _appliedFilters = {};
-
-  // REMOVIDO: Listas de setores e funções
-  // final List<String> _setores = [];
-  // final List<String> _funcoes = [];
 
   final _motivoController = TextEditingController();
 
@@ -37,19 +35,19 @@ class _EmployeesPageState extends State<EmployeesPage> {
   @override
   void initState() {
     super.initState();
-    // REMOVIDO: _loadReferenceData();
     _loadEmployeesFuture = _loadEmployees();
   }
 
-  // REMOVIDO: Método _loadReferenceData completo
-
   Future<void> _loadEmployees() async {
     try {
-      final employeeService = Provider.of<EmployeeService>(
+      // Uso do novo Repositório
+      final repository = Provider.of<FuncionarioRepository>(
         context,
         listen: false,
       );
-      final employees = await employeeService.getActiveEmployees();
+
+      final employees = await repository.getAll();
+
       if (mounted) {
         setState(() {
           _allEmployees = employees;
@@ -99,9 +97,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
         return;
       }
       _filteredEmployees = _allEmployees.where((employee) {
+        // Adaptação dos campos para o novo Model (nomeFunc, matricula, etc)
         if (filters['nome'] != null &&
             (filters['nome'] as String).isNotEmpty &&
-            !employee.nome.toLowerCase().contains(
+            !employee.nomeFunc.toLowerCase().contains(
               (filters['nome'] as String).toLowerCase(),
             )) {
           return false;
@@ -113,7 +112,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             )) {
           return false;
         }
-        // REMOVIDO: Filtros para setores e funções
+
         if (filters['ativo'] != null && (filters['ativo'] as List).isNotEmpty) {
           final List<String> statusList = List<String>.from(filters['ativo']);
 
@@ -125,6 +124,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
             if (employee.statusAtivo) return false;
           }
         }
+
         if (filters['dataEntrada'] != null) {
           final filterDate = filters['dataEntrada'] as DateTime;
           final employeeDate = employee.dataEntrada;
@@ -160,13 +160,13 @@ class _EmployeesPageState extends State<EmployeesPage> {
       pageBuilder: (context, _, __) => EmployeeDrawer(
         onClose: () => Navigator.of(context).pop(),
         onSave: () {
-          _reloadData(); // Recarrega os dados com feedback visual
+          _reloadData();
         },
       ),
     );
   }
 
-  void _showEditEmployeeDrawer(Employee employee) {
+  void _showEditEmployeeDrawer(FuncionarioModel employee) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -181,7 +181,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
   }
 
-  void _showViewEmployeeDrawer(Employee employee) {
+  void _showViewEmployeeDrawer(FuncionarioModel employee) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -194,7 +194,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
   }
 
-  void _inactivateEmployee(Employee employee) async {
+  void _inactivateEmployee(FuncionarioModel employee) async {
     _motivoController.clear();
     final theme = Theme.of(context);
 
@@ -219,7 +219,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Deseja adicionar um motivo para a inativação para o ${employee.nome}?',
+                            'Deseja adicionar um motivo para a inativação para o ${employee.nomeFunc}?',
                             style: theme.textTheme.bodyLarge,
                           ),
                         ),
@@ -273,20 +273,17 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
 
     if (confirm == true) {
-      if (!mounted) {
-        return;
-      }
-      final employeeService = Provider.of<EmployeeService>(
+      if (!mounted) return;
+      final repository = Provider.of<FuncionarioRepository>(
         context,
         listen: false,
       );
       try {
-        final motivoText = _motivoController.text.trim().isNotEmpty
-            ? _motivoController.text.trim()
-            : null;
-        await employeeService.inactivateEmployee(
+        await repository.inactivateEmployee(
           employee.id!,
-          motivo: motivoText,
+          motivo: _motivoController.text.trim().isNotEmpty
+              ? _motivoController.text.trim()
+              : null,
         );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -306,13 +303,13 @@ class _EmployeesPageState extends State<EmployeesPage> {
     }
   }
 
-  void _activateEmployee(Employee employee) async {
+  void _activateEmployee(FuncionarioModel employee) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Ativação'),
         content: Text(
-          'Tem certeza que deseja ativar novamente ${employee.nome}?',
+          'Tem certeza que deseja ativar novamente ${employee.nomeFunc}?',
         ),
         actions: [
           TextButton(
@@ -327,15 +324,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
       ),
     );
 
-    // CORREÇÃO: Lógica de verificação corrigida
     if (confirm == true) {
       if (!mounted) return;
-      final employeeService = Provider.of<EmployeeService>(
-        context,
-        listen: false,
-      );
+      final repository = Provider.of<FuncionarioRepository>(context, listen: false);
       try {
-        await employeeService.activateEmployee(employee.id!);
+        await repository.activateEmployee(employee.id!);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Funcionário ativado com sucesso!'),

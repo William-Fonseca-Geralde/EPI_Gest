@@ -13,6 +13,8 @@ class FuncionarioRepository extends BaseRepository<FuncionarioModel> {
     return FuncionarioModel.fromMap(map);
   }
 
+  
+
   Future<void> inactivateEmployee(String rowId, {String? motivo}) async {
     try {
       await update(rowId, {
