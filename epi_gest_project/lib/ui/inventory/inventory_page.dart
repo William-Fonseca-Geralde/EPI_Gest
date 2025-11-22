@@ -145,6 +145,28 @@ class _InventoryPageState extends State<InventoryPage> {
                           : 'Mostrar filtros',
                     ),
                     FilledButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.assignment_add),
+                      label: const Text('Realizar Entrada'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                    FilledButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.inventory_outlined),
+                      label: const Text('Realizar Inventário'),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                    OutlinedButton.icon(
                       onPressed: _showAddEpiDrawer,
                       icon: const Icon(Icons.add),
                       label: const Text('Adicionar EPI'),
