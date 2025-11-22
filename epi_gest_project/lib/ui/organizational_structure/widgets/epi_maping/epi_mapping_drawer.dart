@@ -1,18 +1,18 @@
 import 'package:epi_gest_project/domain/models/epi/epi_model.dart';
-import 'package:epi_gest_project/domain/models/organizational/epi_mapping_model.dart';
-import 'package:epi_gest_project/domain/models/organizational/risk_model.dart';
-import 'package:epi_gest_project/domain/models/organizational/role_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:flutter/material.dart';
 
 class EpiMappingDrawer extends StatefulWidget {
   final VoidCallback onClose;
-  final Function(EpiMapping) onSave;
-  final EpiMapping? mappingToEdit;
+  final Function(Map<String, dynamic>) onSave;
+  final Map<String, dynamic>? mappingToEdit;
   final bool view;
-
-  final List<Role> availableRoles;
-  final List<Risk> availableRisks;
+  
+  // ADICIONADO: Parâmetros necessários
+  final List<Map<String, dynamic>> availableSectors;
+  final List<Map<String, dynamic>> availableRoles;
+  final List<Map<String, dynamic>> availableRisks;
+  final List<String> availableCategories;
   final List<EpiModel> availableEpis;
 
   const EpiMappingDrawer({
@@ -21,8 +21,10 @@ class EpiMappingDrawer extends StatefulWidget {
     required this.onSave,
     this.mappingToEdit,
     this.view = false,
+    required this.availableSectors,
     required this.availableRoles,
     required this.availableRisks,
+    required this.availableCategories,
     required this.availableEpis,
   });
 
@@ -33,8 +35,10 @@ class EpiMappingDrawer extends StatefulWidget {
 class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
   final _formKey = GlobalKey<FormState>();
 
-  Role? _selectedRole;
-  List<MappedRisk> _mappedRisks = [];
+  Map<String, dynamic>? _selectedSector;
+  Map<String, dynamic>? _selectedRole;
+  List<Map<String, dynamic>> _selectedRisks = [];
+  List<String> _selectedCategories = [];
 
   bool get _isEditing => widget.mappingToEdit != null && !widget.view;
   bool get _isViewing => widget.view;
@@ -50,39 +54,38 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
 
   void _populateForm() {
     final mapping = widget.mappingToEdit!;
-    _selectedRole = mapping.role;
-    _mappedRisks = mapping.mappedRisks.map((mappedRisk) {
-      return MappedRisk(
-        risk: mappedRisk.risk,
-        requiredEpis: List<EpiModel>.from(mappedRisk.requiredEpis),
-      );
-    }).toList();
+    _selectedSector = mapping['sector'];
+    _selectedRole = mapping['role'];
+    _selectedRisks = mapping['risks'] ?? [];
+    _selectedCategories = mapping['categories'] ?? [];
   }
 
-  void _addRisk() {
-    final unmappedRisk = widget.availableRisks.firstWhere(
-      (risk) => !_mappedRisks.any((mapped) => mapped.risk.id == risk.id),
-      orElse: () => widget.availableRisks.first,
-    );
-
+  void _toggleRisk(Map<String, dynamic> risk) {
     setState(() {
-      _mappedRisks.add(MappedRisk(risk: unmappedRisk, requiredEpis: []));
+      if (_selectedRisks.contains(risk)) {
+        _selectedRisks.remove(risk);
+      } else {
+        _selectedRisks.add(risk);
+      }
     });
   }
 
-  void _removeRisk(int index) {
+  void _toggleCategory(String category) {
     setState(() {
-      _mappedRisks.removeAt(index);
+      if (_selectedCategories.contains(category)) {
+        _selectedCategories.remove(category);
+      } else {
+        _selectedCategories.add(category);
+      }
     });
   }
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedRole == null) {
-      // Mostra um erro se nenhum cargo foi selecionado
+    if (_selectedSector == null || _selectedRole == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Por favor, selecione um cargo.'),
+          content: Text('Por favor, selecione um setor e um cargo.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -92,13 +95,13 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
     setState(() => _isSaving = true);
     await Future.delayed(const Duration(milliseconds: 500));
 
-    final mappingData = EpiMapping(
-      id:
-          widget.mappingToEdit?.id ??
-          _selectedRole!.id, // Usa o ID do cargo como ID do mapeamento
-      role: _selectedRole!,
-      mappedRisks: _mappedRisks,
-    );
+    final mappingData = {
+      'id': widget.mappingToEdit?['id'] ?? 'map-${DateTime.now().millisecondsSinceEpoch}',
+      'sector': _selectedSector!,
+      'role': _selectedRole!,
+      'risks': _selectedRisks,
+      'categories': _selectedCategories,
+    };
 
     widget.onSave(mappingData);
     widget.onClose();
@@ -159,144 +162,169 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 16,
-          children: [
-            // Seletor de Cargo/Função
-            DropdownButtonFormField<Role>(
-              initialValue: _selectedRole,
-              items: widget.availableRoles
-                  .map(
-                    (role) => DropdownMenuItem(
-                      value: role,
-                      child: Text(role.descricao),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (_isEditing || !isEnabled)
-                  ? null
-                  : (value) => setState(() => _selectedRole = value),
-              decoration: InputDecoration(
-                labelText: 'Cargo / Função*',
-                filled:
-                    (_isEditing ||
-                    !isEnabled), // Fica cinza se estiver editando
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Seletor de Setor
+              DropdownButtonFormField<Map<String, dynamic>>(
+                value: _selectedSector,
+                items: widget.availableSectors
+                    .map(
+                      (sector) => DropdownMenuItem(
+                        value: sector,
+                        child: Text(sector['descricao']),
+                      ),
+                    )
+                    .toList(),
+                onChanged: isEnabled
+                    ? (value) => setState(() => _selectedSector = value)
+                    : null,
+                decoration: const InputDecoration(
+                  labelText: 'Setor*',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) => value == null ? 'Selecione um setor' : null,
               ),
-              validator: (value) => value == null ? 'Selecione um cargo' : null,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Riscos e EPIs Associados',
-              style: theme.textTheme.titleMedium,
-            ),
-            const Divider(),
+              const SizedBox(height: 16),
 
-            if (_mappedRisks.isEmpty && isEnabled)
-              Center(
-                child: Text(
-                  'Nenhum risco adicionado.',
-                  style: theme.textTheme.bodyMedium,
+              // Seletor de Cargo/Função
+              DropdownButtonFormField<Map<String, dynamic>>(
+                value: _selectedRole,
+                items: widget.availableRoles
+                    .map(
+                      (role) => DropdownMenuItem(
+                        value: role,
+                        child: Text(role['descricao']),
+                      ),
+                    )
+                    .toList(),
+                onChanged: isEnabled
+                    ? (value) => setState(() => _selectedRole = value)
+                    : null,
+                decoration: const InputDecoration(
+                  labelText: 'Cargo / Função*',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (value) => value == null ? 'Selecione um cargo' : null,
+              ),
+              const SizedBox(height: 24),
+
+              // Riscos (Checkboxes)
+              Text(
+                'Riscos Associados',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _mappedRisks.length,
-              itemBuilder: (context, index) {
-                return _buildRiskCard(index, isEnabled);
-              },
-            ),
-
-            if (isEnabled)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.add),
-                  label: const Text('Adicionar Risco'),
-                  onPressed: _addRisk,
+              const SizedBox(height: 8),
+              Text(
+                'Selecione os riscos associados a este mapeamento:',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-          ],
-        ),
-      ),
-    );
-  }
+              const SizedBox(height: 12),
 
-  Widget _buildRiskCard(int index, bool isEnabled) {
-    final mappedRisk = _mappedRisks[index];
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Seletor de Risco
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<Risk>(
-                    initialValue: mappedRisk.risk,
-                    items: widget.availableRisks
-                        .map(
-                          (risk) => DropdownMenuItem(
-                            value: risk,
-                            child: Text(risk.descricao),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: widget.availableRisks.map((risk) {
+                    final isSelected = _selectedRisks.contains(risk);
+                    return CheckboxListTile(
+                      value: isSelected,
+                      onChanged: isEnabled
+                          ? (value) => _toggleRisk(risk)
+                          : null,
+                      title: Text(risk['descricao']),
+                      secondary: Icon(
+                        Icons.warning_amber_outlined,
+                        color: isSelected 
+                            ? theme.colorScheme.primary 
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Categorias/Famílias de EPIs (Checkboxes)
+              Text(
+                'Categorias de EPIs',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Selecione as categorias de EPIs necessárias:',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: widget.availableCategories.map((category) {
+                    final isSelected = _selectedCategories.contains(category);
+                    return CheckboxListTile(
+                      value: isSelected,
+                      onChanged: isEnabled
+                          ? (value) => _toggleCategory(category)
+                          : null,
+                      title: Text(category),
+                      secondary: Icon(
+                        Icons.category_outlined,
+                        color: isSelected 
+                            ? theme.colorScheme.primary 
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Resumo da seleção
+              if (_selectedRisks.isNotEmpty || _selectedCategories.isNotEmpty)
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Resumo do Mapeamento',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
                           ),
-                        )
-                        .toList(),
-                    onChanged: isEnabled
-                        ? (value) {
-                            if (value != null) {
-                              setState(() {
-                                _mappedRisks[index].risk = value;
-                              });
-                            }
-                          }
-                        : null,
-                    decoration: const InputDecoration(labelText: 'Risco'),
+                        ),
+                        const SizedBox(height: 8),
+                        if (_selectedSector != null) 
+                          Text('Setor: ${_selectedSector!['descricao']}'),
+                        if (_selectedRole != null)
+                          Text('Cargo: ${_selectedRole!['descricao']}'),
+                        if (_selectedRisks.isNotEmpty) 
+                          Text('Riscos selecionados: ${_selectedRisks.length}'),
+                        if (_selectedCategories.isNotEmpty) 
+                          Text('Categorias selecionadas: ${_selectedCategories.length}'),
+                      ],
+                    ),
                   ),
                 ),
-                if (isEnabled)
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    onPressed: () => _removeRisk(index),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'EPIs Necessários',
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ...mappedRisk.requiredEpis.map(
-                  (epi) => Chip(
-                    label: Text(epi.nome),
-                    onDeleted: isEnabled
-                        ? () {
-                            setState(() {
-                              _mappedRisks[index].requiredEpis.remove(epi);
-                            });
-                          }
-                        : null,
-                  ),
-                ),
-                if (isEnabled)
-                  ActionChip(
-                    avatar: const Icon(Icons.add, size: 18),
-                    label: const Text('Adicionar EPI'),
-                    onPressed: () async {},
-                  ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

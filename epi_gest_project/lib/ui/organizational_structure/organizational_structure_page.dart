@@ -8,6 +8,7 @@ import 'widgets/employment_type/employment_types_widget.dart';
 import 'widgets/shifts/shifts_widget.dart';
 import 'widgets/risks/risks_widget.dart';
 
+
 class OrganizationalStructurePage extends StatefulWidget {
   const OrganizationalStructurePage({super.key});
 
