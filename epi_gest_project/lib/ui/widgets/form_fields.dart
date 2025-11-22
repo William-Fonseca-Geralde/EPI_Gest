@@ -435,3 +435,74 @@ class CustomSwitchField extends StatelessWidget {
     );
   }
 }
+
+class CustomSearchField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final VoidCallback onTap;
+  final IconData? icon;
+  final String? Function(String?)? validator;
+  final bool isRequired;
+
+  const CustomSearchField({
+    super.key,
+    required this.label,
+    required this.controller,
+    required this.onTap,
+    this.icon = Icons.search,
+    this.validator,
+    this.isRequired = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isRequired)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '*',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        TextFormField(
+          controller: controller,
+          readOnly: true,
+          onTap: onTap,
+          validator: validator ??
+              (value) {
+                if (isRequired && (value == null || value.isEmpty)) {
+                  return 'Campo obrigatório';
+                }
+                return null;
+              },
+          decoration: InputDecoration(
+            labelText: isRequired ? null : label,
+            hintText: 'Selecione $label',
+            suffixIcon: Icon(icon),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            filled: true,
+            fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+          ),
+        ),
+      ],
+    );
+  }
+}
