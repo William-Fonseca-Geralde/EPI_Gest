@@ -1,8 +1,5 @@
-import 'package:epi_gest_project/ui/epi_exchange/widgets/confirmation_page.dart';
-import 'package:epi_gest_project/ui/epi_exchange/widgets/epi_form_page.dart';
 import 'package:epi_gest_project/ui/epi_exchange/widgets/exchange_drawer_content.dart';
 import 'package:flutter/material.dart';
-import 'widgets/epi_selection_page.dart';
 
 class ExchangePage extends StatefulWidget {
   const ExchangePage({super.key});
@@ -15,11 +12,8 @@ class _ExchangePageState extends State<ExchangePage> {
   String _selectedFilter = 'Todos';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-
-  // ValueNotifier para controlar a visibilidade e o conteúdo do BaseDrawer
   final ValueNotifier<Widget?> _drawerContentNotifier = ValueNotifier<Widget?>(null);
 
-  // Dados mockados para visualização
   final List<Map<String, dynamic>> _employees = [
     {
       'name': 'João Silva',
@@ -165,103 +159,11 @@ class _ExchangePageState extends State<ExchangePage> {
     return count;
   }
 
+  // CORREÇÃO: Simplificado para usar ExchangeDrawerContent
   void _openEPISelectionDrawer(Map<String, dynamic> employee) {
-    _drawerContentNotifier.value = EPISelectionPage(
+    _drawerContentNotifier.value = ExchangeDrawerContent(
       employee: employee,
-      onProceedToConfirmation: (selectedEPIs) {
-        // Atualiza o conteúdo do drawer para a ConfirmationPage
-        _drawerContentNotifier.value = ConfirmationPage(
-          employee: employee,
-          selectedEPIs: selectedEPIs,
-          onGenerateEPIForm: (authorizedBy, observations) {
-            // Fecha o drawer e abre a EPIFormPage como uma nova rota
-            _drawerContentNotifier.value = null; // Fecha o drawer
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EPIFormPage(
-                  employee: employee,
-                  selectedEPIs: selectedEPIs,
-                  authorizedBy: authorizedBy,
-                  observations: observations,
-                ),
-              ),
-            );
-          },
-          onBackToSelection: (currentSelectedEPIs) {
-            // Volta para a EPISelectionPage com os EPIs já selecionados
-            _drawerContentNotifier.value = EPISelectionPage(
-              employee: employee,
-              initialSelectedEPIs: currentSelectedEPIs, // Passa os EPIs já selecionados
-              onProceedToConfirmation: (newSelectedEPIs) {
-                _drawerContentNotifier.value = ConfirmationPage(
-                  employee: employee,
-                  selectedEPIs: newSelectedEPIs,
-                  onGenerateEPIForm: (authBy, obs) {
-                    _drawerContentNotifier.value = null;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EPIFormPage(
-                          employee: employee,
-                          selectedEPIs: newSelectedEPIs,
-                          authorizedBy: authBy,
-                          observations: obs,
-                        ),
-                      ),
-                    );
-                  },
-                  onBackToSelection: (csEPIs) {
-                    _drawerContentNotifier.value = EPISelectionPage(
-                      employee: employee,
-                      initialSelectedEPIs: csEPIs,
-                      onProceedToConfirmation: (nsEPIs) {
-                        // Isso é uma recursão, mas para o propósito de demonstração, está ok.
-                        // Em um cenário real, você pode querer um gerenciador de estado mais robusto.
-                        _drawerContentNotifier.value = ConfirmationPage(
-                          employee: employee,
-                          selectedEPIs: nsEPIs,
-                          onGenerateEPIForm: (aBy, o) {
-                            _drawerContentNotifier.value = null;
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EPIFormPage(
-                                  employee: employee,
-                                  selectedEPIs: nsEPIs,
-                                  authorizedBy: aBy,
-                                  observations: o,
-                                ),
-                              ),
-                            );
-                          },
-                          onBackToSelection: (csEPIsAgain) {
-                            // Poderia ter um limite para essa recursão ou um estado mais complexo
-                            _drawerContentNotifier.value = EPISelectionPage(
-                              employee: employee,
-                              initialSelectedEPIs: csEPIsAgain,
-                              onProceedToConfirmation: (finalSelectedEPIs) {
-                                // ... e assim por diante
-                              },
-                              onCloseDrawer: () => _drawerContentNotifier.value = null,
-                            );
-                          },
-                          onCloseDrawer: () => _drawerContentNotifier.value = null,
-                        );
-                      },
-                      onCloseDrawer: () => _drawerContentNotifier.value = null,
-                    );
-                  },
-                  onCloseDrawer: () => _drawerContentNotifier.value = null,
-                );
-              },
-              onCloseDrawer: () => _drawerContentNotifier.value = null,
-            );
-          },
-          onCloseDrawer: () => _drawerContentNotifier.value = null, // Fecha o drawer
-        );
-      },
-      onCloseDrawer: () => _drawerContentNotifier.value = null, // Fecha o drawer
+      onCloseDrawer: () => _drawerContentNotifier.value = null,
     );
   }
 
@@ -287,8 +189,8 @@ class _ExchangePageState extends State<ExchangePage> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    colorScheme.primary.withOpacity(0.08),
-                    colorScheme.surface.withOpacity(0.6),
+                    colorScheme.primary.withValues(alpha: 0.08),
+                    colorScheme.surface.withValues(alpha: 0.6),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -302,7 +204,6 @@ class _ExchangePageState extends State<ExchangePage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    // Use MainAxisAlignment.start para alinhar ao início
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Container(
@@ -317,9 +218,8 @@ class _ExchangePageState extends State<ExchangePage> {
                           size: 40,
                         ),
                       ),
-                      const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
+                      const SizedBox(width: 16),
                       Column(
-                        // Use CrossAxisAlignment.start para alinhar ao início
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
@@ -377,7 +277,6 @@ class _ExchangePageState extends State<ExchangePage> {
                 child: Column(
                   children: [
                     Row(
-                      // Use MainAxisAlignment.start para alinhar ao início
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Expanded(
@@ -389,7 +288,7 @@ class _ExchangePageState extends State<ExchangePage> {
                             backgroundColor: Colors.red.shade50,
                           ),
                         ),
-                        const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
+                        const SizedBox(width: 16),
                         Expanded(
                           child: _SummaryCard(
                             title: 'EPIs a Vencer (15 dias)',
@@ -399,15 +298,15 @@ class _ExchangePageState extends State<ExchangePage> {
                             backgroundColor: Colors.orange.shade50,
                           ),
                         ),
-                        const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
+                        const SizedBox(width: 16),
                         Expanded(
                           child: _SummaryCard(
                             title: 'Funcionários Afetados',
                             value: _filteredEmployees.length.toString(),
                             icon: Icons.people_outline,
                             color: colorScheme.primary,
-                            backgroundColor: colorScheme.primary.withOpacity(
-                              0.1,
+                            backgroundColor: colorScheme.primary.withValues(
+                              alpha: 0.1,
                             ),
                           ),
                         ),
@@ -415,10 +314,8 @@ class _ExchangePageState extends State<ExchangePage> {
                     ),
                     const SizedBox(height: 24),
                     Row(
-                      // Use MainAxisAlignment.start para alinhar ao início
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        // Busca
                         Expanded(
                           child: SizedBox(
                             height: 40,
@@ -458,7 +355,6 @@ class _ExchangePageState extends State<ExchangePage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Lista de funcionários
                     Expanded(
                       child: _filteredEmployees.isEmpty
                           ? Center(
@@ -491,7 +387,7 @@ class _ExchangePageState extends State<ExchangePage> {
                                 final employee = _filteredEmployees[index];
                                 return _EmployeeCard(
                                   employee: employee,
-                                  onRegisterExchange: _openEPISelectionDrawer, // Passa o callback
+                                  onRegisterExchange: _openEPISelectionDrawer,
                                 );
                               },
                             ),
@@ -502,14 +398,13 @@ class _ExchangePageState extends State<ExchangePage> {
             ),
           ],
         ),
-        // O BaseDrawer será exibido aqui, sobrepondo o conteúdo principal
         ValueListenableBuilder<Widget?>(
           valueListenable: _drawerContentNotifier,
           builder: (context, drawerContent, child) {
             if (drawerContent == null) {
-              return const SizedBox.shrink(); // Não exibe nada se não houver conteúdo
+              return const SizedBox.shrink();
             }
-            return drawerContent; // Exibe o BaseDrawer com o conteúdo atual
+            return drawerContent;
           },
         ),
       ],
@@ -517,7 +412,6 @@ class _ExchangePageState extends State<ExchangePage> {
   }
 }
 
-// Widget de card de resumo
 class _SummaryCard extends StatelessWidget {
   final String title;
   final String value;
@@ -547,18 +441,17 @@ class _SummaryCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
-          // Use MainAxisAlignment.start para alinhar ao início
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 28),
             ),
-            const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -574,7 +467,7 @@ class _SummaryCard extends StatelessWidget {
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: color.withOpacity(0.8),
+                      color: color.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -588,10 +481,9 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-// Widget de card de funcionário
 class _EmployeeCard extends StatelessWidget {
   final Map<String, dynamic> employee;
-  final Function(Map<String, dynamic>) onRegisterExchange; // Callback para abrir o drawer
+  final Function(Map<String, dynamic>) onRegisterExchange;
 
   const _EmployeeCard({required this.employee, required this.onRegisterExchange});
 
@@ -720,20 +612,9 @@ class _EmployeeCard extends StatelessWidget {
             ],
           ),
         ),
+        // CORREÇÃO: Uso direto do callback
         trailing: FilledButton.icon(
-          onPressed: () {
-            showGeneralDialog(
-              context: context,
-              barrierDismissible: true,
-              barrierLabel: 'Troca de EPIs',
-              pageBuilder: (context, _, __) {
-                return ExchangeDrawerContent(
-                  employee: employee,
-                  onCloseDrawer: () => Navigator.of(context).pop(),
-                );
-              },
-            );
-          },
+          onPressed: () => onRegisterExchange(employee),
           icon: const Icon(Icons.swap_horiz, size: 18),
           label: const Text('Registrar Troca'),
           style: FilledButton.styleFrom(
@@ -766,7 +647,6 @@ class _EmployeeCard extends StatelessWidget {
   }
 }
 
-// Widget de item de EPI
 class _EpiItem extends StatelessWidget {
   final Map<String, dynamic> epi;
 
@@ -782,8 +662,7 @@ class _EpiItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
+    final textTheme = Theme.of(context).textTheme;
     final isExpired = epi['status'] == 'expired';
     final daysUntilExpiry = _getDaysUntilExpiry(epi['expiryDate']);
 

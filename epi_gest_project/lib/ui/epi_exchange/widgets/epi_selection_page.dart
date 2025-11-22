@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class EPISelectionPage extends StatefulWidget {
   final Map<String, dynamic> employee;
-  final Function(Map<int, Map<String, dynamic>> selectedEPIs) onProceedToConfirmation;
   final VoidCallback onCloseDrawer;
   final Map<int, Map<String, dynamic>>? initialSelectedEPIs;
+  final Function(Map<int, Map<String, dynamic>>) onSelectionChanged;
 
   const EPISelectionPage({
     super.key,
     required this.employee,
-    required this.onProceedToConfirmation,
+    required this.onSelectionChanged,
     required this.onCloseDrawer,
     this.initialSelectedEPIs,
   });
@@ -36,6 +36,10 @@ class _EPISelectionPageState extends State<EPISelectionPage> {
     _selectedEPIs = widget.initialSelectedEPIs ?? {};
   }
 
+  void _notifyParent() {
+    widget.onSelectionChanged(_selectedEPIs);
+  }
+
   void _toggleEPISelection(int index, Map<String, dynamic> epi) {
     setState(() {
       if (_selectedEPIs.containsKey(index)) {
@@ -49,6 +53,7 @@ class _EPISelectionPageState extends State<EPISelectionPage> {
         };
       }
     });
+    _notifyParent();
   }
 
   void _updateQuantity(int index, int quantity) {
@@ -57,6 +62,7 @@ class _EPISelectionPageState extends State<EPISelectionPage> {
         _selectedEPIs[index]!['quantity'] = quantity;
       }
     });
+    _notifyParent();
   }
 
   void _updateReason(int index, String reason) {
@@ -65,6 +71,7 @@ class _EPISelectionPageState extends State<EPISelectionPage> {
         _selectedEPIs[index]!['reason'] = reason;
       }
     });
+    _notifyParent();
   }
 
   void _updateCustomReason(int index, String customReason) {
@@ -73,6 +80,7 @@ class _EPISelectionPageState extends State<EPISelectionPage> {
         _selectedEPIs[index]!['custom_reason'] = customReason;
       }
     });
+    _notifyParent();
   }
 
   @override
@@ -90,7 +98,7 @@ class _EPISelectionPageState extends State<EPISelectionPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withOpacity(0.1),
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -140,6 +148,7 @@ class _EPISelectionPageState extends State<EPISelectionPage> {
   }
 }
 
+// _EPISelectionCard permanece o mesmo que o original
 class _EPISelectionCard extends StatelessWidget {
   final Map<String, dynamic> epi;
   final bool isSelected;
@@ -199,10 +208,8 @@ class _EPISelectionCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cabeçalho do EPI
               Row(
                 children: [
-                  // Checkbox estilizado
                   Container(
                     width: 24,
                     height: 24,
@@ -303,18 +310,12 @@ class _EPISelectionCard extends StatelessWidget {
                   ),
                 ],
               ),
-
-              // Detalhes da seleção (aparece apenas se selecionado)
               if (isSelected) ...[
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),
-
-                // Quantidade
                 _buildQuantitySelector(theme),
                 const SizedBox(height: 16),
-
-                // Motivo
                 _buildReasonSelector(theme),
               ],
             ],
@@ -346,11 +347,8 @@ class _EPISelectionCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-
-        // Campo de entrada numérica + botões de incremento
         Row(
           children: [
-            // Botão diminuir
             Container(
               width: 40,
               height: 40,
@@ -374,8 +372,6 @@ class _EPISelectionCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
             ),
-
-            // Campo numérico
             Container(
               width: 60,
               height: 40,
@@ -401,8 +397,6 @@ class _EPISelectionCard extends StatelessWidget {
                 },
               ),
             ),
-
-            // Botão aumentar
             Container(
               width: 40,
               height: 40,
@@ -420,10 +414,7 @@ class _EPISelectionCard extends StatelessWidget {
                 padding: EdgeInsets.zero,
               ),
             ),
-
             const SizedBox(width: 12),
-
-            // Indicador de quantidade máxima
             Text(
               'Máx: 100',
               style: theme.textTheme.bodySmall?.copyWith(
@@ -432,8 +423,6 @@ class _EPISelectionCard extends StatelessWidget {
             ),
           ],
         ),
-
-        // Sugestões rápidas (opcional)
         const SizedBox(height: 12),
         Wrap(
           spacing: 8,
@@ -449,7 +438,7 @@ class _EPISelectionCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: quantity == suggestedQty
                       ? theme.colorScheme.primary
-                      : theme.colorScheme.surfaceVariant,
+                      : theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: quantity == suggestedQty
@@ -488,7 +477,7 @@ class _EPISelectionCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: reason,
+          initialValue: reason,
           isExpanded: true,
           decoration: InputDecoration(
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -502,8 +491,6 @@ class _EPISelectionCard extends StatelessWidget {
           }).toList(),
           onChanged: (reason) => onReasonChanged(reason!),
         ),
-
-        // Campo para "Outros"
         if (reason == 'Outros') ...[
           const SizedBox(height: 12),
           TextField(

@@ -23,8 +23,51 @@ class ExchangeDrawerContent extends StatefulWidget {
 class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
   ExchangeStep _currentStep = ExchangeStep.selection;
   Map<int, Map<String, dynamic>> _selectedEPIs = {};
-  String _authorizedBy = '';
-  String _observations = '';
+  
+  final TextEditingController _authorizedByController = TextEditingController();
+  final TextEditingController _observationsController = TextEditingController();
+
+  @override
+  void dispose() {
+    _authorizedByController.dispose();
+    _observationsController.dispose();
+    super.dispose();
+  }
+
+  void _handleGenerateForm() {
+    if (_authorizedByController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.warning_amber_outlined, color: Colors.white),
+              SizedBox(width: 8),
+              Text('Informe o nome do responsável'),
+            ],
+          ),
+          backgroundColor: Colors.orange.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+      return;
+    }
+
+    widget.onCloseDrawer();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EPIFormPage(
+          employee: widget.employee,
+          selectedEPIs: _selectedEPIs,
+          authorizedBy: _authorizedByController.text.trim(),
+          observations: _observationsController.text.trim(),
+        ),
+      ),
+    );
+  }
 
   Widget _buildHeader(ThemeData theme) {
     if (_currentStep == ExchangeStep.selection) {
@@ -139,10 +182,10 @@ class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
       return EPISelectionPage(
         employee: widget.employee,
         initialSelectedEPIs: _selectedEPIs,
-        onProceedToConfirmation: (selectedEPIs) {
+        // Callback para atualizar o estado em tempo real e habilitar o botão
+        onSelectionChanged: (selectedMap) {
           setState(() {
-            _selectedEPIs = selectedEPIs;
-            _currentStep = ExchangeStep.confirmation;
+            _selectedEPIs = selectedMap;
           });
         },
         onCloseDrawer: widget.onCloseDrawer,
@@ -151,29 +194,9 @@ class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
       return ConfirmationPage(
         employee: widget.employee,
         selectedEPIs: _selectedEPIs,
-        onGenerateEPIForm: (authorizedBy, observations) {
-          _authorizedBy = authorizedBy;
-          _observations = observations;
-          widget.onCloseDrawer();
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EPIFormPage(
-                employee: widget.employee,
-                selectedEPIs: _selectedEPIs,
-                authorizedBy: _authorizedBy,
-                observations: _observations,
-              ),
-            ),
-          );
-        },
-        onBackToSelection: (currentSelectedEPIs) {
-          setState(() {
-            _selectedEPIs = currentSelectedEPIs;
-            _currentStep = ExchangeStep.selection;
-          });
-        },
-        onCloseDrawer: widget.onCloseDrawer,
+        // Passamos os controladores para a página de confirmação usar
+        authorizedByController: _authorizedByController,
+        observationsController: _observationsController,
       );
     }
   }
@@ -202,7 +225,7 @@ class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  label: const Text('Voltar'),
+                  label: const Text('Cancelar'),
                 ),
               ),
             ),
@@ -212,6 +235,7 @@ class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
               child: SizedBox(
                 height: 48,
                 child: FilledButton.icon(
+                  // Habilita apenas se houver seleção
                   onPressed: _selectedEPIs.isNotEmpty ? () {
                     setState(() {
                       _currentStep = ExchangeStep.confirmation;
@@ -270,9 +294,8 @@ class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
               child: SizedBox(
                 height: 48,
                 child: FilledButton.icon(
-                  onPressed: () {
-                    
-                  },
+                  // Agora chama a função local que tem acesso aos controladores
+                  onPressed: _handleGenerateForm,
                   icon: const Icon(Icons.description_outlined),
                   label: const Text(
                     'Gerar Ficha de EPI',

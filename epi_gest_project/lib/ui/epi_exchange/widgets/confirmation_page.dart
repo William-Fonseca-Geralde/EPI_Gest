@@ -1,70 +1,18 @@
-import 'package:epi_gest_project/ui/epi_exchange/widgets/epi_form_page.dart';
 import 'package:flutter/material.dart';
 
-class ConfirmationPage extends StatefulWidget {
+class ConfirmationPage extends StatelessWidget {
   final Map<String, dynamic> employee;
   final Map<int, Map<String, dynamic>> selectedEPIs;
-  final Function(String authorizedBy, String observations) onGenerateEPIForm;
-  final Function(Map<int, Map<String, dynamic>> currentSelectedEPIs) onBackToSelection;
-  final VoidCallback onCloseDrawer;
+  final TextEditingController authorizedByController;
+  final TextEditingController observationsController;
 
   const ConfirmationPage({
     super.key,
     required this.employee,
     required this.selectedEPIs,
-    required this.onGenerateEPIForm,
-    required this.onBackToSelection,
-    required this.onCloseDrawer,
+    required this.authorizedByController,
+    required this.observationsController,
   });
-
-  @override
-  State<ConfirmationPage> createState() => _ConfirmationPageState();
-}
-
-class _ConfirmationPageState extends State<ConfirmationPage> {
-  final TextEditingController _authorizedByController = TextEditingController();
-  final TextEditingController _observationsController = TextEditingController();
-
-  @override
-  void dispose() {
-    _authorizedByController.dispose();
-    _observationsController.dispose();
-    super.dispose();
-  }
-
-  void _generateEPIForm() {
-    if (_authorizedByController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Row(
-            children: [
-              Icon(Icons.warning_amber_outlined, color: Colors.white),
-              SizedBox(width: 8),
-              Text('Informe o nome do responsável'),
-            ],
-          ),
-          backgroundColor: Colors.orange.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-      return;
-    }
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => EPIFormPage(
-          employee: widget.employee,
-          selectedEPIs: widget.selectedEPIs,
-          authorizedBy: _authorizedByController.text.trim(),
-          observations: _observationsController.text.trim(),
-        ),
-      ),
-    );
-  }
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
@@ -73,14 +21,13 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final selectedEPIsList = widget.selectedEPIs.values.toList();
+    final selectedEPIsList = selectedEPIs.values.toList();
     final totalItems = selectedEPIsList.fold(0, (sum, item) => sum + (item['quantity'] as int));
 
-    return SingleChildScrollView( // Não precisa mais de BaseDrawer aqui
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         children: [
-          // Resumo dos EPIs selecionados
           Card(
             elevation: 2,
             shape: RoundedRectangleBorder(
@@ -291,7 +238,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: _authorizedByController,
+                    controller: authorizedByController,
                     decoration: InputDecoration(
                       labelText: 'Nome do Responsável*',
                       hintText: 'Digite seu nome completo',
@@ -304,7 +251,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: _observationsController,
+                    controller: observationsController,
                     decoration: InputDecoration(
                       labelText: 'Observações (opcional)',
                       hintText: 'Alguma observação sobre a entrega...',
