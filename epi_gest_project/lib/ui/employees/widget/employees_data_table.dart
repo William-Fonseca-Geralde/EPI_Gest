@@ -100,10 +100,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
             compare = a.nomeFunc.compareTo(b.nomeFunc);
             break;
           case 2:
-            // Nota: FuncionarioModel não tem 'localTrabalho' explícito no código fornecido anteriormente.
-            // Se for necessário, deve ser mapeado ou usar um campo provisório.
-            // Assumindo string vazia se não existir no model novo:
-            compare = ''.compareTo(''); 
+            compare = a.vinculo.nome.compareTo(b.vinculo.nome); 
             break;
           case 3:
             compare = a.dataEntrada.compareTo(b.dataEntrada);
@@ -267,7 +264,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   child: Row(
                                     children: [
                                       const Icon(
-                                        Icons.location_on_outlined,
+                                        Icons.work_outline,
                                         size: 16,
                                         color: Colors.grey,
                                       ),

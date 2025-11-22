@@ -74,7 +74,7 @@ class EmployeeService {
     }
   }
 
-  Future<List<Employee>> getActiveEmployees() async {
+  Future<List<Employee>> getAllFuncionarios() async {
     try {
       final response = await _tabela.listRows(
         databaseId: DATABASE_ID,

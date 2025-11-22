@@ -1,12 +1,11 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
-import 'package:flutter/material.dart';
 
 class TurnoModel extends AppWriteModel {
   final String turno;
-  final TimeOfDay horaEntrada;
-  final TimeOfDay horaSaida;
-  final TimeOfDay inicioAlmoco;
-  final TimeOfDay fimAlomoco;
+  final String horaEntrada;
+  final String horaSaida;
+  final String inicioAlmoco;
+  final String fimAlomoco;
 
   TurnoModel({
     super.id,

@@ -1,8 +1,11 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:epi_gest_project/data/services/employee_service.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/turno_repository.dart';
+import 'package:epi_gest_project/data/services/vinculo_repository.dart';
 import 'package:epi_gest_project/domain/models/employee/employee_model.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/turno_model.dart';
+import 'package:epi_gest_project/domain/models/vinculo_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_form_sections.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
@@ -46,22 +49,26 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   bool get _isAdding => widget.employeeToEdit == null && !widget.view;
   bool get _isViewing => widget.view;
 
-  // CONTROLLERS - APENAS OS NECESSÁRIOS
   late final Map<String, TextEditingController> _controllers;
 
   final Map<String, GlobalKey> _overlayKeys = {
     'turno': GlobalKey(),
     'vinculo': GlobalKey(),
   };
-  final Map<String, OverlayEntry?> _overlays = {
-    'turno': null,
-    'vinculo': null,
-  };
+
+  List<TurnoModel> _turnosDisponiveis = [];
+  List<VinculoModel> _vinculosDisponiveis = [];
+
+  List<String> _turnosSugestoes = [];
+  List<String> _vinculosSugestoes = [];
+
+  TimeOfDay _tempEntrada = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _tempSaida = const TimeOfDay(hour: 18, minute: 0);
+  TimeOfDay _tempAlmocoInicio = const TimeOfDay(hour: 12, minute: 0);
+  TimeOfDay _tempAlmocoFim = const TimeOfDay(hour: 13, minute: 0);
 
   bool _isLoading = true;
   String? _loadingError;
-  List<String> _turnosSugeridos = [];
-  final List<String> _locaisTrabalhoSugeridos = [];
 
   final Map<String, List<String>> _suggestions = {
     'funcionarios': [
@@ -91,41 +98,52 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       'dataEntrada': TextEditingController(),
       'dataDesligamento': TextEditingController(),
       'motivoDesligamento': TextEditingController(),
-      'newTurno': TextEditingController(),
-      'newVinculo': TextEditingController(),
+      'newTurnoNome': TextEditingController(),
+      'newVinculoNome': TextEditingController(),
+      'newVinculoCodigo': TextEditingController(),
     };
 
-    _loadInitialData().then((_) {
-      if (!_isAdding) {
-        _populateFormForEdit();
-      }
-    });
+    _loadInitialData();
   }
 
   Future<void> _loadInitialData() async {
     if (!mounted) return;
 
-    final employeeService = Provider.of<EmployeeService>(
-      context,
-      listen: false,
-    );
     try {
-      final results = await Future.wait([employeeService.getAllTurnos()]);
+      final turnoRepo = Provider.of<TurnoRepository>(context, listen: false);
+      final vinculoRepo = Provider.of<VinculoRepository>(
+        context,
+        listen: false,
+      );
+
+      final results = await Future.wait([
+        turnoRepo.getAllTurnos(),
+        vinculoRepo.getAllVinculos(),
+      ]);
 
       if (!mounted) return;
 
       setState(() {
-        _turnosSugeridos = (results[0])
-            .map((t) => t.nome)
+        _turnosDisponiveis = results[0] as List<TurnoModel>;
+        _vinculosDisponiveis = results[1] as List<VinculoModel>;
+
+        _turnosSugestoes = _turnosDisponiveis.map((t) => t.turno).toList();
+        _vinculosSugestoes = _vinculosDisponiveis
+            .map((v) => v.nomeVinculo)
             .toList();
+
         _isLoading = false;
         _loadingError = null;
       });
+
+      if (!_isAdding) {
+        _populateFormForEdit();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoading = false;
-        _loadingError = "Falha ao carregar dados iniciais: ${e.toString()}";
+        _loadingError = "Falha ao carregar dados: ${e.toString()}";
       });
     }
   }
@@ -162,28 +180,18 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   @override
   void dispose() {
-    _removeAllOverlays();
     _controllers.forEach((_, controller) => controller.dispose());
     super.dispose();
   }
 
-  void _removeAllOverlays() {
-    _overlays.forEach((key, overlay) {
-      overlay?.remove();
-      _overlays[key] = null;
-    });
-  }
-
   Future<void> _closeDrawer() async {
-    _removeAllOverlays();
     widget.onClose();
   }
 
   void _showVinculoModal() {
+    _controllers['newVinculoNome']!.clear();
+    _controllers['newVinculoCodigo']!.clear();
     final theme = Theme.of(context);
-    String nomeUnidade = '';
-    String cnpj = '';
-    String tipoUnidade = 'Matriz';
 
     showDialog(
       context: context,
@@ -199,12 +207,13 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  spacing: 20,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Adicionar Local de Trabalho',
+                          'Adicionar Novo Vínculo',
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -215,43 +224,20 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
-
-                    _buildModalTextField(
-                      label: 'Nome da Unidade*',
-                      hint: 'Ex: Matriz Araras, Filial São Paulo',
-                      icon: Icons.business_outlined,
-                      onChanged: (value) => nomeUnidade = value,
+                    CustomTextField(
+                      controller: _controllers['newVinculoCodigo']!,
+                      label: 'Código (Opcional)',
+                      hint: 'Ex: V01',
+                      icon: Icons.qr_code,
                     ),
-                    const SizedBox(height: 16),
-
-                    Row(
-                      spacing: 16,
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: _buildModalTextField(
-                            label: 'CNPJ*',
-                            hint: 'Ex: 12.345.678/0001-90',
-                            icon: Icons.numbers_outlined,
-                            onChanged: (value) => cnpj = value,
-                          ),
-                        ),
-                        Expanded(
-                          flex: 1,
-                          child: _buildModalDropdown(
-                            label: 'Tipo de Unidade*',
-                            value: tipoUnidade,
-                            items: const ['Matriz', 'Filial'],
-                            onChanged: (value) =>
-                                setState(() => tipoUnidade = value!),
-                          ),
-                        ),
-                      ],
+                    CustomTextField(
+                      controller: _controllers['newVinculoNome']!,
+                      label: 'Nome do Vinculo',
+                      hint: 'Ex: CLT, Estágio, PJ',
+                      icon: Icons.assignment_ind_outlined,
                     ),
-                    const SizedBox(height: 24),
-
                     Row(
+                      spacing: 12,
                       children: [
                         Expanded(
                           child: OutlinedButton(
@@ -265,26 +251,10 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                             child: const Text('Cancelar'),
                           ),
                         ),
-                        const SizedBox(width: 12),
                         Expanded(
                           child: FilledButton(
                             onPressed: () {
-                              if (nomeUnidade.isNotEmpty && cnpj.isNotEmpty) {
-                                final novoLocal = '$nomeUnidade - $tipoUnidade';
-                                setState(() {
-                                  if (!_locaisTrabalhoSugeridos.contains(
-                                    novoLocal,
-                                  )) {
-                                    _locaisTrabalhoSugeridos.add(novoLocal);
-                                  }
-                                  _controllers['vinculo']!.text =
-                                      novoLocal;
-                                });
-                                Navigator.pop(context);
-                                _showSuccessSnackBar(
-                                  'Local de trabalho adicionado com sucesso!',
-                                );
-                              }
+                              _createVinculo(context);
                             },
                             style: FilledButton.styleFrom(
                               shape: RoundedRectangleBorder(
@@ -307,14 +277,44 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     );
   }
 
-  void _showTurnoTrabalhoModal() {
-    final theme = Theme.of(context);
+  Future<void> _createVinculo(BuildContext dialogContext) async {
+    final nome = _controllers['newVinculoNome']!.text.trim();
+    if (nome.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Nome obrigatório")));
+      return;
+    }
 
-    TimeOfDay _entrada = const TimeOfDay(hour: 8, minute: 0);
-    TimeOfDay _saida = const TimeOfDay(hour: 18, minute: 0);
-    TimeOfDay _almocoInicio = const TimeOfDay(hour: 12, minute: 0);
-    TimeOfDay _almocoFim = const TimeOfDay(hour: 13, minute: 0);
-    String _nomeTurno = '';
+    final repo = Provider.of<VinculoRepository>(context, listen: false);
+    try {
+      Navigator.pop(dialogContext); // Fecha modal
+      setState(() => _isLoading = true); // Mostra loading no drawer
+
+      final novoVinculo = VinculoModel(
+        codigoVinculo: _controllers['newVinculoCodigo']!.text.trim(),
+        nomeVinculo: nome,
+      );
+
+      final created = await repo.create(novoVinculo);
+
+      setState(() {
+        _vinculosDisponiveis.add(created);
+        _vinculosSugestoes.add(created.nomeVinculo);
+        _controllers['vinculo']!.text =
+            created.nomeVinculo; // Seleciona automaticamente
+        _isLoading = false;
+      });
+      _showSuccessSnackBar('Vínculo criado com sucesso!');
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorSnackBar("Erro ao criar vínculo: $e");
+    }
+  }
+
+  void _showTurnoTrabalhoModal() {
+    _controllers['newTurnoNome']!.clear();
+    final theme = Theme.of(context);
 
     showDialog(
       context: context,
@@ -336,7 +336,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Adicionar Turno de Trabalho',
+                          'Adicionar Novo Turno de Trabalho',
                           style: theme.textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -353,12 +353,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                           spacing: 24,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            SizedBox(height: 5),
-                            _buildModalTextField(
-                              label: 'Nome do Turno*',
-                              hint: 'Ex: Turno Administrativo, Manhã, Tarde',
-                              icon: Icons.work_outlined,
-                              onChanged: (value) => _nomeTurno = value,
+                            CustomTextField(
+                              controller: _controllers['newTurnoNome']!,
+                              label: 'Nome do Turno',
+                              hint: 'Nome do Turno',
+                              icon: Icons.work_outline,
                             ),
                             InfoSection(
                               title: 'Horários da Jornada',
@@ -368,20 +367,20 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                 children: [
                                   CustomTimeField(
                                     label: 'Horário de Entrada',
-                                    time: _entrada,
+                                    time: _tempEntrada,
                                     onTap: () => _selectTimeModal(
                                       context,
-                                      _entrada,
-                                      (time) => setState(() => _entrada = time),
+                                      _tempEntrada,
+                                      (time) => setState(() => _tempEntrada = time),
                                     ),
                                   ),
                                   CustomTimeField(
                                     label: 'Horário de Saída',
-                                    time: _saida,
+                                    time: _tempSaida,
                                     onTap: () => _selectTimeModal(
                                       context,
-                                      _saida,
-                                      (time) => setState(() => _saida = time),
+                                      _tempSaida,
+                                      (time) => setState(() => _tempSaida = time),
                                     ),
                                   ),
                                 ],
@@ -395,22 +394,22 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                                 children: [
                                   CustomTimeField(
                                     label: 'Início do Almoço',
-                                    time: _almocoInicio,
+                                    time: _tempAlmocoInicio,
                                     onTap: () => _selectTimeModal(
                                       context,
-                                      _almocoInicio,
+                                      _tempAlmocoInicio,
                                       (time) =>
-                                          setState(() => _almocoInicio = time),
+                                          setState(() => _tempAlmocoInicio = time),
                                     ),
                                   ),
                                   CustomTimeField(
                                     label: 'Fim do Almoço',
-                                    time: _almocoFim,
+                                    time: _tempAlmocoFim,
                                     onTap: () => _selectTimeModal(
                                       context,
-                                      _almocoFim,
+                                      _tempAlmocoFim,
                                       (time) =>
-                                          setState(() => _almocoFim = time),
+                                          setState(() => _tempAlmocoFim = time),
                                     ),
                                   ),
                                 ],
@@ -438,19 +437,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                         Expanded(
                           child: FilledButton(
                             onPressed: () {
-                              if (_nomeTurno.isNotEmpty) {
-                                final novoTurno = _nomeTurno;
-                                setState(() {
-                                  if (!_turnosSugeridos.contains(novoTurno)) {
-                                    _turnosSugeridos.add(novoTurno);
-                                  }
-                                  _controllers['turno']!.text = novoTurno;
-                                });
-                                Navigator.pop(context);
-                                _showSuccessSnackBar(
-                                  'Turno de trabalho adicionado com sucesso!',
-                                );
-                              }
+                              _createTurno(context);
                             },
                             style: FilledButton.styleFrom(
                               shape: RoundedRectangleBorder(
@@ -473,74 +460,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     );
   }
 
-  Widget _buildModalTextField({
-    required String label,
-    required String hint,
-    required IconData icon,
-    required Function(String) onChanged,
-  }) {
-    final theme = Theme.of(context);
-
-    return TextFormField(
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-        hintText: hint,
-        prefixIcon: Icon(
-          icon,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.outline),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.8),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModalDropdown({
-    required String label,
-    required String value,
-    required List<String> items,
-    required Function(String?) onChanged,
-  }) {
-    final theme = Theme.of(context);
-
-    return DropdownButtonFormField<String>(
-      initialValue: value,
-      items: items.map((String item) {
-        return DropdownMenuItem(value: item, child: Text(item));
-      }).toList(),
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-        prefixIcon: Icon(
-          Icons.category_outlined,
-          color: theme.colorScheme.onSurfaceVariant,
-          size: 20,
-        ),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
   Future<void> _selectTimeModal(
     BuildContext context,
     TimeOfDay initialTime,
@@ -552,6 +471,44 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     );
     if (picked != null && picked != initialTime) {
       onTimeSelected(picked);
+    }
+  }
+
+  Future<void> _createTurno(BuildContext dialogContext) async {
+    final nome = _controllers['newTurnoNome']!.text.trim();
+    if (nome.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Nome obrigatório")));
+      return;
+    }
+
+    final repo = Provider.of<TurnoRepository>(context, listen: false);
+    try {
+      Navigator.pop(dialogContext);
+      setState(() => _isLoading = true);
+
+      final novoTurno = TurnoModel(
+        turno: nome,
+        horaEntrada: _tempEntrada.format(context),
+        horaSaida: _tempSaida.format(context),
+        inicioAlmoco: _tempAlmocoInicio.format(context),
+        fimAlomoco: _tempAlmocoFim.format(context),
+      );
+
+      final created = await repo.create(novoTurno);
+
+      setState(() {
+        _turnosDisponiveis.add(created);
+        _turnosSugestoes.add(created.turno);
+        _controllers['turno']!.text =
+            created.turno;
+        _isLoading = false;
+      });
+      _showSuccessSnackBar('Turno criado com sucesso!');
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showErrorSnackBar("Erro ao criar turno: $e");
     }
   }
 
@@ -575,22 +532,10 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   void _selectDateEntrada() =>
       _selectDate('dataEntrada', (date) => _dataEntrada = date);
-
   void _selectDateDesligamento() =>
       _selectDate('dataDesligamento', (date) => _dataDesligamento = date);
-
-  Future<void> _selectDateRetornoFerias() async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate:
-          _dataRetornoFerias ?? DateTime.now().add(const Duration(days: 30)),
-      firstDate: DateTime.now(),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() => _dataRetornoFerias = picked);
-    }
-  }
+  void _selectDateRetornoFerias() =>
+      _selectDate('dataRetornoFerias', (date) => _dataRetornoFerias = date);
 
   void _onImagePicked(File image) {
     setState(() {
@@ -607,38 +552,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _showSuccessSnackBar('Imagem removida');
   }
 
-  void _addNewItem(
-    String type,
-    List<String> suggestionList,
-    TextEditingController controller,
-  ) {
-    if (controller.text.trim().isEmpty) return;
-    setState(() {
-      final newItem = controller.text.trim();
-      if (!suggestionList.contains(newItem)) {
-        suggestionList.add(newItem);
-        if (type == 'turno') {
-          _controllers['turno']!.text = newItem;
-        } else if (type == 'vinculo') {
-          _controllers['vinculo']!.text = newItem;
-        }
-      }
-      controller.clear();
-    });
-    _overlays[type]?.remove();
-    _overlays[type] = null;
-    _showSuccessSnackBar('${_capitalize(type)} adicionado com sucesso!');
-  }
-
-  void _addNovoTurno() =>
-      _addNewItem('turno', _turnosSugeridos, _controllers['newTurno']!);
-
-  void _addNovoVinculo() => _addNewItem(
-    'vinculo',
-    _locaisTrabalhoSugeridos,
-    _controllers['newVinculo']!,
-  );
-
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
     if (_dataEntrada == null) {
@@ -646,8 +559,34 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       return;
     }
 
+    final selectedTurnoNome = _controllers['turno']!.text.trim();
+    final selectedVinculoNome = _controllers['vinculo']!.text.trim();
+
+    TurnoModel? turnoSelecionado;
+    try {
+      turnoSelecionado = _turnosDisponiveis.firstWhere(
+        (t) => t.turno == selectedTurnoNome,
+      );
+    } catch (_) {
+      _showErrorSnackBar('Turno inválido. Selecione ou crie um novo.');
+      return;
+    }
+
+    VinculoModel? vinculoSelecionado;
+    try {
+      vinculoSelecionado = _vinculosDisponiveis.firstWhere(
+        (v) => v.nomeVinculo == selectedVinculoNome,
+      );
+    } catch (_) {
+      _showErrorSnackBar('Vínculo inválido. Selecione ou crie um novo.');
+      return;
+    }
+
     setState(() => _isSaving = true);
-    final repository = Provider.of<FuncionarioRepository>(context, listen: false);
+    final repository = Provider.of<FuncionarioRepository>(
+      context,
+      listen: false,
+    );
 
     try {
       final employee = FuncionarioModel(
@@ -657,8 +596,11 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         dataEntrada: _dataEntrada!,
         telefone: _controllers['telefone']!.text.trim(),
         email: _controllers['email']!.text.trim(),
-        turno: Turno(nome: _controllers['turno']!.text.trim()),
-        vinculo: Vinculo(nome: _controllers['vinculo']!.text.trim()),
+        turno: Turno(id: turnoSelecionado.id, nome: turnoSelecionado.turno),
+        vinculo: Vinculo(
+          id: vinculoSelecionado.id,
+          nome: vinculoSelecionado.nomeVinculo,
+        ),
         lider: _controllers['lider']!.text.trim(),
         gestor: _controllers['gestor']!.text.trim(),
         statusAtivo: _statusAtivo,
@@ -689,43 +631,17 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     }
   }
 
-  String _capitalize(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1);
-  }
-
   void _showSuccessSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(message),
-          ],
-        ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(message),
-          ],
-        ),
-        backgroundColor: Theme.of(context).colorScheme.error,
-        behavior: SnackBarBehavior.floating,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -887,12 +803,10 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       spacing: 24,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // COLUNA ESQUERDA - IMAGEM + HIERARQUIA + CONTATO
         Expanded(
           child: Column(
             spacing: 32,
             children: [
-              // IMAGEM NO TOPO ESQUERDO (MANTÉM NO MESMO LUGAR)
               ImagePickerWidget(
                 imageFile: _imageFile,
                 imageUrl: _imagemPath,
@@ -921,11 +835,24 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   enabled: isEnabled,
                 ),
               ),
+              if (!_statusAtivo) ...[
+                InfoSection(
+                  title: 'Desligamento',
+                  icon: Icons.logout_outlined,
+                  child: TerminationSection(
+                    dataDesligamentoController:
+                        _controllers['dataDesligamento']!,
+                    motivoDesligamentoController:
+                        _controllers['motivoDesligamento']!,
+                    onSelectDateDesligamento: _selectDateDesligamento,
+                    enabled: isEnabled,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
 
-        // COLUNA DIREITA - INFORMAÇÕES BÁSICAS + CONDIÇÕES DE TRABALHO + STATUS
         Expanded(
           child: Column(
             spacing: 32,
@@ -948,8 +875,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   enabled: isEnabled,
                   vinculoController: _controllers['vinculo']!,
                   turnoController: _controllers['turno']!,
-                  locaisTrabalhoSugeridos: _locaisTrabalhoSugeridos,
-                  turnosSugeridos: _turnosSugeridos,
+                  vinculosSugeridos: _vinculosSugestoes,
+                  turnosSugeridos: _turnosSugestoes,
                   vinculoButtonKey: _overlayKeys['vinculo']!,
                   turnoButtonKey: _overlayKeys['turno']!,
                   onAddVinculo: _showVinculoModal,
@@ -972,20 +899,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   onSelectDateRetornoFerias: _selectDateRetornoFerias,
                 ),
               ),
-              if (!_statusAtivo) ...[
-                InfoSection(
-                  title: 'Desligamento',
-                  icon: Icons.logout_outlined,
-                  child: TerminationSection(
-                    dataDesligamentoController:
-                        _controllers['dataDesligamento']!,
-                    motivoDesligamentoController:
-                        _controllers['motivoDesligamento']!,
-                    onSelectDateDesligamento: _selectDateDesligamento,
-                    enabled: isEnabled,
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -1043,8 +956,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
             enabled: isEnabled,
             vinculoController: _controllers['vinculo']!,
             turnoController: _controllers['turno']!,
-            locaisTrabalhoSugeridos: _locaisTrabalhoSugeridos,
-            turnosSugeridos: _turnosSugeridos,
+            vinculosSugeridos: _vinculosSugestoes,
+            turnosSugeridos: _turnosSugestoes,
             vinculoButtonKey: _overlayKeys['vinculo']!,
             turnoButtonKey: _overlayKeys['turno']!,
             onAddVinculo: _showVinculoModal,

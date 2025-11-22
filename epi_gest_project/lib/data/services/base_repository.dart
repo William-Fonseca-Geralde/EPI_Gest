@@ -11,11 +11,12 @@ abstract class BaseRepository<T extends AppWriteModel> {
 
   T fromMap(Map<String, dynamic> map);
 
-  Future<List<T>> getAll() async {
+  Future<List<T>> getAll(List<String> queries) async {
     try {
       final result = await databases.listRows(
         databaseId: AppwriteConstants.databaseId,
         tableId: tableId,
+        queries: queries
       );
       return result.rows.map((row) => fromMap(row.data)).toList();
     } on AppwriteException catch (e) {

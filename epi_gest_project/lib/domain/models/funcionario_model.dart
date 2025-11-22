@@ -41,6 +41,29 @@ class FuncionarioModel extends AppWriteModel {
   });
 
   factory FuncionarioModel.fromMap(Map<String, dynamic> map) {
+    Map<String, dynamic>? getData(dynamic data) {
+      if (data == null) return null;
+      if (data is Map<String, dynamic>) return data; // Se for objeto direto
+      if (data is List && data.isNotEmpty) return data.first as Map<String, dynamic>; // Se for lista
+      return null;
+    }
+
+    final turnoData = getData(map['turno_id']);
+    final turnoObj = turnoData != null
+        ? Turno(
+            id: turnoData['\$id'] ?? '',
+            nome: turnoData['nome_turno'] ?? '',
+          )
+        : Turno(id: '', nome: '');
+
+    final vinculoData = getData(map['vinculo_id']);
+    final vinculoObj = vinculoData != null
+        ? Vinculo(
+            id: vinculoData['\$id'] ?? '',
+            nome: vinculoData['nome_vinc'] ?? '',
+          )
+        : Vinculo(id: '', nome: '');
+
     return FuncionarioModel(
       id: map['\$id'],
       matricula: map['matricula'] ?? '',
@@ -48,8 +71,8 @@ class FuncionarioModel extends AppWriteModel {
       dataEntrada: DateTime.parse(map['data_entrada']),
       telefone: map['telefone'] ?? '',
       email: map['email'] ?? '',
-      turno: map['turno_id'][0]['nome_turno'] ?? '',
-      vinculo: map['vinculo_id'][0]['nome_vinc'] ?? '',
+      turno: turnoObj,
+      vinculo: vinculoObj,
       lider: map['lider'] ?? '',
       gestor: map['gestor'] ?? '',
       statusAtivo: map['status_ativo'] ?? true,

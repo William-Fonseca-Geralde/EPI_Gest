@@ -172,24 +172,24 @@ class ContactSection extends StatelessWidget {
 class WorkConditionsSection extends StatelessWidget {
   final TextEditingController vinculoController;
   final TextEditingController turnoController;
-  final List<String> locaisTrabalhoSugeridos;
+  final List<String> vinculosSugeridos;
   final List<String> turnosSugeridos;
   final GlobalKey turnoButtonKey;
-  final GlobalKey vinculoButtonKey; // NOVO PARÂMETRO
+  final GlobalKey vinculoButtonKey;
   final VoidCallback onAddTurno;
-  final VoidCallback onAddVinculo; // NOVO PARÂMETRO
+  final VoidCallback onAddVinculo;
   final bool enabled;
 
   const WorkConditionsSection({
     super.key,
     required this.vinculoController,
     required this.turnoController,
-    required this.locaisTrabalhoSugeridos,
+    required this.vinculosSugeridos,
     required this.turnosSugeridos,
     required this.turnoButtonKey,
-    required this.vinculoButtonKey, // NOVO PARÂMETRO
+    required this.vinculoButtonKey,
     required this.onAddTurno,
-    required this.onAddVinculo, // NOVO PARÂMETRO
+    required this.onAddVinculo,
     this.enabled = true,
   });
 
@@ -202,7 +202,7 @@ class WorkConditionsSection extends StatelessWidget {
           label: 'Vinculo',
           hint: 'Selecione o vinculo',
           icon: Icons.location_on_outlined,
-          suggestions: locaisTrabalhoSugeridos,
+          suggestions: vinculosSugeridos,
           showAddButton: enabled,
           onAddPressed: onAddVinculo,
           addButtonKey: vinculoButtonKey,

@@ -46,7 +46,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
         listen: false,
       );
 
-      final employees = await repository.getAll();
+      final employees = await repository.getAllFuncionarios();
 
       if (mounted) {
         setState(() {
@@ -93,7 +93,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     void performFilter() {
       _appliedFilters = filters;
       if (filters.isEmpty) {
-        _filteredEmployees = List.from(_allEmployees);
+        _filteredEmployees = List.from( _allEmployees);
         return;
       }
       _filteredEmployees = _allEmployees.where((employee) {
@@ -358,8 +358,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
           if (_showFilters)
             EmployeesFilters(
               appliedFilters: _appliedFilters,
-              setores: const [], // REMOVIDO: setores não são mais necessários
-              funcoes: const [], // REMOVIDO: funções não são mais necessárias
+              setores: const [],
+              funcoes: const [],
               onApplyFilters: (filters) => _applyFilters(filters),
               onClearFilters: _clearFilters,
             ),
@@ -522,7 +522,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
   }
 
-  // ADICIONADO: Widget para exibir o estado de erro de forma mais amigável
   Widget _buildErrorState(ThemeData theme, String error) {
     return Center(
       child: Padding(
