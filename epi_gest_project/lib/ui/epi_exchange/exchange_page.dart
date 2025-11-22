@@ -1,4 +1,8 @@
+import 'package:epi_gest_project/ui/epi_exchange/widgets/confirmation_page.dart';
+import 'package:epi_gest_project/ui/epi_exchange/widgets/epi_form_page.dart';
+import 'package:epi_gest_project/ui/epi_exchange/widgets/exchange_drawer_content.dart';
 import 'package:flutter/material.dart';
+import 'widgets/epi_selection_page.dart';
 
 class ExchangePage extends StatefulWidget {
   const ExchangePage({super.key});
@@ -11,6 +15,9 @@ class _ExchangePageState extends State<ExchangePage> {
   String _selectedFilter = 'Todos';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+
+  // ValueNotifier para controlar a visibilidade e o conteúdo do BaseDrawer
+  final ValueNotifier<Widget?> _drawerContentNotifier = ValueNotifier<Widget?>(null);
 
   // Dados mockados para visualização
   final List<Map<String, dynamic>> _employees = [
@@ -158,9 +165,110 @@ class _ExchangePageState extends State<ExchangePage> {
     return count;
   }
 
+  void _openEPISelectionDrawer(Map<String, dynamic> employee) {
+    _drawerContentNotifier.value = EPISelectionPage(
+      employee: employee,
+      onProceedToConfirmation: (selectedEPIs) {
+        // Atualiza o conteúdo do drawer para a ConfirmationPage
+        _drawerContentNotifier.value = ConfirmationPage(
+          employee: employee,
+          selectedEPIs: selectedEPIs,
+          onGenerateEPIForm: (authorizedBy, observations) {
+            // Fecha o drawer e abre a EPIFormPage como uma nova rota
+            _drawerContentNotifier.value = null; // Fecha o drawer
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EPIFormPage(
+                  employee: employee,
+                  selectedEPIs: selectedEPIs,
+                  authorizedBy: authorizedBy,
+                  observations: observations,
+                ),
+              ),
+            );
+          },
+          onBackToSelection: (currentSelectedEPIs) {
+            // Volta para a EPISelectionPage com os EPIs já selecionados
+            _drawerContentNotifier.value = EPISelectionPage(
+              employee: employee,
+              initialSelectedEPIs: currentSelectedEPIs, // Passa os EPIs já selecionados
+              onProceedToConfirmation: (newSelectedEPIs) {
+                _drawerContentNotifier.value = ConfirmationPage(
+                  employee: employee,
+                  selectedEPIs: newSelectedEPIs,
+                  onGenerateEPIForm: (authBy, obs) {
+                    _drawerContentNotifier.value = null;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EPIFormPage(
+                          employee: employee,
+                          selectedEPIs: newSelectedEPIs,
+                          authorizedBy: authBy,
+                          observations: obs,
+                        ),
+                      ),
+                    );
+                  },
+                  onBackToSelection: (csEPIs) {
+                    _drawerContentNotifier.value = EPISelectionPage(
+                      employee: employee,
+                      initialSelectedEPIs: csEPIs,
+                      onProceedToConfirmation: (nsEPIs) {
+                        // Isso é uma recursão, mas para o propósito de demonstração, está ok.
+                        // Em um cenário real, você pode querer um gerenciador de estado mais robusto.
+                        _drawerContentNotifier.value = ConfirmationPage(
+                          employee: employee,
+                          selectedEPIs: nsEPIs,
+                          onGenerateEPIForm: (aBy, o) {
+                            _drawerContentNotifier.value = null;
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EPIFormPage(
+                                  employee: employee,
+                                  selectedEPIs: nsEPIs,
+                                  authorizedBy: aBy,
+                                  observations: o,
+                                ),
+                              ),
+                            );
+                          },
+                          onBackToSelection: (csEPIsAgain) {
+                            // Poderia ter um limite para essa recursão ou um estado mais complexo
+                            _drawerContentNotifier.value = EPISelectionPage(
+                              employee: employee,
+                              initialSelectedEPIs: csEPIsAgain,
+                              onProceedToConfirmation: (finalSelectedEPIs) {
+                                // ... e assim por diante
+                              },
+                              onCloseDrawer: () => _drawerContentNotifier.value = null,
+                            );
+                          },
+                          onCloseDrawer: () => _drawerContentNotifier.value = null,
+                        );
+                      },
+                      onCloseDrawer: () => _drawerContentNotifier.value = null,
+                    );
+                  },
+                  onCloseDrawer: () => _drawerContentNotifier.value = null,
+                );
+              },
+              onCloseDrawer: () => _drawerContentNotifier.value = null,
+            );
+          },
+          onCloseDrawer: () => _drawerContentNotifier.value = null, // Fecha o drawer
+        );
+      },
+      onCloseDrawer: () => _drawerContentNotifier.value = null, // Fecha o drawer
+    );
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
+    _drawerContentNotifier.dispose();
     super.dispose();
   }
 
@@ -170,212 +278,239 @@ class _ExchangePageState extends State<ExchangePage> {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    return Column(
+    return Stack(
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                colorScheme.primary.withValues(alpha: 0.08),
-                colorScheme.surface.withValues(alpha: 0.6),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: const BorderRadius.only(
-              topRight: Radius.circular(12),
-              topLeft: Radius.circular(12),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                spacing: 16,
+        Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    colorScheme.primary.withOpacity(0.08),
+                    colorScheme.surface.withOpacity(0.6),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(12),
+                  topLeft: Radius.circular(12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.swap_horiz,
-                      color: theme.colorScheme.onPrimaryContainer,
-                      size: 40,
-                    ),
-                  ),
-                  Column(
-                    spacing: 4,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    // Use MainAxisAlignment.start para alinhar ao início
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        'Troca de EPIs',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.8,
-                          height: 1.1,
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.swap_horiz,
+                          color: theme.colorScheme.onPrimaryContainer,
+                          size: 40,
                         ),
                       ),
-                      Text(
-                        'Gerencie as trocas de EPIs vencidos ou próximos do vencimento',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.2,
-                        ),
+                      const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
+                      Column(
+                        // Use CrossAxisAlignment.start para alinhar ao início
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Troca de EPIs',
+                            style: theme.textTheme.headlineMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.8,
+                              height: 1.1,
+                            ),
+                          ),
+                          Text(
+                            'Gerencie as trocas de EPIs vencidos ou próximos do vencimento',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
+                  SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(
+                        value: 'Todos',
+                        label: Text('Todos'),
+                        icon: Icon(Icons.list, size: 18),
+                      ),
+                      ButtonSegment(
+                        value: 'Vencidos',
+                        label: Text('Vencidos'),
+                        icon: Icon(Icons.error_outline, size: 18),
+                      ),
+                      ButtonSegment(
+                        value: 'A Vencer',
+                        label: Text('A Vencer'),
+                        icon: Icon(Icons.warning_amber_outlined, size: 18),
+                      ),
+                    ],
+                    selected: {_selectedFilter},
+                    onSelectionChanged: (Set<String> newSelection) {
+                      setState(() {
+                        _selectedFilter = newSelection.first;
+                      });
+                    },
+                  ),
                 ],
               ),
-              SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(
-                    value: 'Todos',
-                    label: Text('Todos'),
-                    icon: Icon(Icons.list, size: 18),
-                  ),
-                  ButtonSegment(
-                    value: 'Vencidos',
-                    label: Text('Vencidos'),
-                    icon: Icon(Icons.error_outline, size: 18),
-                  ),
-                  ButtonSegment(
-                    value: 'A Vencer',
-                    label: Text('A Vencer'),
-                    icon: Icon(Icons.warning_amber_outlined, size: 18),
-                  ),
-                ],
-                selected: {_selectedFilter},
-                onSelectionChanged: (Set<String> newSelection) {
-                  setState(() {
-                    _selectedFilter = newSelection.first;
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
-        const Divider(height: 1),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              children: [
-                Row(
-                  spacing: 16,
-                  children: [
-                    Expanded(
-                      child: _SummaryCard(
-                        title: 'EPIs Vencidos',
-                        value: _totalExpired.toString(),
-                        icon: Icons.error_outline,
-                        color: Colors.red,
-                        backgroundColor: Colors.red.shade50,
-                      ),
-                    ),
-                    Expanded(
-                      child: _SummaryCard(
-                        title: 'EPIs a Vencer (15 dias)',
-                        value: _totalExpiring.toString(),
-                        icon: Icons.warning_amber_outlined,
-                        color: Colors.orange,
-                        backgroundColor: Colors.orange.shade50,
-                      ),
-                    ),
-                    Expanded(
-                      child: _SummaryCard(
-                        title: 'Funcionários Afetados',
-                        value: _filteredEmployees.length.toString(),
-                        icon: Icons.people_outline,
-                        color: colorScheme.primary,
-                        backgroundColor: colorScheme.primary.withValues(
-                          alpha: 0.1,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  spacing: 16,
-                  children: [
-                    // Busca
-                    Expanded(
-                      child: SizedBox(
-                        height: 40,
-                        child: TextField(
-                          controller: _searchController,
-                          decoration: InputDecoration(
-                            hintText: 'Buscar por nome, matrícula ou setor...',
-                            prefixIcon: const Icon(Icons.search, size: 20),
-                            suffixIcon: _searchQuery.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(Icons.clear, size: 20),
-                                    onPressed: () {
-                                      setState(() {
-                                        _searchController.clear();
-                                        _searchQuery = '';
-                                      });
-                                    },
-                                  )
-                                : null,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              _searchQuery = value;
-                            });
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // Lista de funcionários
-                Expanded(
-                  child: _filteredEmployees.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.search_off, size: 64),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Nenhum funcionário encontrado',
-                                style: textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'Tente ajustar os filtros ou a busca',
-                                style: textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.separated(
-                          itemCount: _filteredEmployees.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final employee = _filteredEmployees[index];
-                            return _EmployeeCard(employee: employee);
-                          },
-                        ),
-                ),
-              ],
             ),
-          ),
+            const Divider(height: 1),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  children: [
+                    Row(
+                      // Use MainAxisAlignment.start para alinhar ao início
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _SummaryCard(
+                            title: 'EPIs Vencidos',
+                            value: _totalExpired.toString(),
+                            icon: Icons.error_outline,
+                            color: Colors.red,
+                            backgroundColor: Colors.red.shade50,
+                          ),
+                        ),
+                        const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
+                        Expanded(
+                          child: _SummaryCard(
+                            title: 'EPIs a Vencer (15 dias)',
+                            value: _totalExpiring.toString(),
+                            icon: Icons.warning_amber_outlined,
+                            color: Colors.orange,
+                            backgroundColor: Colors.orange.shade50,
+                          ),
+                        ),
+                        const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
+                        Expanded(
+                          child: _SummaryCard(
+                            title: 'Funcionários Afetados',
+                            value: _filteredEmployees.length.toString(),
+                            icon: Icons.people_outline,
+                            color: colorScheme.primary,
+                            backgroundColor: colorScheme.primary.withOpacity(
+                              0.1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      // Use MainAxisAlignment.start para alinhar ao início
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        // Busca
+                        Expanded(
+                          child: SizedBox(
+                            height: 40,
+                            child: TextField(
+                              controller: _searchController,
+                              decoration: InputDecoration(
+                                hintText: 'Buscar por nome, matrícula ou setor...',
+                                prefixIcon: const Icon(Icons.search, size: 20),
+                                suffixIcon: _searchQuery.isNotEmpty
+                                    ? IconButton(
+                                        icon: const Icon(Icons.clear, size: 20),
+                                        onPressed: () {
+                                          setState(() {
+                                            _searchController.clear();
+                                            _searchQuery = '';
+                                          });
+                                        },
+                                      )
+                                    : null,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  _searchQuery = value;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Lista de funcionários
+                    Expanded(
+                      child: _filteredEmployees.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Nenhum funcionário encontrado',
+                                    style: textTheme.titleMedium?.copyWith(
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Tente ajustar os filtros ou a busca',
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.separated(
+                              itemCount: _filteredEmployees.length,
+                              separatorBuilder: (context, index) =>
+                                  const SizedBox(height: 12),
+                              itemBuilder: (context, index) {
+                                final employee = _filteredEmployees[index];
+                                return _EmployeeCard(
+                                  employee: employee,
+                                  onRegisterExchange: _openEPISelectionDrawer, // Passa o callback
+                                );
+                              },
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        // O BaseDrawer será exibido aqui, sobrepondo o conteúdo principal
+        ValueListenableBuilder<Widget?>(
+          valueListenable: _drawerContentNotifier,
+          builder: (context, drawerContent, child) {
+            if (drawerContent == null) {
+              return const SizedBox.shrink(); // Não exibe nada se não houver conteúdo
+            }
+            return drawerContent; // Exibe o BaseDrawer com o conteúdo atual
+          },
         ),
       ],
     );
@@ -412,19 +547,20 @@ class _SummaryCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
-          spacing: 16,
+          // Use MainAxisAlignment.start para alinhar ao início
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
+                color: color.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 28),
             ),
+            const SizedBox(width: 16), // Adicione um SizedBox para espaçamento
             Expanded(
               child: Column(
-                spacing: 4,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -434,10 +570,11 @@ class _SummaryCard extends StatelessWidget {
                       color: color,
                     ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     title,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: color.withValues(alpha: 0.8),
+                      color: color.withOpacity(0.8),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -454,8 +591,9 @@ class _SummaryCard extends StatelessWidget {
 // Widget de card de funcionário
 class _EmployeeCard extends StatelessWidget {
   final Map<String, dynamic> employee;
+  final Function(Map<String, dynamic>) onRegisterExchange; // Callback para abrir o drawer
 
-  const _EmployeeCard({required this.employee});
+  const _EmployeeCard({required this.employee, required this.onRegisterExchange});
 
   @override
   Widget build(BuildContext context) {
@@ -516,9 +654,11 @@ class _EmployeeCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8.0),
           child: Row(
             children: [
-              Icon(Icons.business_outlined, size: 14),
+              Icon(Icons.business_outlined, size: 14, color: Colors.grey.shade600),
               const SizedBox(width: 4),
-              Text(employee['department'], style: textTheme.bodySmall),
+              Text(employee['department'], style: textTheme.bodySmall?.copyWith(
+                color: Colors.grey.shade600,
+              )),
               const SizedBox(width: 16),
               if (expiredCount > 0) ...[
                 Container(
@@ -582,7 +722,17 @@ class _EmployeeCard extends StatelessWidget {
         ),
         trailing: FilledButton.icon(
           onPressed: () {
-            // Ação de registrar troca
+            showGeneralDialog(
+              context: context,
+              barrierDismissible: true,
+              barrierLabel: 'Troca de EPIs',
+              pageBuilder: (context, _, __) {
+                return ExchangeDrawerContent(
+                  employee: employee,
+                  onCloseDrawer: () => Navigator.of(context).pop(),
+                );
+              },
+            );
           },
           icon: const Icon(Icons.swap_horiz, size: 18),
           label: const Text('Registrar Troca'),
@@ -669,11 +819,15 @@ class _EpiItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text('CA: ${epi['ca']}', style: textTheme.bodySmall),
+                      Text('CA: ${epi['ca']}', style: textTheme.bodySmall?.copyWith(
+                        color: Colors.grey.shade600,
+                      )),
                       const SizedBox(width: 16),
                       Text(
                         'Vencimento: ${_formatDate(epi['expiryDate'])}',
-                        style: textTheme.bodySmall,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ],
                   ),
