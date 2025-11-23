@@ -1,3 +1,4 @@
+import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'widgets/measurement_units_widget.dart';
 import 'widgets/product_categories_widget.dart';
@@ -194,7 +195,7 @@ class _ProductTechnicalRegistrationPageState
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _buildSectionCard(
+                child: CreateTypeCard(
                   icon: section['icon'],
                   title: section['title'],
                   description: section['description'],
@@ -206,87 +207,6 @@ class _ProductTechnicalRegistrationPageState
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSectionCard({
-    required IconData icon,
-    required String title,
-    required String description,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    return Card(
-      elevation: 0,
-      color: isSelected
-          ? colorScheme.primaryContainer
-          : Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide.none,
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? colorScheme.primary
-                      : colorScheme.onSurface.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  icon,
-                  color: isSelected
-                      ? colorScheme.onPrimary
-                      : colorScheme.onSurface,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: isSelected
-                            ? colorScheme.onPrimaryContainer
-                            : colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      description,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: isSelected
-                            ? colorScheme.onPrimaryContainer.withOpacity(0.8)
-                            : colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (isSelected)
-                Icon(
-                  Icons.check_circle,
-                  color: colorScheme.primary,
-                  size: 20,
-                ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 

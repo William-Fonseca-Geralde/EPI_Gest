@@ -57,6 +57,7 @@ class FichaEpiModel extends AppWriteModel {
               statusFerias: false,
             ),
             mapeamento: MapeamentoEpiModel(
+              nomeMapeamento: '',
               codigoMapeamento: '',
               cargo: CargoModel(codigoCargo: '', nomeCargo: ''),
               setor: SetorModel(
@@ -70,7 +71,8 @@ class FichaEpiModel extends AppWriteModel {
               nomeUnidade: '',
               cnpj: '',
               endereco: '',
-              tipoUnidade: Tipo.matriz,
+              tipoUnidade: '',
+              status: false
             ),
           );
 

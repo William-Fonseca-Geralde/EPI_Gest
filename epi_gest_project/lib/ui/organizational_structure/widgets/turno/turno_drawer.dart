@@ -5,7 +5,6 @@ import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:epi_gest_project/ui/widgets/info_section.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class TurnoDrawer extends StatefulWidget {

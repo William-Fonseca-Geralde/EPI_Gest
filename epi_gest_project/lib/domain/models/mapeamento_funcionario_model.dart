@@ -58,6 +58,7 @@ class MapeamentoFuncionarioModel extends AppWriteModel {
         ? MapeamentoEpiModel.fromMap(mapeamentoData)
         : MapeamentoEpiModel(
             codigoMapeamento: '',
+            nomeMapeamento: '',
             cargo: CargoModel(codigoCargo: '', nomeCargo: ''),
             setor: SetorModel(codigoSetor: '', nomeSetor: ''),
             riscos: List.empty(),
@@ -69,7 +70,8 @@ class MapeamentoFuncionarioModel extends AppWriteModel {
             nomeUnidade: '',
             cnpj: '',
             endereco: '',
-            tipoUnidade: Tipo.matriz,
+            tipoUnidade: '',
+            status: false
           );
 
     return MapeamentoFuncionarioModel(

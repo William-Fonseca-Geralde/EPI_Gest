@@ -192,7 +192,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     );
   }
 
-  void _inactivateEmployee(FuncionarioModel employee) async {
+  void _inativarFuncionario(FuncionarioModel employee) async {
     _motivoController.clear();
     final theme = Theme.of(context);
 
@@ -301,7 +301,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     }
   }
 
-  void _activateEmployee(FuncionarioModel employee) async {
+  void _ativarFuncionario(FuncionarioModel employee) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -378,8 +378,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   employees: _filteredEmployees,
                   onView: _showViewEmployeeDrawer,
                   onEdit: _showEditEmployeeDrawer,
-                  onInactivate: _inactivateEmployee,
-                  onActivate: _activateEmployee,
+                  onInactivate: _inativarFuncionario,
+                  onActivate: _ativarFuncionario,
                 );
               },
             ),

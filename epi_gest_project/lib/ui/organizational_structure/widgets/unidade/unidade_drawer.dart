@@ -31,7 +31,7 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
   final _enderecoController = TextEditingController();
   final _tipoUnidadeController = TextEditingController();
 
-  bool _statusAtiva = true;
+  bool _statusController = true;
 
   bool get _isEditing => widget.unidadeToEdit != null && !widget.view;
   bool get _isViewing => widget.view;
@@ -48,9 +48,8 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
     _nomeController.text = u.nomeUnidade;
     _cnpjController.text = u.cnpj;
     _enderecoController.text = u.endereco;
-    _tipoUnidadeController.text = u.tipoUnidade == Tipo.matriz
-        ? 'Matriz'
-        : 'Filial';
+    _tipoUnidadeController.text = u.tipoUnidade;
+    _statusController = u.status;
   }
 
   @override
@@ -66,16 +65,14 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
 
     setState(() => _isSaving = true);
 
-    final tipoEnum = _tipoUnidadeController.text == 'Matriz'
-        ? Tipo.matriz
-        : Tipo.filial;
 
     final unitModel = UnidadeModel(
       id: widget.unidadeToEdit?.id,
       nomeUnidade: _nomeController.text.trim(),
       cnpj: _cnpjController.text.trim(),
       endereco: _enderecoController.text.trim(),
-      tipoUnidade: tipoEnum,
+      tipoUnidade: _tipoUnidadeController.text.trim(),
+      status: _statusController,
     );
 
     try {
@@ -276,8 +273,9 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
                 ),
                 Expanded(
                   child: CustomSwitchField(
-                    value: _statusAtiva,
-                    onChanged: (v) => setState(() => _statusAtiva = v),
+                    value: _statusController,
+                    enabled: isEnabled,
+                    onChanged: (v) => setState(() => _statusController = v),
                     label: 'Status da Unidade',
                     activeText: 'Ativa',
                     inactiveText: 'Inativa',

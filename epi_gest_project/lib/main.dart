@@ -1,7 +1,9 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/config/theme_notifier.dart';
 import 'package:epi_gest_project/data/services/cargo_repository.dart';
+import 'package:epi_gest_project/data/services/categoria_repository.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/mapeamento_epi_repository.dart';
 import 'package:epi_gest_project/data/services/riscos_repository.dart';
 import 'package:epi_gest_project/data/services/setor_repository.dart';
 import 'package:epi_gest_project/data/services/turno_repository.dart';
@@ -31,6 +33,8 @@ void main() {
         Provider<SetorRepository>(create: (_) => SetorRepository(databases)),
         Provider<CargoRepository>(create: (_) => CargoRepository(databases)),
         Provider<RiscosRepository>(create: (_) => RiscosRepository(databases)),
+        Provider<MapeamentoEpiRepository>(create: (_) => MapeamentoEpiRepository(databases)),
+        Provider<CategoriaRepository>(create: (_) => CategoriaRepository(databases)),
 
         ChangeNotifierProvider(create: (_) => ThemeNotifier()),
       ],

@@ -59,7 +59,8 @@ class EpiModel extends AppWriteModel {
               nomeUnidade: '',
               cnpj: '',
               endereco: '',
-              tipoUnidade: Tipo.matriz,
+              tipoUnidade: '',
+              status: false
             ),
           );
 

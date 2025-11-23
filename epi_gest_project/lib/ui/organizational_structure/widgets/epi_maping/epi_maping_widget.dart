@@ -1,28 +1,16 @@
-import 'package:epi_gest_project/domain/models/epi/epi_model.dart';
+import 'package:epi_gest_project/data/services/cargo_repository.dart';
+import 'package:epi_gest_project/data/services/categoria_repository.dart';
+import 'package:epi_gest_project/data/services/mapeamento_epi_repository.dart';
+import 'package:epi_gest_project/data/services/riscos_repository.dart';
+import 'package:epi_gest_project/data/services/setor_repository.dart';
+import 'package:epi_gest_project/domain/models/cargo_model.dart';
+import 'package:epi_gest_project/domain/models/categoria_model.dart';
+import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
+import 'package:epi_gest_project/domain/models/riscos_model.dart';
+import 'package:epi_gest_project/domain/models/setor_model.dart';
 import 'package:flutter/material.dart';
-import 'package:epi_gest_project/ui/organizational_structure/widgets/epi_maping/epi_mapping_drawer.dart';
-
-// MODELOS SIMPLES DENTRO DO MESMO ARQUIVO
-class Sector {
-  final String id;
-  final String descricao;
-
-  Sector({required this.id, required this.descricao});
-}
-
-class Role {
-  final String id;
-  final String descricao;
-
-  Role({required this.id, required this.descricao});
-}
-
-class Risk {
-  final String id;
-  final String descricao;
-
-  Risk({required this.id, required this.descricao});
-}
+import 'package:provider/provider.dart';
+import 'epi_mapping_drawer.dart';
 
 class EpiMapingWidget extends StatefulWidget {
   const EpiMapingWidget({super.key});
@@ -32,94 +20,68 @@ class EpiMapingWidget extends StatefulWidget {
 }
 
 class EpiMapingWidgetState extends State<EpiMapingWidget> {
-  final List<Map<String, dynamic>> _mapeamentos = [];
+  List<MapeamentoEpiModel> _mapeamentos = [];
+  bool _isLoading = true;
+  String? _error;
 
-  // DADOS FALSOS PARA TESTE
-  final List<Sector> _availableSectors = [
-    Sector(id: '1', descricao: 'Produção'),
-    Sector(id: '2', descricao: 'Manutenção'),
-    Sector(id: '3', descricao: 'Almoxarifado'),
-    Sector(id: '4', descricao: 'Administrativo'),
-    Sector(id: '5', descricao: 'Qualidade'),
-  ];
+  List<SetorModel> _availableSectors = [];
+  List<CargoModel> _availableRoles = [];
+  List<RiscosModel> _availableRisks = [];
+  List<CategoriaModel> _availableCategories = []; 
 
-  final List<Role> _availableRoles = [
-    Role(id: '1', descricao: 'Operador de Máquinas'),
-    Role(id: '2', descricao: 'Auxiliar de Produção'),
-    Role(id: '3', descricao: 'Técnico de Manutenção'),
-    Role(id: '4', descricao: 'Almoxarife'),
-    Role(id: '5', descricao: 'Supervisor'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
 
-  final List<Risk> _availableRisks = [
-    Risk(id: '1', descricao: 'Risco Químico'),
-    Risk(id: '2', descricao: 'Risco Físico'),
-    Risk(id: '3', descricao: 'Risco Biológico'),
-    Risk(id: '4', descricao: 'Risco Ergonômico'),
-    Risk(id: '5', descricao: 'Risco de Acidentes'),
-  ];
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
-  final List<EpiModel> _availableEpis = [
-    EpiModel(
-      id: '1',
-      nome: 'Capacete de Segurança',
-      categoria: 'Proteção da Cabeça',
-      ca: 'CA12345',
-      quantidadeEstoque: 50,
-      valorUnitario: 45.90,
-      dataValidade: DateTime.now().add(Duration(days: 365)),
-      fornecedor: 'Fornecedor A',
-      descricao: 'Capacete de segurança industrial',
-    ),
-    EpiModel(
-      id: '2',
-      nome: 'Luvas de Proteção',
-      categoria: 'Proteção das Mãos',
-      ca: 'CA12346',
-      quantidadeEstoque: 100,
-      valorUnitario: 12.50,
-      dataValidade: DateTime.now().add(Duration(days: 180)),
-      fornecedor: 'Fornecedor B',
-      descricao: 'Luvas de proteção contra produtos químicos',
-    ),
-    EpiModel(
-      id: '3',
-      nome: 'Óculos de Proteção',
-      categoria: 'Proteção Ocular',
-      ca: 'CA12347',
-      quantidadeEstoque: 75,
-      valorUnitario: 28.90,
-      dataValidade: DateTime.now().add(Duration(days: 365)),
-      fornecedor: 'Fornecedor C',
-      descricao: 'Óculos de proteção contra impactos',
-    ),
-    EpiModel(
-      id: '4',
-      nome: 'Protetor Auricular',
-      categoria: 'Proteção Auditiva',
-      ca: 'CA12348',
-      quantidadeEstoque: 60,
-      valorUnitario: 35.00,
-      dataValidade: DateTime.now().add(Duration(days: 365)),
-      fornecedor: 'Fornecedor D',
-      descricao: 'Protetor auricular tipo concha',
-    ),
-  ];
+    try {
+      final mapRepo = Provider.of<MapeamentoEpiRepository>(context, listen: false);
+      final setorRepo = Provider.of<SetorRepository>(context, listen: false);
+      final cargoRepo = Provider.of<CargoRepository>(context, listen: false);
+      final riscoRepo = Provider.of<RiscosRepository>(context, listen: false);
+      final catRepo = Provider.of<CategoriaRepository>(context, listen: false);
 
-  // ADICIONAR: Lista de categorias disponíveis
-  final List<String> _availableCategories = [
-    'Proteção da Cabeça',
-    'Proteção das Mãos', 
-    'Proteção Ocular',
-    'Proteção Auditiva',
-    'Proteção Respiratória',
-  ];
+      final results = await Future.wait([
+        mapRepo.getAllMapeamentos(),
+        setorRepo.getAllSetores(),
+        cargoRepo.getAllCargos(),
+        riscoRepo.getAllRiscos(),
+        catRepo.getAllCategorias(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _mapeamentos = results[0] as List<MapeamentoEpiModel>;
+          _availableSectors = results[1] as List<SetorModel>;
+          _availableRoles = results[2] as List<CargoModel>;
+          _availableRisks = results[3] as List<RiscosModel>;
+          _availableCategories = results[4] as List<CategoriaModel>; 
+
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _error = 'Erro ao carregar dados: $e';
+        });
+      }
+    }
+  }
 
   void showAddDrawer() {
     _showMapingDrawer();
   }
 
-  void _showMapingDrawer({Map<String, dynamic>? mapping, bool viewOnly = false}) {
+  void _showMapingDrawer({MapeamentoEpiModel? mapping, bool viewOnly = false}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -128,124 +90,124 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
         mappingToEdit: mapping,
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
-        onSave: (mapSalvo) {
-          setState(() {
-            if (mapping != null) {
-              final index = _mapeamentos.indexWhere((m) => m['id'] == mapSalvo['id']);
-              if (index != -1) _mapeamentos[index] = mapSalvo;
-            } else {
-              _mapeamentos.add(mapSalvo);
-            }
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Mapeamento ${mapping != null ? 'atualizado' : 'cadastrado'} com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        },
-        // CORRIGIDO: Converter os tipos para Map<String, dynamic>
-        availableSectors: _availableSectors.map((sector) => {
-          'id': sector.id,
-          'descricao': sector.descricao,
-        }).toList(),
-        availableRoles: _availableRoles.map((role) => {
-          'id': role.id,
-          'descricao': role.descricao,
-        }).toList(),
-        availableRisks: _availableRisks.map((risk) => {
-          'id': risk.id,
-          'descricao': risk.descricao,
-        }).toList(),
-        availableCategories: _availableCategories, // ADICIONADO
-        availableEpis: _availableEpis,
+        onSave: (_) => _loadData(),
+        availableSectors: _availableSectors,
+        availableRoles: _availableRoles,
+        availableRisks: _availableRisks,
+        availableCategories: _availableCategories,
       ),
     );
+  }
+
+  Future<void> _toggleStatus(MapeamentoEpiModel map) async {
+    final repo = Provider.of<MapeamentoEpiRepository>(context, listen: false);
+    try {
+      if (map.status) {
+        await repo.inativarMapeamento(map.id!);
+      } else {
+        await repo.ativarMapeamento(map.id!);
+      }
+      _loadData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status do mapeamento alterado!'), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao alterar status: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _deleteMapping(MapeamentoEpiModel map) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Exclusão'),
+        content: Text('Excluir mapeamento ${map.setor.nomeSetor} - ${map.cargo.nomeCargo}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final repo = Provider.of<MapeamentoEpiRepository>(context, listen: false);
+        await repo.delete(map.id!);
+        _loadData();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Excluído com sucesso!'), backgroundColor: Colors.green),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao excluir: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Botão para adicionar novo mapeamento
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: FilledButton.icon(
-            onPressed: showAddDrawer,
-            icon: const Icon(Icons.add),
-            label: const Text('Novo Mapeamento'),
-          ),
-        ),
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) return Center(child: Text(_error!));
 
-        if (_mapeamentos.isEmpty)
-          _buildEmptyState()
-        else
-          Expanded(child: _buildMappingsList()),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Expanded(
-      child: Center(
+    if (_mapeamentos.isEmpty) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.map_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
+            const Icon(Icons.map_outlined, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
-            Text(
-              'Nenhum mapeamento cadastrado',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
-            ),
+            const Text('Nenhum mapeamento cadastrado'),
             const SizedBox(height: 8),
-            Text(
-              'Clique em "Novo Mapeamento" para começar',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade500,
-              ),
-            ),
+            const Text('Clique em "Novo Mapeamento" para começar'),
           ],
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildMappingsList() {
     return ListView.builder(
       itemCount: _mapeamentos.length,
       padding: const EdgeInsets.all(16),
       itemBuilder: (context, index) {
         final map = _mapeamentos[index];
-        final sector = map['sector'] as Map<String, dynamic>;
-        final role = map['role'] as Map<String, dynamic>;
-        final risks = map['risks'] as List<Map<String, dynamic>>;
-        final categories = map['categories'] as List<String>;
-        
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: Icon(
-              Icons.assignment_turned_in_outlined,
+              Icons.assignment_turned_in,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: Text('${sector['descricao']} - ${role['descricao']}'),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Riscos: ${risks.length}'),
-                Text('Categorias: ${categories.length}'),
-              ],
+            title: Text('${map.setor.nomeSetor} - ${map.cargo.nomeCargo}'),
+            subtitle: Text(
+              'Riscos: ${map.riscos.length} | Categorias EPI: ${map.listCategoriasEpis.length}\nCód: ${map.codigoMapeamento}',
             ),
+            isThreeLine: true,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                // Status Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: map.status ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    map.status ? 'Ativo' : 'Inativo',
+                    style: TextStyle(
+                      color: map.status ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.visibility_outlined),
                   tooltip: 'Visualizar',
@@ -257,50 +219,23 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
                   onPressed: () => _showMapingDrawer(mapping: map),
                 ),
                 IconButton(
+                  icon: Icon(
+                    map.status ? Icons.toggle_on : Icons.toggle_off,
+                    color: map.status ? Colors.green : Colors.grey,
+                  ),
+                  tooltip: map.status ? 'Inativar' : 'Ativar',
+                  onPressed: () => _toggleStatus(map),
+                ),
+                IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   tooltip: 'Excluir',
-                  onPressed: () {
-                    _deleteMapping(map);
-                  },
+                  onPressed: () => _deleteMapping(map),
                 ),
               ],
             ),
           ),
         );
       },
-    );
-  }
-
-  void _deleteMapping(Map<String, dynamic> mapping) {
-    final sector = mapping['sector'] as Map<String, dynamic>;
-    final role = mapping['role'] as Map<String, dynamic>;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text('Tem certeza que deseja excluir o mapeamento ${sector['descricao']} - ${role['descricao']}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _mapeamentos.remove(mapping);
-              });
-              Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Mapeamento excluído com sucesso!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            child: const Text('Excluir', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
   }
 }

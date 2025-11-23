@@ -1,12 +1,12 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
 
-enum Tipo { matriz, filial }
 
 class UnidadeModel extends AppWriteModel {
   final String nomeUnidade;
   final String cnpj;
   final String endereco;
-  final Tipo tipoUnidade;
+  final String tipoUnidade;
+  final bool status;
 
   UnidadeModel({
     super.id,
@@ -14,6 +14,7 @@ class UnidadeModel extends AppWriteModel {
     required this.cnpj,
     required this.endereco,
     required this.tipoUnidade,
+    required this.status,
   });
 
   factory UnidadeModel.fromMap(Map<String, dynamic> map) {
@@ -23,6 +24,7 @@ class UnidadeModel extends AppWriteModel {
       cnpj: map['cnpj'],
       endereco: map['endereco'],
       tipoUnidade: map['tipo_unidad'],
+      status: map['status'],
     );
   }
 
@@ -32,7 +34,8 @@ class UnidadeModel extends AppWriteModel {
       'nome_unidad': nomeUnidade,
       'cnpj': cnpj,
       'endereco': endereco,
-      'tipo_unidad': tipoUnidade
+      'tipo_unidad': tipoUnidade,
+      'status': status
     };
   }
 }

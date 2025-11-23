@@ -7,18 +7,22 @@ import 'appwrite_model.dart';
 
 class MapeamentoEpiModel extends AppWriteModel {
   final String codigoMapeamento;
+  final String nomeMapeamento;
   final CargoModel cargo;
   final SetorModel setor;
   final List<RiscosModel> riscos;
   final List<CategoriaModel> listCategoriasEpis;
+  final bool status;
 
   MapeamentoEpiModel({
     super.id,
     required this.codigoMapeamento,
+    required this.nomeMapeamento,
     required this.cargo,
     required this.setor,
     required this.riscos,
     required this.listCategoriasEpis,
+    this.status = true,
   });
 
   factory MapeamentoEpiModel.fromMap(Map<String, dynamic> map) {
@@ -65,10 +69,12 @@ class MapeamentoEpiModel extends AppWriteModel {
     return MapeamentoEpiModel(
       id: map['\$id'],
       codigoMapeamento: map['codigo_mapeamento'] ?? '',
+      nomeMapeamento: map['nome_mapeamento'] ?? '',
       cargo: cargoObj,
       setor: setorObj,
       riscos: parseRiscos(map['riscos_id']),
       listCategoriasEpis: parseCategorias(map['list_categorias_epis']),
+      status: map['status'] ?? true
     );
   }
 
@@ -76,6 +82,7 @@ class MapeamentoEpiModel extends AppWriteModel {
   Map<String, dynamic> toMap() {
     return {
       'codigo_mapeamento': codigoMapeamento,
+      'nome_mapeamento': nomeMapeamento,
       'cargo_id': cargo.id,
       'setor_id': setor.id,
       'riscos_id': riscos
@@ -86,6 +93,7 @@ class MapeamentoEpiModel extends AppWriteModel {
           .map((categ) => categ.id)
           .where((id) => id != null && id.isNotEmpty)
           .toList(),
+      'status': status,
     };
   }
 }

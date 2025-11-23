@@ -68,18 +68,18 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
     );
   }
 
-  Future<void> _deleteUnidade(UnidadeModel unidade) async {
+  Future<void> _inativarUnidade(UnidadeModel unidade) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text('Tem certeza que deseja excluir a unidade "${unidade.nomeUnidade}"?'),
+        title: const Text('Confirmar Inativação'),
+        content: Text('Tem certeza que deseja inativar a unidade "${unidade.nomeUnidade}"?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Excluir'),
+            child: const Text('Inativar'),
           ),
         ],
       ),
@@ -88,15 +88,49 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
     if (confirm == true) {
       try {
         final repository = Provider.of<UnidadeRepository>(context, listen: false);
-        await repository.delete(unidade.id!);
+        await repository.inativarUnidade(unidade.id!);
         
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unidade excluída com sucesso!'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('Unidade inativada com sucesso!'), backgroundColor: Colors.green),
         );
         _loadData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao excluir: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erro ao inativar: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _ativarUnidade(UnidadeModel unidade) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Ativação'),
+        content: Text('Tem certeza que deseja ativar a unidade "${unidade.nomeUnidade}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('Ativar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final repository = Provider.of<UnidadeRepository>(context, listen: false);
+        await repository.ativarUnidade(unidade.id!);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Unidade ativada com sucesso!'), backgroundColor: Colors.green),
+        );
+        _loadData();
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao ativat: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -164,7 +198,7 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
       itemCount: _unidades.length,
       itemBuilder: (context, index) {
         final unidade = _unidades[index];
-        final isMatriz = unidade.tipoUnidade == Tipo.matriz;
+        final isMatriz = unidade.tipoUnidade == "Matriz";
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -174,10 +208,26 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
               color: Theme.of(context).colorScheme.primary,
             ),
             title: Text(unidade.nomeUnidade, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('CNPJ: ${unidade.cnpj} | ${unidade.endereco}'),
+            subtitle: Text('CNPJ: ${unidade.cnpj}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: unidade.status ? Colors.green.withValues(alpha: 0.1) : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    unidade.status ? "Ativo" : "Inativo",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: unidade.status ? Colors.green.shade800 : Colors.red.shade800,
+                      fontWeight: FontWeight.bold
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -185,7 +235,7 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    isMatriz ? 'Matriz' : 'Filial',
+                    unidade.tipoUnidade,
                     style: TextStyle(
                       fontSize: 12,
                       color: isMatriz ? Colors.blue.shade800 : Colors.orange.shade800,
@@ -205,9 +255,10 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
                   onPressed: () => _showDrawer(unidade: unidade),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Excluir',
-                  onPressed: () => _deleteUnidade(unidade),
+                  icon: unidade.status ? Icon(Icons.work_outline) : Icon(Icons.work_off_outlined),
+                  tooltip: unidade.status ? 'Inativar' : 'Ativar',
+                  color: unidade.status ? null : Theme.of(context).colorScheme.error,
+                  onPressed: () => unidade.status ? _inativarUnidade(unidade) : _ativarUnidade(unidade),
                 ),
               ],
             ),

@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/ui/organizational_structure/widgets/organizational_type_card.dart';
+import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/unidade/unidade_widget.dart';
 import 'package:flutter/material.dart';
 import 'widgets/epi_maping/epi_maping_widget.dart';
@@ -225,7 +225,7 @@ class _OrganizationalStructurePageState
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: OrganizationalTypeCard(
+                child: CreateTypeCard(
                   icon: section['icon'],
                   title: section['title'],
                   description: section['description'],

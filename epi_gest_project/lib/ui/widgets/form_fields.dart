@@ -256,6 +256,11 @@ class CustomMultiSelectField extends StatelessWidget {
   final GlobalKey buttonKey;
   final VoidCallback onTap;
   final bool enabled;
+  
+  // Novos parâmetros para o botão de adicionar
+  final bool showAddButton;
+  final VoidCallback? onAddPressed;
+  final GlobalKey? addButtonKey;
 
   const CustomMultiSelectField({
     super.key,
@@ -266,114 +271,268 @@ class CustomMultiSelectField extends StatelessWidget {
     required this.buttonKey,
     required this.onTap,
     this.enabled = true,
+    this.showAddButton = false,
+    this.onAddPressed,
+    this.addButtonKey,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return GestureDetector(
+    final fieldWidget = GestureDetector(
       key: buttonKey,
       onTap: enabled ? onTap : null,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(12), // Padding reduzido para alinhar melhor
         decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outlineVariant),
+          border: Border.all(color: theme.colorScheme.outline),
           borderRadius: BorderRadius.circular(12),
           color: enabled
               ? theme.colorScheme.surface
               : theme.colorScheme.surfaceContainerHighest,
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+            Row(
+              children: [
+                Icon(icon, size: 20, color: theme.colorScheme.onSurfaceVariant),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
                     label,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    selectedItems.isEmpty
-                        ? hint
-                        : '${selectedItems.length} ${selectedItems.length == 1 ? 'item selecionado' : 'itens selecionados'}',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: selectedItems.isEmpty
-                          ? theme.colorScheme.onSurfaceVariant
-                          : theme.colorScheme.primary,
-                      fontWeight: selectedItems.isEmpty
-                          ? FontWeight.normal
-                          : FontWeight.w500,
-                    ),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  size: 24,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+            if (selectedItems.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildSelectedItemsChips(context, theme),
+            ] else ...[
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 32),
+                child: Text(
+                  hint,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
                   ),
-                  if (selectedItems.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    _buildSelectedItemsChips(context, theme),
-                  ],
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_drop_down,
-              size: 24,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+                ),
+              )
+            ],
           ],
         ),
       ),
+    );
+
+    if (!showAddButton) return fieldWidget;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: fieldWidget),
+        const SizedBox(width: 8),
+        Padding(
+          padding: const EdgeInsets.only(top: 4), // Pequeno ajuste visual
+          child: IconButton.filledTonal(
+            key: addButtonKey,
+            onPressed: enabled ? onAddPressed : null,
+            icon: const Icon(Icons.add),
+            tooltip: 'Adicionar novo',
+            style: IconButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              padding: const EdgeInsets.all(16), // Tamanho maior para alinhar
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildSelectedItemsChips(BuildContext context, ThemeData theme) {
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      children:
-          selectedItems.take(3).map((item) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
+      spacing: 8,
+      runSpacing: 8,
+      children: selectedItems.map((item) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.2),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
                 item,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onPrimaryContainer,
-                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            );
-          }).toList()..addAll(
-            selectedItems.length > 3
-                ? [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.secondaryContainer,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        '+${selectedItems.length - 3}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSecondaryContainer,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ]
-                : [],
+            ],
           ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// --- NOVO WIDGET: Dialog de Seleção Múltipla com Busca ---
+class MultiSelectSearchDialog extends StatefulWidget {
+  final String title;
+  final List<String> items;
+  final List<String> selectedItems;
+
+  const MultiSelectSearchDialog({
+    super.key,
+    required this.title,
+    required this.items,
+    required this.selectedItems,
+  });
+
+  @override
+  State<MultiSelectSearchDialog> createState() => _MultiSelectSearchDialogState();
+}
+
+class _MultiSelectSearchDialogState extends State<MultiSelectSearchDialog> {
+  late List<String> _tempSelectedItems;
+  late List<String> _filteredItems;
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelectedItems = List.from(widget.selectedItems);
+    _filteredItems = List.from(widget.items);
+  }
+
+  void _filterItems(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _filteredItems = widget.items;
+      } else {
+        _filteredItems = widget.items
+            .where((item) => item.toLowerCase().contains(query.toLowerCase()))
+            .toList();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: 500,
+        constraints: const BoxConstraints(maxHeight: 600),
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            // Header
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Search
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Pesquisar...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                filled: true,
+                fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              ),
+              onChanged: _filterItems,
+            ),
+            const SizedBox(height: 12),
+            
+            // List
+            Expanded(
+              child: _filteredItems.isEmpty
+                  ? Center(child: Text('Nenhum item encontrado', style: theme.textTheme.bodyMedium))
+                  : ListView.builder(
+                      itemCount: _filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = _filteredItems[index];
+                        final isSelected = _tempSelectedItems.contains(item);
+                        
+                        return CheckboxListTile(
+                          title: Text(item),
+                          value: isSelected,
+                          activeColor: theme.colorScheme.primary,
+                          contentPadding: EdgeInsets.zero,
+                          controlAffinity: ListTileControlAffinity.leading,
+                          onChanged: (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                _tempSelectedItems.add(item);
+                              } else {
+                                _tempSelectedItems.remove(item);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    ),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Footer
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: () {
+                    Navigator.pop(context, _tempSelectedItems);
+                  },
+                  child: Text('Confirmar (${_tempSelectedItems.length})'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

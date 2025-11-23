@@ -15,4 +15,24 @@ class UnidadeRepository extends BaseRepository<UnidadeModel> {
   Future<List<UnidadeModel>> getAllUnidades() async {
     return await getAll([]);
   }
+
+  Future<void> inativarUnidade(String rowId) async {
+    try {
+      await update(rowId, {
+        'status': false,
+      });
+    } catch (e) {
+      throw Exception('Falha ao inativar unidade.');
+    }
+  }
+
+  Future<void> ativarUnidade(String rowId) async {
+    try {
+      await update(rowId, {
+        'status': true,
+      });
+    } catch (e) {
+      throw Exception('Falha ao reativar unidade.');
+    }
+  }
 }
