@@ -16,8 +16,8 @@ class _ExchangePageState extends State<ExchangePage> {
 
   final List<Map<String, dynamic>> _employees = [
     {
-      'name': 'João Silva',
-      'registration': '001234',
+      'name': 'Roberto Guedes',
+      'registration': '0001',
       'department': 'Produção',
       'position': 'Operador de Máquinas',
       'epis': [
@@ -33,13 +33,19 @@ class _ExchangePageState extends State<ExchangePage> {
           'expiryDate': DateTime.now().add(const Duration(days: 10)),
           'status': 'expiring',
         },
+        {
+          'name': 'Protetor Auricular Concha',
+          'ca': '27584',
+          'expiryDate': DateTime.now().add(const Duration(days: 13)),
+          'status': 'expiring',
+        },
       ],
     },
     {
-      'name': 'Maria Santos',
-      'registration': '001235',
+      'name': 'Wesley Kilian',
+      'registration': '0002',
       'department': 'Manutenção',
-      'position': 'Técnica Elétrica',
+      'position': 'Eletrecista',
       'epis': [
         {
           'name': 'Botina de Segurança',
@@ -53,11 +59,17 @@ class _ExchangePageState extends State<ExchangePage> {
           'expiryDate': DateTime.now().subtract(const Duration(days: 2)),
           'status': 'expired',
         },
+        {
+          'name': 'Protetor Auricular Plug',
+          'ca': '18189',
+          'expiryDate': DateTime.now().subtract(const Duration(days: 8)),
+          'status': 'expired',
+        },
       ],
     },
     {
-      'name': 'Carlos Oliveira',
-      'registration': '001236',
+      'name': 'William Geralde',
+      'registration': '0003',
       'department': 'Logística',
       'position': 'Operador de Empilhadeira',
       'epis': [
@@ -70,10 +82,10 @@ class _ExchangePageState extends State<ExchangePage> {
       ],
     },
     {
-      'name': 'Ana Paula Costa',
-      'registration': '001237',
+      'name': 'Valdir de Jesus',
+      'registration': '0004',
       'department': 'Produção',
-      'position': 'Operadora de Linha',
+      'position': 'Operador de Linha',
       'epis': [
         {
           'name': 'Máscara PFF2',
@@ -86,20 +98,6 @@ class _ExchangePageState extends State<ExchangePage> {
           'ca': '55555',
           'expiryDate': DateTime.now().subtract(const Duration(days: 8)),
           'status': 'expired',
-        },
-      ],
-    },
-    {
-      'name': 'Roberto Ferreira',
-      'registration': '001238',
-      'department': 'Qualidade',
-      'position': 'Inspetor',
-      'epis': [
-        {
-          'name': 'Jaleco',
-          'ca': '66666',
-          'expiryDate': DateTime.now().add(const Duration(days: 3)),
-          'status': 'expiring',
         },
       ],
     },
