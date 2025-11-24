@@ -1,9 +1,15 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/mapeamento_epi_repository.dart';
+import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/turno_repository.dart';
+import 'package:epi_gest_project/data/services/unidade_repository.dart';
 import 'package:epi_gest_project/data/services/vinculo_repository.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
+import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/turno_model.dart';
+import 'package:epi_gest_project/domain/models/unidade_model.dart';
 import 'package:epi_gest_project/domain/models/vinculo_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_form_sections.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
@@ -57,9 +63,15 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
 
   List<TurnoModel> _turnosDisponiveis = [];
   List<VinculoModel> _vinculosDisponiveis = [];
+  List<MapeamentoEpiModel> _mapeamentosDisponiveis = [];
+  List<UnidadeModel> _unidadesDisponiveis = [];
+
+  MapeamentoFuncionarioModel? _currentVinculo;
 
   List<String> _turnosSugestoes = [];
   List<String> _vinculosSugestoes = [];
+  List<String> _mapeamentosSugestoes = [];
+  List<String> _unidadesSugestoes = [];
 
   TimeOfDay _tempEntrada = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay _tempSaida = const TimeOfDay(hour: 18, minute: 0);
@@ -99,6 +111,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       'motivoDesligamento': TextEditingController(),
       'newTurnoNome': TextEditingController(),
       'newVinculoNome': TextEditingController(),
+      'mapeamento': TextEditingController(),
+      'unidade': TextEditingController(),
     };
 
     _loadInitialData();
@@ -113,22 +127,57 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         context,
         listen: false,
       );
+      final mapRepo = Provider.of<MapeamentoEpiRepository>(
+        context,
+        listen: false,
+      );
+      final unitRepo = Provider.of<UnidadeRepository>(context, listen: false);
+      final mapFuncRepo = Provider.of<MapeamentoFuncionarioRepository>(
+        context,
+        listen: false,
+      );
 
       final results = await Future.wait([
         turnoRepo.getAllTurnos(),
         vinculoRepo.getAllVinculos(),
+        mapRepo.getAllMapeamentos(),
+        unitRepo.getAllUnidades(),
       ]);
+
+        _currentVinculo = await mapFuncRepo.getByFuncionarioId(
+          widget.employeeToEdit!.id!,
+        );
 
       if (!mounted) return;
 
       setState(() {
         _turnosDisponiveis = results[0] as List<TurnoModel>;
         _vinculosDisponiveis = results[1] as List<VinculoModel>;
+        final allMappings = results[2] as List<MapeamentoEpiModel>;
+        
+        _mapeamentosDisponiveis = allMappings.where((m) {
+          final isCurrent = _currentVinculo?.mapeamento.id == m.id;
+          return m.status == true || isCurrent;
+        }).toList();
+
+        _unidadesDisponiveis = results[3] as List<UnidadeModel>;
 
         _turnosSugestoes = _turnosDisponiveis.map((t) => t.turno).toList();
         _vinculosSugestoes = _vinculosDisponiveis
             .map((v) => v.nomeVinculo)
             .toList();
+        _mapeamentosSugestoes = _mapeamentosDisponiveis
+            .map((m) => m.nomeMapeamento)
+            .toList();
+        _unidadesSugestoes = _unidadesDisponiveis
+            .map((u) => u.nomeUnidade)
+            .toList();
+
+        if (_currentVinculo != null) {
+          _controllers['mapeamento']!.text =
+              _currentVinculo!.mapeamento.nomeMapeamento;
+          _controllers['unidade']!.text = _currentVinculo!.unidade.nomeUnidade;
+        }
 
         _isLoading = false;
         _loadingError = null;
@@ -580,7 +629,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     }
 
     setState(() => _isSaving = true);
-    final repository = Provider.of<FuncionarioRepository>(
+
+    final funcRepo = Provider.of<FuncionarioRepository>(context, listen: false);
+    final mapFuncRepo = Provider.of<MapeamentoFuncionarioRepository>(
       context,
       listen: false,
     );
@@ -614,17 +665,45 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         motivoDesligamento: _controllers['motivoDesligamento']!.text.trim(),
       );
 
+      FuncionarioModel savedEmployee;
       if (_isEditing) {
-        await repository.update(employee.id!, employee.toMap());
-        _showSuccessSnackBar('Funcionário atualizado com sucesso!');
+        savedEmployee = await funcRepo.update(employee.id!, employee.toMap());
       } else {
-        await repository.create(employee);
-        _showSuccessSnackBar('Funcionário adicionado com sucesso!');
+        savedEmployee = await funcRepo.create(employee);
       }
 
-      if (mounted) {
-        Navigator.of(context).pop();
+      final mapText = _controllers['mapeamento']!.text.trim();
+      final unitText = _controllers['unidade']!.text.trim();
+
+      if (mapText.isNotEmpty && unitText.isNotEmpty) {
+        final mapObj = _mapeamentosDisponiveis.firstWhere(
+          (m) => m.nomeMapeamento == mapText,
+        );
+        final unitObj = _unidadesDisponiveis.firstWhere(
+          (u) => u.nomeUnidade == unitText,
+        );
+
+        if (_currentVinculo != null) {
+          final newVinculoData = {
+            'mapeamento_id': mapObj.id,
+            'unidade_id': unitObj.id,
+          };
+          await mapFuncRepo.update(_currentVinculo!.id!, newVinculoData);
+        } else {
+          final newVinculo = MapeamentoFuncionarioModel(
+            funcionario: savedEmployee,
+            mapeamento: mapObj,
+            unidade: unitObj,
+          );
+          await mapFuncRepo.create(newVinculo);
+        }
+      } else if (_currentVinculo != null &&
+          (mapText.isEmpty || unitText.isEmpty)) {
+        await mapFuncRepo.delete(_currentVinculo!.id!);
       }
+
+      _showSuccessSnackBar('Dados salvos com sucesso!');
+      if (mounted) Navigator.of(context).pop();
       widget.onSave?.call();
     } on AppwriteException catch (e) {
       _showErrorSnackBar('Erro do Appwrite: ${e.message ?? "Ocorreu um erro"}');
@@ -887,7 +966,17 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                   onAddTurno: _showTurnoTrabalhoModal,
                 ),
               ),
-              // MANTÉM STATUS NO MESMO LUGAR
+              InfoSection(
+                title: 'Mapeamento do Funcionário',
+                icon: Icons.assignment_ind_outlined,
+                child: MappingSection(
+                  mapeamentoController: _controllers['mapeamento']!,
+                  unidadeController: _controllers['unidade']!,
+                  mapeamentosSugeridos: _mapeamentosSugestoes,
+                  unidadesSugeridas: _unidadesSugestoes,
+                  enabled: isEnabled,
+                ),
+              ),
               InfoSection(
                 title: 'Status',
                 icon: Icons.info_outlined,
@@ -966,6 +1055,17 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
             turnoButtonKey: _overlayKeys['turno']!,
             onAddVinculo: _showVinculoModal,
             onAddTurno: _showTurnoTrabalhoModal,
+          ),
+        ),
+        InfoSection(
+          title: 'Mapeamento do Funcionário',
+          icon: Icons.assignment_ind_outlined,
+          child: MappingSection(
+            mapeamentoController: _controllers['mapeamento']!,
+            unidadeController: _controllers['unidade']!,
+            mapeamentosSugeridos: _mapeamentosSugestoes,
+            unidadesSugeridas: _unidadesSugestoes,
+            enabled: isEnabled,
           ),
         ),
         InfoSection(

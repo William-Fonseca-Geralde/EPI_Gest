@@ -19,8 +19,8 @@ class MapeamentoEpiRepository extends BaseRepository<MapeamentoEpiModel> {
           '*',
           'cargo_id.*',
           'setor_id.*',
-          'riscos_id.*',
-          'list_categorias_epis.*',
+          'riscos_ids.*',
+          'categorias_ids.*',
         ]),
         Query.orderDesc('\$createdAt'),
       ]);

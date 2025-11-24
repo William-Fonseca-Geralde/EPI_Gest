@@ -4,6 +4,7 @@ import 'package:epi_gest_project/data/services/cargo_repository.dart';
 import 'package:epi_gest_project/data/services/categoria_repository.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/mapeamento_epi_repository.dart';
+import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/riscos_repository.dart';
 import 'package:epi_gest_project/data/services/setor_repository.dart';
 import 'package:epi_gest_project/data/services/turno_repository.dart';
@@ -27,6 +28,7 @@ void main() {
         Provider<FuncionarioRepository>(create: (_) => FuncionarioRepository(databases)),
         Provider<VinculoRepository>(create: (_) => VinculoRepository(databases)),
         Provider<TurnoRepository>(create: (_) => TurnoRepository(databases)),
+        Provider<MapeamentoFuncionarioRepository>(create: (_) => MapeamentoFuncionarioRepository(databases)),
 
         // Repositórios da Estrutura Organizacional
         Provider<UnidadeRepository>(create: (_) => UnidadeRepository(databases)),

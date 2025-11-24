@@ -31,7 +31,18 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
     try {
       final repository = Provider.of<UnidadeRepository>(context, listen: false);
       final result = await repository.getAllUnidades();
-      
+
+      result.sort((a, b) {
+        if (a.tipoUnidade == 'Matriz' && b.tipoUnidade != 'Matriz') {
+          return -1; // a vem primeiro
+        } else if (a.tipoUnidade != 'Matriz' && b.tipoUnidade == 'Matriz') {
+          return 1; // b vem primeiro
+        } else {
+          // Se ambos forem iguais (ambas filiais ou ambas matrizes - improvável), ordena por nome
+          return a.nomeUnidade.compareTo(b.nomeUnidade);
+        }
+      });
+
       if (mounted) {
         setState(() {
           _unidades = result;

@@ -4,8 +4,7 @@ import 'package:intl/intl.dart';
 
 class EmployeesFilters extends StatefulWidget {
   final Map<String, dynamic> appliedFilters;
-  final List<String> setores;
-  final List<String> funcoes;
+  final List<String> mapeamentos;
   final Function(Map<String, dynamic>) onApplyFilters;
   final VoidCallback onClearFilters;
   final Function(String)? onAddSetor;
@@ -14,8 +13,7 @@ class EmployeesFilters extends StatefulWidget {
   const EmployeesFilters({
     super.key,
     required this.appliedFilters,
-    required this.setores,
-    required this.funcoes,
+    required this.mapeamentos,
     required this.onApplyFilters,
     required this.onClearFilters,
     this.onAddSetor,
@@ -34,9 +32,6 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _dataEntradaController = TextEditingController();
-  // REMOVIDO: Controladores para novo setor e nova função
-
-  // REMOVIDO: Overlays para setor e função
 
   @override
   void initState() {
@@ -67,14 +62,11 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
 
   @override
   void dispose() {
-    // REMOVIDO: Dispose dos controladores removidos
     _nomeController.dispose();
     _idController.dispose();
     _dataEntradaController.dispose();
     super.dispose();
   }
-
-  // REMOVIDO: _removeOverlays
 
   void _applyFilters() {
     widget.onApplyFilters(_tempFilters);
@@ -338,8 +330,24 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                           onTap: _selectDate,
                         ),
                       ),
-                      // REMOVIDO: Filtro de Setor
-                      // REMOVIDO: Filtro de Funções
+                      Expanded(
+                        flex: 3,
+                        child: MultiSelectDropdown(
+                          label: 'Mapeamento',
+                          icon: Icons.assignment_turned_in_outlined,
+                          items: widget.mapeamentos,
+                          width: 350,
+                          selectedItems: _tempFilters['mapeamento'] ?? [],
+                          allItemsLabel: 'Todos',
+                          onChanged: (selected) {
+                            setState(() {
+                              _tempFilters['mapeamento'] = selected.isEmpty
+                                  ? null
+                                  : selected;
+                            });
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -369,7 +377,6 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
           label = 'Matricula';
           displayValue = value.toString();
           break;
-        // REMOVIDO: Casos para setores e funções
         case 'dataEntrada':
           label = 'Data de Entrada';
           displayValue = DateFormat('dd/MM/yyyy').format(value as DateTime);
@@ -378,6 +385,12 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
           label = 'Status';
           final status = value as List<String>;
           displayValue = status.length == 1 ? status.first : 'Todos';
+          break;
+        case 'mapeamento':
+          label = 'Mapeamento';
+          displayValue = value.toString();
+          break;
+
       }
 
       if (label.isNotEmpty) {

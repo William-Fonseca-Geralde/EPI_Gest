@@ -72,8 +72,8 @@ class MapeamentoEpiModel extends AppWriteModel {
       nomeMapeamento: map['nome_mapeamento'] ?? '',
       cargo: cargoObj,
       setor: setorObj,
-      riscos: parseRiscos(map['riscos_id']),
-      listCategoriasEpis: parseCategorias(map['list_categorias_epis']),
+      riscos: parseRiscos(map['riscos_ids']),
+      listCategoriasEpis: parseCategorias(map['categorias_ids']),
       status: map['status'] ?? true
     );
   }
@@ -85,11 +85,11 @@ class MapeamentoEpiModel extends AppWriteModel {
       'nome_mapeamento': nomeMapeamento,
       'cargo_id': cargo.id,
       'setor_id': setor.id,
-      'riscos_id': riscos
+      'riscos_ids': riscos
           .map((risco) => risco.id)
           .where((id) => id != null && id.isNotEmpty)
           .toList(),
-      'list_categorias_epis': listCategoriasEpis
+      'categorias_ids': listCategoriasEpis
           .map((categ) => categ.id)
           .where((id) => id != null && id.isNotEmpty)
           .toList(),

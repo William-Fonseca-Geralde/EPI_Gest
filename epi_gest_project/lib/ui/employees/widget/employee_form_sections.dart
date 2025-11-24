@@ -225,6 +225,50 @@ class WorkConditionsSection extends StatelessWidget {
   }
 }
 
+class MappingSection extends StatelessWidget {
+  final TextEditingController mapeamentoController;
+  final TextEditingController unidadeController;
+  final List<String> mapeamentosSugeridos;
+  final List<String> unidadesSugeridas;
+  final bool enabled;
+
+  const MappingSection({
+    super.key,
+    required this.mapeamentoController,
+    required this.unidadeController,
+    required this.mapeamentosSugeridos,
+    required this.unidadesSugeridas,
+    this.enabled = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        CustomAutocompleteField(
+          controller: mapeamentoController,
+          label: 'Mapeamento de EPI',
+          hint: 'Selecione o mapeamento de riscos',
+          icon: Icons.assignment_turned_in_outlined,
+          suggestions: mapeamentosSugeridos,
+          enabled: enabled,
+          showAddButton: false,
+        ),
+        const SizedBox(height: 16),
+        CustomAutocompleteField(
+          controller: unidadeController,
+          label: 'Unidade Vinculada',
+          hint: 'Selecione a unidade física',
+          icon: Icons.business_outlined,
+          suggestions: unidadesSugeridas,
+          enabled: enabled,
+          showAddButton: false,
+        ),
+      ],
+    );
+  }
+}
+
 class HierarchySection extends StatelessWidget {
   final TextEditingController liderController;
   final TextEditingController gestorController;

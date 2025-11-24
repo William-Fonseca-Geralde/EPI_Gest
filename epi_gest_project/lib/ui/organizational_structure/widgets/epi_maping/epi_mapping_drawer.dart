@@ -505,7 +505,7 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
       final newMapping = MapeamentoEpiModel(
         id: widget.mappingToEdit?.id,
         codigoMapeamento: _codigoController.text.trim(),
-        nomeMapeamento: _nomeController.text.trim(),
+        nomeMapeamento: "${setorObj.nomeSetor} - ${cargoObj.nomeCargo}",
         cargo: cargoObj,
         setor: setorObj,
         riscos: riscosObj,
@@ -651,6 +651,7 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
                 children: [
                   Row(
                     spacing: 16,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: CustomTextField(
@@ -664,26 +665,17 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
                         ),
                       ),
                       Expanded(
-                        child: CustomTextField(
-                          controller: _nomeController,
-                          label: 'Nome do Mapeamento',
-                          hint: 'Ex: Mapeamento Produção Químico',
-                          icon: Icons.map,
+                        child: CustomSwitchField(
+                          value: _statusAtivo,
+                          onChanged: (val) => setState(() => _statusAtivo = val),
+                          label: 'Status do Mapeamento',
+                          activeText: 'Ativo',
+                          inactiveText: 'Inativo',
+                          icon: Icons.toggle_on,
                           enabled: _isEnabled,
-                          validator: (v) =>
-                              v?.isEmpty ?? true ? 'Obrigatório' : null,
                         ),
                       ),
                     ],
-                  ),
-                  CustomSwitchField(
-                    value: _statusAtivo,
-                    onChanged: (val) => setState(() => _statusAtivo = val),
-                    label: 'Status do Mapeamento',
-                    activeText: 'Ativo',
-                    inactiveText: 'Inativo',
-                    icon: Icons.toggle_on,
-                    enabled: _isEnabled,
                   ),
                 ],
               ),

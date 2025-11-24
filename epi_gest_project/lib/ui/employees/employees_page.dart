@@ -1,6 +1,8 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_drawer.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_data_table.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_filters.dart';
@@ -18,9 +20,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
   bool _showFilters = false;
 
   late Future<void> _loadEmployeesFuture;
+  List<String> _availableMappings = [];
   List<FuncionarioModel> _allEmployees = [];
   List<FuncionarioModel> _filteredEmployees = [];
   Map<String, dynamic> _appliedFilters = {};
+  Map<String, String> _employeeMappingMap = {};
 
   final _motivoController = TextEditingController();
 
@@ -38,17 +42,37 @@ class _EmployeesPageState extends State<EmployeesPage> {
 
   Future<void> _loadEmployees() async {
     try {
-      // Uso do novo Repositório
-      final repository = Provider.of<FuncionarioRepository>(
+      final funcRepo = Provider.of<FuncionarioRepository>(
+        context,
+        listen: false,
+      );
+      final mapFuncRepo = Provider.of<MapeamentoFuncionarioRepository>(
         context,
         listen: false,
       );
 
-      final employees = await repository.getAllFuncionarios();
+      final results = await Future.wait([
+        funcRepo.getAllFuncionarios(),
+        mapFuncRepo.getAllRelations(),
+      ]);
+
+      final employees = results[0] as List<FuncionarioModel>;
+      final mappings = results[1] as List<MapeamentoFuncionarioModel>;
+
+      final mappingMap = <String, String>{};
+      final mappingNames = <String>{};
+      for (var map in mappings) {
+        if (map.funcionario.id != null) {
+          mappingMap[map.funcionario.id!] = map.mapeamento.nomeMapeamento;
+          mappingNames.add(map.mapeamento.nomeMapeamento);
+        }
+      }
 
       if (mounted) {
         setState(() {
           _allEmployees = employees;
+          _employeeMappingMap = mappingMap;
+          _availableMappings = mappingNames.toList()..sort();
           _applyFilters(_appliedFilters, updateState: false);
         });
       }
@@ -91,7 +115,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
     void performFilter() {
       _appliedFilters = filters;
       if (filters.isEmpty) {
-        _filteredEmployees = List.from( _allEmployees);
+        _filteredEmployees = List.from(_allEmployees);
         return;
       }
       _filteredEmployees = _allEmployees.where((employee) {
@@ -132,6 +156,17 @@ class _EmployeesPageState extends State<EmployeesPage> {
             return false;
           }
         }
+
+        if (filters['mapeamento'] != null && (filters['mapeamento'] as List).isNotEmpty) {
+          final selectedMappings = List<String>.from(filters['mapeamento']);
+          final employeeMapping = _employeeMappingMap[employee.id];
+          
+          // Se o funcionário não tem mapeamento ou o mapeamento dele não está na lista selecionada
+          if (employeeMapping == null || !selectedMappings.contains(employeeMapping)) {
+            return false;
+          }
+        }
+
         return true;
       }).toList();
     }
@@ -324,7 +359,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
 
     if (confirm == true) {
       if (!mounted) return;
-      final repository = Provider.of<FuncionarioRepository>(context, listen: false);
+      final repository = Provider.of<FuncionarioRepository>(
+        context,
+        listen: false,
+      );
       try {
         await repository.activateEmployee(employee.id!);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -356,8 +394,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
           if (_showFilters)
             EmployeesFilters(
               appliedFilters: _appliedFilters,
-              setores: const [],
-              funcoes: const [],
+              mapeamentos: _availableMappings,
               onApplyFilters: (filters) => _applyFilters(filters),
               onClearFilters: _clearFilters,
             ),
@@ -376,6 +413,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 }
                 return EmployeesDataTable(
                   employees: _filteredEmployees,
+                  employeeMappings: _employeeMappingMap,
                   onView: _showViewEmployeeDrawer,
                   onEdit: _showEditEmployeeDrawer,
                   onInactivate: _inativarFuncionario,

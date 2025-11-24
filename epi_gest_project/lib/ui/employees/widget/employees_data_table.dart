@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 class EmployeesDataTable extends StatefulWidget {
   final List<FuncionarioModel> employees;
+  final Map<String, String> employeeMappings;
   final Function(FuncionarioModel) onView;
   final Function(FuncionarioModel) onEdit;
   final Function(FuncionarioModel) onInactivate;
@@ -12,6 +13,7 @@ class EmployeesDataTable extends StatefulWidget {
   const EmployeesDataTable({
     super.key,
     required this.employees,
+    required this.employeeMappings,
     required this.onView,
     required this.onEdit,
     required this.onInactivate,
@@ -33,6 +35,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
 
   static const double matriculaWidth = 130.0;
   static const double nomeWidth = 280.0;
+  static const double mapeamentoWidth = 200.0;
   static const double vinculoWidth = 220.0;
   static const double dataEntradaWidth = 160.0;
   static const double acoesWidth = 160.0;
@@ -41,7 +44,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
       nomeWidth +
       vinculoWidth +
       dataEntradaWidth +
-      acoesWidth;
+      acoesWidth +
+      mapeamentoWidth;
 
   @override
   void initState() {
@@ -100,7 +104,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
             compare = a.nomeFunc.compareTo(b.nomeFunc);
             break;
           case 2:
-            compare = a.vinculo.nomeVinculo.compareTo(b.vinculo.nomeVinculo); 
+            compare = a.vinculo.nomeVinculo.compareTo(b.vinculo.nomeVinculo);
             break;
           case 3:
             compare = a.dataEntrada.compareTo(b.dataEntrada);
@@ -155,6 +159,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                     _buildHeaderCell('Nome do Funcionário', nomeWidth, 1),
                     _buildHeaderCell('Vinculo', vinculoWidth, 2),
                     _buildHeaderCell('Data de Entrada', dataEntradaWidth, 3),
+                    _buildHeaderCell('Mapeamento EPI', mapeamentoWidth, 4),
                     _buildHeaderCell('Ações', acoesWidth, -1, isLast: true),
                   ],
                 ),
@@ -174,6 +179,8 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                       itemBuilder: (context, index) {
                         final employee = _sortedEmployees[index];
                         final isLast = index == _sortedEmployees.length - 1;
+                        final mappingName =
+                            widget.employeeMappings[employee.id] ?? '-';
 
                         return Container(
                           decoration: BoxDecoration(
@@ -271,7 +278,11 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Text(
-                                          employee.vinculo.nomeVinculo.isNotEmpty == true 
+                                          employee
+                                                      .vinculo
+                                                      .nomeVinculo
+                                                      .isNotEmpty ==
+                                                  true
                                               ? employee.vinculo.nomeVinculo
                                               : '-',
                                           maxLines: 1,
@@ -306,6 +317,34 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   ),
                                 ),
                                 _buildDataCell(
+                                  width: mapeamentoWidth,
+                                  context: context,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.assignment_turned_in_outlined,
+                                        size: 16,
+                                        color: mappingName == '-'
+                                            ? Colors.grey
+                                            : theme.colorScheme.primary,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          mappingName,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: mappingName == '-'
+                                                ? theme.colorScheme.outline
+                                                : theme.colorScheme.onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                _buildDataCell(
                                   width: acoesWidth,
                                   isLast: true,
                                   context: context,
@@ -331,13 +370,16 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                           employee.statusAtivo
                                               ? Icons.person
                                               : Icons.person_off_outlined,
-                                          color: employee.statusAtivo ? null : theme.colorScheme.error,
+                                          color: employee.statusAtivo
+                                              ? null
+                                              : theme.colorScheme.error,
                                         ),
                                         tooltip: employee.statusAtivo
                                             ? 'Inativar'
                                             : 'Ativar',
-                                        onPressed: () =>
-                                            employee.statusAtivo ? widget.onInactivate(employee) : widget.onActivate(employee),
+                                        onPressed: () => employee.statusAtivo
+                                            ? widget.onInactivate(employee)
+                                            : widget.onActivate(employee),
                                       ),
                                     ],
                                   ),
@@ -434,7 +476,9 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
         ),
       ),
