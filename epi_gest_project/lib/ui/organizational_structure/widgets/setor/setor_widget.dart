@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/data/services/setor_repository.dart';
+import 'package:epi_gest_project/data/services/organizational_structure/setor_repository.dart';
 import 'package:epi_gest_project/domain/models/setor_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

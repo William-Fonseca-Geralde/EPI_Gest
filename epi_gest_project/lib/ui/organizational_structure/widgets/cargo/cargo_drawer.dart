@@ -1,5 +1,5 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:epi_gest_project/data/services/cargo_repository.dart';
+import 'package:epi_gest_project/data/services/organizational_structure/cargo_repository.dart';
 import 'package:epi_gest_project/domain/models/cargo_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';

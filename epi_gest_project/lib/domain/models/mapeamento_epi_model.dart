@@ -42,11 +42,7 @@ class MapeamentoEpiModel extends AppWriteModel {
     final setorData = getData(map['setor_id']);
     final setorObj = setorData != null
         ? SetorModel.fromMap(setorData)
-        : SetorModel(
-            id: '',
-            codigoSetor: '',
-            nomeSetor: '',
-          );
+        : SetorModel(id: '', codigoSetor: '', nomeSetor: '');
 
     List<RiscosModel> parseRiscos(dynamic data) {
       if (data == null || data is! List) return [];
@@ -74,25 +70,28 @@ class MapeamentoEpiModel extends AppWriteModel {
       setor: setorObj,
       riscos: parseRiscos(map['riscos_ids']),
       listCategoriasEpis: parseCategorias(map['categorias_ids']),
-      status: map['status'] ?? true
+      status: map['status'] ?? true,
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
+    final categorias = listCategoriasEpis
+        .map((categ) => categ.id)
+        .where((id) => id != null && id.isNotEmpty)
+        .toList();
+
+    final risco = riscos
+        .map((risco) => risco.id)
+        .where((id) => id != null && id.isNotEmpty)
+        .toList();
     return {
       'codigo_mapeamento': codigoMapeamento,
       'nome_mapeamento': nomeMapeamento,
       'cargo_id': cargo.id,
       'setor_id': setor.id,
-      'riscos_ids': riscos
-          .map((risco) => risco.id)
-          .where((id) => id != null && id.isNotEmpty)
-          .toList(),
-      'categorias_ids': listCategoriasEpis
-          .map((categ) => categ.id)
-          .where((id) => id != null && id.isNotEmpty)
-          .toList(),
+      'riscos_ids': risco,
+      'categorias_ids': categorias,
       'status': status,
     };
   }

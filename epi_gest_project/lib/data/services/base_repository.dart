@@ -38,11 +38,12 @@ abstract class BaseRepository<T extends AppWriteModel> {
 
   Future<T> create(T item) async {
     try {
+      final data = item.toMap();
       final result = await databases.createRow(
         databaseId: AppwriteConstants.databaseId,
         tableId: tableId,
         rowId: ID.unique(),
-        data: item.toMap(),
+        data: data,
       );
       return fromMap(result.data);
     } on AppwriteException catch (e) {

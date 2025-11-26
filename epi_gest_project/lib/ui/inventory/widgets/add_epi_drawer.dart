@@ -1,6 +1,5 @@
 import 'package:epi_gest_project/ui/inventory/widgets/widgets_epis/epis_form_sections.dart';
 import 'package:epi_gest_project/ui/widgets/image_picker_widget.dart';
-import 'package:epi_gest_project/ui/widgets/overlays.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';

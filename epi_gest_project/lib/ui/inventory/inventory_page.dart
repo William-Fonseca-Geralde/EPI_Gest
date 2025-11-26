@@ -2,6 +2,7 @@ import 'package:epi_gest_project/data/datasources/epi_local_datasource.dart';
 import 'package:epi_gest_project/data/repositories/epi_repository_impl.dart';
 import 'package:epi_gest_project/ui/inventory/inventory_controller.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/add_epi_drawer.dart';
+import 'package:epi_gest_project/ui/inventory/widgets/epi_drawer.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/inventory_data_table.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/inventory_filters.dart';
 import 'package:epi_gest_project/ui/inventory/widgets/entries/entry_list_screen.dart';
@@ -57,11 +58,10 @@ class _InventoryPageState extends State<InventoryPage> {
       barrierLabel: 'Add EPI',
       transitionDuration: const Duration(milliseconds: 300),
       pageBuilder: (context, animation, secondaryAnimation) {
-        return AddEpiDrawer(
+        return EpiDrawer(
           onClose: () => Navigator.of(context).pop(),
-          onSave: (data) {
-            // TODO: Implementar salvamento real
-            Navigator.of(context).pop();
+          onSave: () {
+            _controller.loadEpis();
           },
         );
       },

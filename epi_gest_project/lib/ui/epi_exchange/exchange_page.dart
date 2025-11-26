@@ -45,7 +45,7 @@ class _ExchangePageState extends State<ExchangePage> {
       'name': 'Wesley Kilian',
       'registration': '0002',
       'department': 'Manutenção',
-      'position': 'Eletrecista',
+      'position': 'Eletricista',
       'epis': [
         {
           'name': 'Botina de Segurança',

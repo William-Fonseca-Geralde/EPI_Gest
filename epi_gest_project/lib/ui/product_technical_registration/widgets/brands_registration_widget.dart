@@ -11,7 +11,7 @@ class BrandsRegistrationWidgetState extends State<BrandsRegistrationWidget> {
   final List<Map<String, dynamic>> _brands = [];
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  bool _statusAtiva = true; // STATUS NO PADRÃO
+  bool _statusAtiva = true;
 
   void showAddDrawer() {
     _nameController.clear();

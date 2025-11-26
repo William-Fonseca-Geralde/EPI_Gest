@@ -1,10 +1,10 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
-import 'package:epi_gest_project/data/services/mapeamento_epi_repository.dart';
+import 'package:epi_gest_project/data/services/organizational_structure/mapeamento_epi_repository.dart';
 import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
-import 'package:epi_gest_project/data/services/turno_repository.dart';
-import 'package:epi_gest_project/data/services/unidade_repository.dart';
-import 'package:epi_gest_project/data/services/vinculo_repository.dart';
+import 'package:epi_gest_project/data/services/organizational_structure/turno_repository.dart';
+import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
+import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
 import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
@@ -109,6 +109,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       'dataEntrada': TextEditingController(),
       'dataDesligamento': TextEditingController(),
       'motivoDesligamento': TextEditingController(),
+      'dataRetornoFerias': TextEditingController(),
       'newTurnoNome': TextEditingController(),
       'newVinculoNome': TextEditingController(),
       'mapeamento': TextEditingController(),
@@ -144,17 +145,19 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
         unitRepo.getAllUnidades(),
       ]);
 
+      if (!mounted) return;
+
+      if ((_isEditing || _isViewing) && widget.employeeToEdit?.id != null) {
         _currentVinculo = await mapFuncRepo.getByFuncionarioId(
           widget.employeeToEdit!.id!,
         );
-
-      if (!mounted) return;
+      }
 
       setState(() {
         _turnosDisponiveis = results[0] as List<TurnoModel>;
         _vinculosDisponiveis = results[1] as List<VinculoModel>;
         final allMappings = results[2] as List<MapeamentoEpiModel>;
-        
+
         _mapeamentosDisponiveis = allMappings.where((m) {
           final isCurrent = _currentVinculo?.mapeamento.id == m.id;
           return m.status == true || isCurrent;
@@ -209,6 +212,9 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     _controllers['dataEntrada']!.text = DateFormat(
       'dd/MM/yyyy',
     ).format(employee.dataEntrada);
+    _controllers['dataRetornoFerias']!.text = employee.dataRetornoFerias != null
+        ? DateFormat('dd/MM/yyyy').format(employee.dataRetornoFerias!)
+        : '';
     _controllers['dataDesligamento']!.text = employee.dataDesligamento != null
         ? DateFormat('dd/MM/yyyy').format(employee.dataDesligamento!)
         : '';
