@@ -75,7 +75,7 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
 
   List<String> _setoresSugestoes = [];
   List<String> _cargosSugestoes = [];
-  
+
   List<String> _selectedRiskIds = [];
   List<String> _selectedCategoryIds = [];
 
@@ -356,31 +356,46 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
           children: [
             TextField(
               controller: codigoController,
-              decoration: const InputDecoration(labelText: 'Código', hintText: 'Ex: QUI-01'),
+              decoration: const InputDecoration(
+                labelText: 'Código',
+                hintText: 'Ex: QUI-01',
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: nomeController,
-              decoration: const InputDecoration(labelText: 'Nome do Risco', hintText: 'Ex: Químico'),
+              decoration: const InputDecoration(
+                labelText: 'Nome do Risco',
+                hintText: 'Ex: Químico',
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
             onPressed: () async {
-              if (nomeController.text.isNotEmpty && codigoController.text.isNotEmpty) {
+              if (nomeController.text.isNotEmpty &&
+                  codigoController.text.isNotEmpty) {
                 try {
-                  final repo = Provider.of<RiscosRepository>(context, listen: false);
+                  final repo = Provider.of<RiscosRepository>(
+                    context,
+                    listen: false,
+                  );
                   final novo = RiscosModel(
                     codigoRiscos: codigoController.text.trim(),
                     nomeRiscos: nomeController.text.trim(),
                   );
                   final created = await repo.create(novo);
-                  
+
                   setState(() {
                     _riscos.add(created);
-                    _selectedRiskNames.add(created.nomeRiscos); // Já seleciona o novo
+                    _selectedRiskNames.add(
+                      created.nomeRiscos,
+                    ); // Já seleciona o novo
                   });
                   Navigator.pop(ctx);
                   _showSuccessSnackBar('Risco criado com sucesso!');
@@ -410,31 +425,46 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
           children: [
             TextField(
               controller: codigoController,
-              decoration: const InputDecoration(labelText: 'Código', hintText: 'Ex: CAT-LUV'),
+              decoration: const InputDecoration(
+                labelText: 'Código',
+                hintText: 'Ex: CAT-LUV',
+              ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: nomeController,
-              decoration: const InputDecoration(labelText: 'Nome da Categoria', hintText: 'Ex: Proteção de Mãos'),
+              decoration: const InputDecoration(
+                labelText: 'Nome da Categoria',
+                hintText: 'Ex: Proteção de Mãos',
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
             onPressed: () async {
-              if (nomeController.text.isNotEmpty && codigoController.text.isNotEmpty) {
+              if (nomeController.text.isNotEmpty &&
+                  codigoController.text.isNotEmpty) {
                 try {
-                  final repo = Provider.of<CategoriaRepository>(context, listen: false);
+                  final repo = Provider.of<CategoriaRepository>(
+                    context,
+                    listen: false,
+                  );
                   final novo = CategoriaModel(
                     codigoCategoria: codigoController.text.trim(),
                     nomeCategoria: nomeController.text.trim(),
                   );
                   final created = await repo.create(novo);
-                  
+
                   setState(() {
                     _categorias.add(created);
-                    _selectedCategoryNames.add(created.nomeCategoria); // Já seleciona
+                    _selectedCategoryNames.add(
+                      created.nomeCategoria,
+                    ); // Já seleciona
                   });
                   Navigator.pop(ctx);
                   _showSuccessSnackBar('Categoria criada com sucesso!');
@@ -570,204 +600,157 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return BaseDrawer(
+    return BaseAddDrawer(
+      title: _isViewing
+          ? 'Visualizar Mapeamento'
+          : _isEditing
+          ? 'Editar Mapeamento'
+          : 'Novo Mapeamento',
+      subtitle: _isViewing
+          ? 'Informações completas do mapeamento'
+          : _isEditing
+          ? 'Alterar os dados do Mapeamento'
+          : 'Preencha os dados para cadastro do mapeamento',
+      icon: Icons.assignment_turned_in_outlined,
       onClose: widget.onClose,
+      onSave: _handleSave,
+      formKey: _formKey,
+      isSaving: _isSaving,
       widthFactor: 0.5,
-      header: _buildHeader(theme),
-      body: _buildBody(theme),
-      footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
-    String title = _isViewing
-        ? 'Visualizar Mapeamento'
-        : _isEditing
-        ? 'Editar Mapeamento'
-        : 'Novo Mapeamento';
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.assignment_turned_in_outlined,
-              color: theme.colorScheme.onPrimaryContainer,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Defina os EPIs necessários por função',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close)),
-        ],
-      ),
+      child: _buildBody(theme),
     );
   }
 
   Widget _buildBody(ThemeData theme) {
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          spacing: 24,
-          children: [
-            InfoSection(
-              title: 'Identificação',
-              icon: Icons.info_outline,
-              child: Column(
-                spacing: 16,
-                children: [
-                  Row(
-                    spacing: 16,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: CustomTextField(
-                          controller: _codigoController,
-                          label: 'Código do Mapeamento',
-                          hint: 'Ex: MAP-001',
-                          icon: Icons.qr_code,
-                          enabled: _isEnabled,
-                          validator: (v) =>
-                              v?.isEmpty ?? true ? 'Obrigatório' : null,
-                        ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        spacing: 24,
+        children: [
+          InfoSection(
+            title: 'Identificação',
+            icon: Icons.info_outline,
+            child: Column(
+              spacing: 16,
+              children: [
+                Row(
+                  spacing: 16,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: CustomTextField(
+                        controller: _codigoController,
+                        label: 'Código do Mapeamento',
+                        hint: 'Ex: MAP-001',
+                        icon: Icons.qr_code,
+                        enabled: _isEnabled,
+                        validator: (v) =>
+                            v?.isEmpty ?? true ? 'Obrigatório' : null,
                       ),
-                      Expanded(
-                        child: CustomSwitchField(
-                          value: _statusAtivo,
-                          onChanged: (val) => setState(() => _statusAtivo = val),
-                          label: 'Status do Mapeamento',
-                          activeText: 'Ativo',
-                          inactiveText: 'Inativo',
-                          icon: Icons.toggle_on,
-                          enabled: _isEnabled,
-                        ),
+                    ),
+                    Expanded(
+                      child: CustomSwitchField(
+                        value: _statusAtivo,
+                        onChanged: (val) => setState(() => _statusAtivo = val),
+                        label: 'Status do Mapeamento',
+                        activeText: 'Ativo',
+                        inactiveText: 'Inativo',
+                        enabled: _isEnabled,
+                        icon: Icons.assignment_turned_in_outlined,
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
+          ),
 
-            InfoSection(
-              title: 'Vínculo Organizacional',
-              icon: Icons.business,
-              child: Column(
-                spacing: 16,
-                children: [
-                  CustomAutocompleteField(
-                    controller: _setorController,
-                    label: 'Setor / Departamento',
-                    hint: 'Selecione ou adicione um setor',
-                    icon: Icons.work_outline,
-                    suggestions: _setores.map((s) => s.nomeSetor).toList(),
-                    showAddButton: _isEnabled,
-                    enabled: _isEnabled,
-                    addButtonKey: _setorButtonKey,
-                    onAddPressed: _showAddSetorDialog,
-                  ),
+          InfoSection(
+            title: 'Vínculo Organizacional',
+            icon: Icons.business,
+            child: Column(
+              spacing: 16,
+              children: [
+                CustomAutocompleteField(
+                  controller: _setorController,
+                  label: 'Setor / Departamento',
+                  hint: 'Selecione ou adicione um setor',
+                  icon: Icons.work_outline,
+                  suggestions: _setores.map((s) => s.nomeSetor).toList(),
+                  showAddButton: _isEnabled,
+                  enabled: _isEnabled,
+                  addButtonKey: _setorButtonKey,
+                  onAddPressed: _showAddSetorDialog,
+                ),
 
-                  CustomAutocompleteField(
-                    controller: _cargoController,
-                    label: 'Cargo / Função',
-                    hint: 'Selecione ou adicione um cargo',
-                    icon: Icons.badge_outlined,
-                    suggestions: _cargos.map((c) => c.nomeCargo).toList(),
-                    showAddButton: _isEnabled,
-                    enabled: _isEnabled,
-                    addButtonKey: _cargoButtonKey,
-                    onAddPressed: _showAddCargoDialog,
-                  ),
-                ],
-              ),
+                CustomAutocompleteField(
+                  controller: _cargoController,
+                  label: 'Cargo / Função',
+                  hint: 'Selecione ou adicione um cargo',
+                  icon: Icons.badge_outlined,
+                  suggestions: _cargos.map((c) => c.nomeCargo).toList(),
+                  showAddButton: _isEnabled,
+                  enabled: _isEnabled,
+                  addButtonKey: _cargoButtonKey,
+                  onAddPressed: _showAddCargoDialog,
+                ),
+              ],
             ),
-            InfoSection(
-              title: 'Riscos e EPIs',
-              icon: Icons.warning_amber_rounded,
-              child: Column(
-                spacing: 16,
-                children: [
-                  CustomMultiSelectField(
-                    label: 'Riscos Ocupacionais',
-                    hint: 'Selecione os riscos',
-                    icon: Icons.warning_outlined,
-                    selectedItems: _selectedRiskIds,
-                    buttonKey: _riskKey,
-                    enabled: _isEnabled,
-                    showAddButton: _isEnabled,
-                    addButtonKey: _riskButtonKey,
-                    onAddPressed: _showAddRiscoDialog,
-                    onTap: () {
-                      _showMultiSelectDialog(
-                        title: 'Selecione os Riscos',
-                        items: widget.availableRisks
-                            .map((r) => r.nomeRiscos)
-                            .toList(),
-                        selected: _selectedRiskIds,
-                        onConfirm: (list) =>
-                            setState(() => _selectedRiskIds = list),
-                      );
-                    },
-                  ),
-                  CustomMultiSelectField(
-                    label: 'Categorias de EPI Necessárias',
-                    hint: 'Selecione as categorias',
-                    icon: Icons.category_outlined,
-                    selectedItems: _selectedCategoryIds,
-                    buttonKey: _catKey,
-                    enabled: _isEnabled,
-                    showAddButton: _isEnabled,
-                    addButtonKey: _catButtonKey,
-                    onAddPressed: _showAddCategoriaDialog,
-                    onTap: () {
-                      _showMultiSelectDialog(
-                        title: 'Selecione as Categorias',
-                        items: widget.availableCategories
-                            .map((c) => c.nomeCategoria)
-                            .toList(),
-                        selected: _selectedCategoryIds,
-                        onConfirm: (list) =>
-                            setState(() => _selectedCategoryIds = list),
-                      );
-                    },
-                  ),
-                ],
-              ),
+          ),
+          InfoSection(
+            title: 'Riscos e EPIs',
+            icon: Icons.warning_amber_rounded,
+            child: Column(
+              spacing: 16,
+              children: [
+                CustomMultiSelectField(
+                  label: 'Riscos Ocupacionais',
+                  hint: 'Selecione os riscos',
+                  icon: Icons.warning_outlined,
+                  selectedItems: _selectedRiskIds,
+                  buttonKey: _riskKey,
+                  enabled: _isEnabled,
+                  showAddButton: _isEnabled,
+                  addButtonKey: _riskButtonKey,
+                  onAddPressed: _showAddRiscoDialog,
+                  onTap: () {
+                    _showMultiSelectDialog(
+                      title: 'Selecione os Riscos',
+                      items: widget.availableRisks
+                          .map((r) => r.nomeRiscos)
+                          .toList(),
+                      selected: _selectedRiskIds,
+                      onConfirm: (list) =>
+                          setState(() => _selectedRiskIds = list),
+                    );
+                  },
+                ),
+                CustomMultiSelectField(
+                  label: 'Categorias de EPI Necessárias',
+                  hint: 'Selecione as categorias',
+                  icon: Icons.category_outlined,
+                  selectedItems: _selectedCategoryIds,
+                  buttonKey: _catKey,
+                  enabled: _isEnabled,
+                  showAddButton: _isEnabled,
+                  addButtonKey: _catButtonKey,
+                  onAddPressed: _showAddCategoriaDialog,
+                  onTap: () {
+                    _showMultiSelectDialog(
+                      title: 'Selecione as Categorias',
+                      items: widget.availableCategories
+                          .map((c) => c.nomeCategoria)
+                          .toList(),
+                      selected: _selectedCategoryIds,
+                      onConfirm: (list) =>
+                          setState(() => _selectedCategoryIds = list),
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -825,82 +808,6 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
           },
         );
       },
-    );
-  }
-
-  Widget _buildEditFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-          ),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _isSaving ? null : widget.onClose,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Cancelar'),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: FilledButton.icon(
-              onPressed: _isSaving ? null : _handleSave,
-              icon: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(
-                _isSaving
-                    ? 'Salvando...'
-                    : (_isEditing ? 'Salvar Alterações' : 'Salvar Mapeamento'),
-              ),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildViewFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-          ),
-        ),
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: widget.onClose,
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: const Text('Fechar'),
-        ),
-      ),
     );
   }
 }

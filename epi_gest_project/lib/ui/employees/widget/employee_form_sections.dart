@@ -332,6 +332,7 @@ class StatusSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      spacing: 16,
       children: [
         CustomSwitchField(
           value: statusAtivo,
@@ -342,7 +343,6 @@ class StatusSection extends StatelessWidget {
           icon: Icons.person_outlined,
           enabled: enabled,
         ),
-        const SizedBox(height: 16),
         CustomSwitchField(
           value: statusFerias,
           onChanged: onStatusFeriasChanged,
@@ -353,7 +353,6 @@ class StatusSection extends StatelessWidget {
           enabled: enabled,
         ),
         if (statusFerias) ...[
-          const SizedBox(height: 16),
           CustomDateField(
             controller: TextEditingController(
               text: dataRetornoFerias != null
@@ -404,7 +403,6 @@ class TerminationSection extends StatelessWidget {
           label: 'Motivo do Desligamento',
           hint: 'Digite o motivo',
           icon: Icons.description_outlined,
-          maxLines: 3,
           enabled: enabled,
         ),
       ],

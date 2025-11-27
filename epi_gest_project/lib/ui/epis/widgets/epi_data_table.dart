@@ -1,41 +1,36 @@
-import 'package:epi_gest_project/domain/models/epi/epi_model.dart';
-import 'package:epi_gest_project/ui/inventory/widgets/edit_epi_drawer.dart';
-import 'package:epi_gest_project/ui/inventory/widgets/view_epi_drawer.dart';
+import 'package:epi_gest_project/domain/models/epi_model.dart';
+import 'package:epi_gest_project/ui/epis/widgets/epi_drawer.dart'; // Importação única do drawer centralizado
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-// Versão equilibrada: cabeçalho fixo + scroll sincronizado + largura estática original
-class InventoryDataTable extends StatefulWidget {
+class EpiDataTable extends StatefulWidget {
   final List<EpiModel> epis;
 
-  const InventoryDataTable({super.key, required this.epis});
+  const EpiDataTable({super.key, required this.epis});
 
   @override
-  State<InventoryDataTable> createState() => _InventoryDataTableState();
+  State<EpiDataTable> createState() => _EpiDataTableState();
 }
 
-class _InventoryDataTableState extends State<InventoryDataTable> {
+class _EpiDataTableState extends State<EpiDataTable> {
   int _sortColumnIndex = 0;
   bool _sortAscending = true;
   List<EpiModel> _sortedEpis = [];
 
-  // Scroll controllers independentes sincronizados
   final ScrollController _headerScrollController = ScrollController();
   final ScrollController _bodyScrollController = ScrollController();
 
   bool _isSyncingScroll = false;
 
-  // Larguras estáticas originais
+  // Larguras estáticas ajustadas
   static const double caWidth = 110.0;
-  static const double nomeWidth = 260.0; // <=== voltou ao tamanho original
+  static const double nomeWidth = 260.0;
   static const double categoriaWidth = 210.0;
   static const double quantidadeWidth = 140.0;
   static const double valorWidth = 150.0;
   static const double validadeWidth = 160.0;
-  static const double fornecedorWidth = 180.0;
   static const double acoesWidth = 160.0;
 
-  // Largura total fixa (causa scroll se tela for menor)
   static const double totalTableWidth =
       caWidth +
       nomeWidth +
@@ -43,29 +38,43 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
       quantidadeWidth +
       valorWidth +
       validadeWidth +
-      fornecedorWidth +
       acoesWidth;
 
   @override
   void initState() {
     super.initState();
     _sortedEpis = List.from(widget.epis);
-    // Sincronizar scroll horizontal (header x body)
     _headerScrollController.addListener(_syncFromHeader);
     _bodyScrollController.addListener(_syncFromBody);
+  }
+
+  @override
+  void didUpdateWidget(EpiDataTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.epis != oldWidget.epis) {
+      setState(() {
+        _sortedEpis = List.from(widget.epis);
+        // Re-aplica a ordenação se necessário
+        _sortData(_sortColumnIndex, _sortAscending, updateState: false);
+      });
+    }
   }
 
   void _syncFromHeader() {
     if (_isSyncingScroll) return;
     _isSyncingScroll = true;
-    _bodyScrollController.jumpTo(_headerScrollController.offset);
+    if (_bodyScrollController.hasClients) {
+      _bodyScrollController.jumpTo(_headerScrollController.offset);
+    }
     _isSyncingScroll = false;
   }
 
   void _syncFromBody() {
     if (_isSyncingScroll) return;
     _isSyncingScroll = true;
-    _headerScrollController.jumpTo(_bodyScrollController.offset);
+    if (_headerScrollController.hasClients) {
+      _headerScrollController.jumpTo(_bodyScrollController.offset);
+    }
     _isSyncingScroll = false;
   }
 
@@ -78,41 +87,58 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
     super.dispose();
   }
 
-  void _sortData(int columnIndex, bool ascending) {
-    setState(() {
+  void _sortData(int columnIndex, bool ascending, {bool updateState = true}) {
+    void sortLogic() {
       _sortColumnIndex = columnIndex;
       _sortAscending = ascending;
 
       _sortedEpis.sort((a, b) {
         int compare;
         switch (columnIndex) {
-          case 0:
+          case 0: // CA
             compare = a.ca.compareTo(b.ca);
             break;
-          case 1:
-            compare = a.nome.compareTo(b.nome);
+          case 1: // Nome Produto
+            compare = a.nomeProduto.compareTo(b.nomeProduto);
             break;
-          case 2:
-            compare = a.categoria.compareTo(b.categoria);
+          case 2: // Categoria (Objeto)
+            compare =
+                a.categoria.nomeCategoria.compareTo(b.categoria.nomeCategoria);
             break;
-          case 3:
-            compare = a.quantidadeEstoque.compareTo(b.quantidadeEstoque);
+          case 3: // Estoque (Double)
+            compare = a.estoque.compareTo(b.estoque);
             break;
-          case 4:
-            compare = a.valorUnitario.compareTo(b.valorUnitario);
+          case 4: // Valor (Double)
+            compare = a.valor.compareTo(b.valor);
             break;
-          case 5:
-            compare = a.dataValidade.compareTo(b.dataValidade);
+          case 5: // Validade CA (DateTime)
+            compare = a.validadeCa.compareTo(b.validadeCa);
             break;
-          case 6:
-            compare = a.fornecedor.compareTo(b.fornecedor);
+          case 6: // Marca (Objeto)
+            compare = a.marca.nomeMarca.compareTo(b.marca.nomeMarca);
             break;
           default:
             compare = 0;
         }
         return ascending ? compare : -compare;
       });
-    });
+    }
+
+    if (updateState) {
+      setState(sortLogic);
+    } else {
+      sortLogic();
+    }
+  }
+
+  // Lógica auxiliar para status de vencimento
+  bool _isVencido(DateTime validade) {
+    return DateTime.now().isAfter(validade);
+  }
+
+  bool _isProximoVencimento(DateTime validade) {
+    final diasParaVencimento = validade.difference(DateTime.now()).inDays;
+    return diasParaVencimento <= 30 && diasParaVencimento > 0;
   }
 
   @override
@@ -156,19 +182,18 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                     _buildHeaderCell('Nome do EPI', nomeWidth, 1),
                     _buildHeaderCell('Categoria', categoriaWidth, 2),
                     _buildHeaderCell(
-                      'Quantidade',
+                      'Estoque',
                       quantidadeWidth,
                       3,
                       numeric: true,
                     ),
                     _buildHeaderCell(
-                      'Valor Unitário',
+                      'Valor Unit.',
                       valorWidth,
                       4,
                       numeric: true,
                     ),
-                    _buildHeaderCell('Validade', validadeWidth, 5),
-                    _buildHeaderCell('Fornecedor', fornecedorWidth, 6),
+                    _buildHeaderCell('Validade CA', validadeWidth, 5),
                     _buildHeaderCell('Ações', acoesWidth, -1, isLast: true),
                   ],
                 ),
@@ -191,6 +216,12 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                         final epi = _sortedEpis[index];
                         final isLast = index == _sortedEpis.length - 1;
 
+                        // Lógica local de vencimento
+                        final bool vencido = _isVencido(epi.validadeCa);
+                        final bool proximoVencimento = _isProximoVencimento(
+                          epi.validadeCa,
+                        );
+
                         return Container(
                           decoration: BoxDecoration(
                             color: index.isEven
@@ -209,11 +240,12 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
+                                // CA
                                 _buildDataCell(
                                   width: caWidth,
                                   context: context,
                                   child: Container(
-                                    margin: EdgeInsets.all(5),
+                                    margin: const EdgeInsets.all(5),
                                     decoration: BoxDecoration(
                                       color: theme.colorScheme.primaryContainer,
                                       borderRadius: BorderRadius.circular(6),
@@ -231,6 +263,7 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                     ),
                                   ),
                                 ),
+                                // NOME PRODUTO
                                 _buildDataCell(
                                   width: nomeWidth,
                                   context: context,
@@ -240,33 +273,34 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        epi.nome,
-                                        maxLines: 1,
+                                        epi.nomeProduto,
+                                        maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
                                               fontWeight: FontWeight.w600,
                                             ),
                                       ),
+                                      // Exibindo unidade de medida como subtítulo
                                       Text(
-                                        epi.descricao,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                        'Unidade: ${epi.medida.nomeMedida}',
                                         style: TextStyle(
                                           color: theme
                                               .colorScheme
                                               .onSurfaceVariant,
-                                          fontSize: 13,
+                                          fontSize: 12,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                // CATEGORIA
                                 _buildDataCell(
                                   width: categoriaWidth,
                                   context: context,
-                                  child: Text(epi.categoria),
+                                  child: Text(epi.categoria.nomeCategoria),
                                 ),
+                                // ESTOQUE
                                 _buildDataCell(
                                   width: quantidadeWidth,
                                   context: context,
@@ -280,10 +314,15 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                             theme.colorScheme.onSurfaceVariant,
                                       ),
                                       const SizedBox(width: 4),
-                                      Text('${epi.quantidadeEstoque}'),
+                                      Text(
+                                        epi.estoque % 1 == 0
+                                            ? epi.estoque.toInt().toString()
+                                            : epi.estoque.toString(),
+                                      ),
                                     ],
                                   ),
                                 ),
+                                // VALOR
                                 _buildDataCell(
                                   width: valorWidth,
                                   context: context,
@@ -291,9 +330,7 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       Text(
-                                        currencyFormat.format(
-                                          epi.valorUnitario,
-                                        ),
+                                        currencyFormat.format(epi.valor),
                                         style: TextStyle(
                                           color: theme.colorScheme.primary,
                                           fontWeight: FontWeight.bold,
@@ -302,6 +339,7 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                     ],
                                   ),
                                 ),
+                                // VALIDADE CA
                                 _buildDataCell(
                                   width: validadeWidth,
                                   context: context,
@@ -310,28 +348,24 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text(dateFormat.format(epi.dataValidade)),
-                                      if (epi.isVencido ||
-                                          epi.isProximoVencimento)
+                                      Text(dateFormat.format(epi.validadeCa)),
+                                      if (vencido || proximoVencimento)
                                         Text(
-                                          epi.isVencido
-                                              ? 'Venceu há ${DateTime.now().difference(epi.dataValidade).inDays} dias'
-                                              : 'Vence em ${epi.dataValidade.difference(DateTime.now()).inDays} dias',
+                                          vencido
+                                              ? 'Venceu há ${DateTime.now().difference(epi.validadeCa).inDays} dias'
+                                              : 'Vence em ${epi.validadeCa.difference(DateTime.now()).inDays} dias',
                                           style: TextStyle(
-                                            color: epi.isVencido
+                                            color: vencido
                                                 ? theme.colorScheme.error
                                                 : Colors.orange,
-                                            fontSize: 12,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                     ],
                                   ),
                                 ),
-                                _buildDataCell(
-                                  width: fornecedorWidth,
-                                  context: context,
-                                  child: Text(epi.fornecedor),
-                                ),
+                                // AÇÕES
                                 _buildDataCell(
                                   width: acoesWidth,
                                   isLast: true,
@@ -339,6 +373,7 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
+                                      // BOTÃO VISUALIZAR (Usa EpiDrawer com view: true)
                                       IconButton(
                                         icon: const Icon(
                                           Icons.visibility_outlined,
@@ -348,26 +383,28 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                           showGeneralDialog(
                                             context: context,
                                             barrierDismissible: false,
-                                            barrierLabel: 'View EPI',
+                                            barrierLabel: 'Visualizar EPI',
                                             transitionDuration: const Duration(
                                               milliseconds: 300,
                                             ),
-                                            pageBuilder:
-                                                (
-                                                  context,
-                                                  animation,
-                                                  secondaryAnimation,
-                                                ) {
-                                                  return ViewEpiDrawer(
-                                                    epi: epi,
-                                                    onClose: () => Navigator.of(
+                                            pageBuilder: (
+                                              context,
+                                              animation,
+                                              secondaryAnimation,
+                                            ) {
+                                              return EpiDrawer(
+                                                epiToEdit: epi,
+                                                view: true,
+                                                onClose:
+                                                    () => Navigator.of(
                                                       context,
                                                     ).pop(),
-                                                  );
-                                                },
+                                              );
+                                            },
                                           );
                                         },
                                       ),
+                                      // BOTÃO EDITAR (Usa EpiDrawer padrão de edição)
                                       IconButton(
                                         icon: const Icon(Icons.edit_outlined),
                                         tooltip: 'Editar',
@@ -375,39 +412,41 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                                           showGeneralDialog(
                                             context: context,
                                             barrierDismissible: false,
-                                            barrierLabel: 'Edit EPI',
+                                            barrierLabel: 'Editar EPI',
                                             transitionDuration: const Duration(
                                               milliseconds: 300,
                                             ),
-                                            pageBuilder:
-                                                (
-                                                  context,
-                                                  animation,
-                                                  secondaryAnimation,
-                                                ) {
-                                                  return EditEpiDrawer(
-                                                    epi: epi,
-                                                    onClose: () => Navigator.of(
+                                            pageBuilder: (
+                                              context,
+                                              animation,
+                                              secondaryAnimation,
+                                            ) {
+                                              return EpiDrawer(
+                                                epiToEdit: epi,
+                                                onClose:
+                                                    () => Navigator.of(
                                                       context,
                                                     ).pop(),
-                                                    onSave: (data) {
-                                                      // TODO: Implementar salvamento real
-                                                      Navigator.of(
-                                                        context,
-                                                      ).pop();
-                                                    },
-                                                  );
+                                                onSave: () {
+                                                  // Callback para recarregar a lista se necessário
+                                                  // Ex: context.read<InventoryController>().loadEpis();
+                                                  Navigator.of(context).pop();
                                                 },
+                                              );
+                                            },
                                           );
                                         },
                                       ),
+                                      // BOTÃO EXCLUIR
                                       IconButton(
                                         icon: Icon(
                                           Icons.delete_outline,
                                           color: theme.colorScheme.error,
                                         ),
                                         tooltip: 'Excluir',
-                                        onPressed: () {},
+                                        onPressed: () {
+                                          // TODO: Implementar diálogo de confirmação e exclusão
+                                        },
                                       ),
                                     ],
                                   ),
@@ -446,9 +485,7 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(
-                    alpha: 0.3,
-                  ),
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                   width: 1,
                 ),
         ),
@@ -477,8 +514,8 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
                   child: Icon(
                     isActive
                         ? (_sortAscending
-                              ? Icons.arrow_upward
-                              : Icons.arrow_downward)
+                            ? Icons.arrow_upward
+                            : Icons.arrow_downward)
                         : Icons.unfold_more,
                     size: 16,
                     color: isActive
@@ -508,9 +545,7 @@ class _InventoryDataTableState extends State<InventoryDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(
-                    alpha: 0.3,
-                  ),
+                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
                 ),
         ),
       ),

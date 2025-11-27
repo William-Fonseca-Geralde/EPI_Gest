@@ -8,6 +8,7 @@ class ImagePickerWidget extends StatelessWidget {
   final bool viewOnly;
   final Function(File) onImagePicked;
   final VoidCallback onImageRemoved;
+  final double height, width;
 
   const ImagePickerWidget({
     super.key,
@@ -16,10 +17,11 @@ class ImagePickerWidget extends StatelessWidget {
     this.viewOnly = false,
     required this.onImagePicked,
     required this.onImageRemoved,
+    required this.height,
+    required this.width,
   });
 
   Future<void> _pickImage(BuildContext context) async {
-
     if (viewOnly) return;
 
     try {
@@ -55,15 +57,16 @@ class ImagePickerWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final bool hasImage = imageFile != null || (imageUrl != null && imageUrl!.isNotEmpty);
+    final bool hasImage =
+        imageFile != null || (imageUrl != null && imageUrl!.isNotEmpty);
 
     return Column(
       children: [
         GestureDetector(
           onTap: viewOnly ? null : () => _pickImage(context),
           child: Container(
-            width: 300,
-            height: 250,
+            width: width,
+            height: height,
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
@@ -75,10 +78,8 @@ class ImagePickerWidget extends StatelessWidget {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
-              child: hasImage
-                  ? _buildImage()
-                  : _buildPlaceholder(theme),
-            )
+              child: hasImage ? _buildImage() : _buildPlaceholder(theme),
+            ),
           ),
         ),
         if (hasImage && !viewOnly) ...[
@@ -114,27 +115,23 @@ class ImagePickerWidget extends StatelessWidget {
 
   Widget _buildImage() {
     if (imageFile != null) {
-      return Image.file(
-        imageFile!,
-        width: 300,
-        height: 250,
-        fit: BoxFit.cover,
-      );
+      return Image.file(imageFile!, width: 300, height: 250, fit: BoxFit.cover);
     }
-    
+
     if (imageUrl != null && imageUrl!.isNotEmpty) {
       return Image.network(
         imageUrl!,
         width: 300,
         height: 250,
         fit: BoxFit.cover,
-        loadingBuilder: (context, child, progress) =>
-            progress == null ? child : const Center(child: CircularProgressIndicator()),
+        loadingBuilder: (context, child, progress) => progress == null
+            ? child
+            : const Center(child: CircularProgressIndicator()),
         errorBuilder: (context, error, stack) =>
             const Icon(Icons.error_outline, size: 48),
       );
     }
-    
+
     return Container();
   }
 

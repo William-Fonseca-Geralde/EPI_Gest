@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/ui/inventory/widgets/inventory/product_search_dialog.dart';
+import 'package:epi_gest_project/ui/epis/widgets/inventory/product_search_dialog.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart'; // Certifique-se de importar o BaseDrawer
 import 'package:epi_gest_project/ui/widgets/search_selection_dialog.dart';
 import 'package:flutter/material.dart';

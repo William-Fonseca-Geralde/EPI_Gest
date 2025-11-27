@@ -157,12 +157,14 @@ class _EmployeesPageState extends State<EmployeesPage> {
           }
         }
 
-        if (filters['mapeamento'] != null && (filters['mapeamento'] as List).isNotEmpty) {
+        if (filters['mapeamento'] != null &&
+            (filters['mapeamento'] as List).isNotEmpty) {
           final selectedMappings = List<String>.from(filters['mapeamento']);
           final employeeMapping = _employeeMappingMap[employee.id];
-          
+
           // Se o funcionário não tem mapeamento ou o mapeamento dele não está na lista selecionada
-          if (employeeMapping == null || !selectedMappings.contains(employeeMapping)) {
+          if (employeeMapping == null ||
+              !selectedMappings.contains(employeeMapping)) {
             return false;
           }
         }
@@ -403,7 +405,14 @@ class _EmployeesPageState extends State<EmployeesPage> {
               future: _loadEmployeesFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Column(
+                    spacing: 16,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      Text('Carregando dados...'),
+                    ],
+                  );
                 }
                 if (snapshot.hasError) {
                   return _buildErrorState(theme, snapshot.error.toString());

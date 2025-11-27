@@ -1,3 +1,4 @@
+import 'package:epi_gest_project/ui/utils/input_formatters.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:epi_gest_project/ui/widgets/info_section.dart';
@@ -513,9 +514,10 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
                         label: 'Valor Unit.',
                         hint: 'R\$ 0,00',
                         icon: Icons.attach_money,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          CurrencyInputFormatter()
+                        ],
                       ),
                     ),
                   ],

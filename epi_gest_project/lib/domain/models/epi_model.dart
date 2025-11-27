@@ -1,8 +1,6 @@
-import 'package:epi_gest_project/domain/models/armazem_model.dart';
 import 'package:epi_gest_project/domain/models/categoria_model.dart';
 import 'package:epi_gest_project/domain/models/marcas_model.dart';
 import 'package:epi_gest_project/domain/models/medida_model.dart';
-import 'package:epi_gest_project/domain/models/unidade_model.dart';
 
 import 'appwrite_model.dart';
 
@@ -14,7 +12,6 @@ class EpiModel extends AppWriteModel {
   final double estoque;
   final double valor;
   final MarcasModel marca;
-  final ArmazemModel armazem;
   final CategoriaModel categoria;
   final MedidaModel medida;
 
@@ -27,7 +24,6 @@ class EpiModel extends AppWriteModel {
     required this.estoque,
     required this.valor,
     required this.marca,
-    required this.armazem,
     required this.categoria,
     required this.medida,
   });
@@ -42,27 +38,12 @@ class EpiModel extends AppWriteModel {
     }
 
     final marcaData = getData(map['marca_id']);
-    final armazemData = getData(map['armazem_id']);
     final categoriaData = getData(map['categoria_id']);
     final medidaData = getData(map['medida_id']);
 
     final marcaObj = marcaData != null
         ? MarcasModel.fromMap(marcaData)
         : MarcasModel(id: '', nomeMarca: '');
-
-    final armazemObj = armazemData != null
-        ? ArmazemModel.fromMap(armazemData)
-        : ArmazemModel(
-            id: '',
-            codigoArmazem: '',
-            unidade: UnidadeModel(
-              nomeUnidade: '',
-              cnpj: '',
-              endereco: '',
-              tipoUnidade: '',
-              status: false
-            ),
-          );
 
     final categoriaObj = categoriaData != null
         ? CategoriaModel.fromMap(categoriaData)
@@ -81,7 +62,6 @@ class EpiModel extends AppWriteModel {
       estoque: (map['estoque'] ?? 0).toDouble(),
       valor: (map['valor'] ?? 0).toDouble(),
       marca: marcaObj,
-      armazem: armazemObj,
       categoria: categoriaObj,
       medida: medidaObj,
     );
@@ -97,7 +77,6 @@ class EpiModel extends AppWriteModel {
       'estoque': estoque,
       'valor': valor,
       'marca_id': marca.id,
-      'armazem_id': armazem.id,
       'categoria_id': categoria.id,
       'medida_id': medida.id,
     };

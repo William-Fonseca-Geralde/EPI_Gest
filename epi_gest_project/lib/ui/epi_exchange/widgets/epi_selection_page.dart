@@ -291,8 +291,8 @@ class _EPISelectionCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isExpired
-                                ? Colors.red.shade600
-                                : Colors.orange.shade600,
+                                ? Colors.red.shade100
+                                : Colors.orange.shade100,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -300,7 +300,7 @@ class _EPISelectionCard extends StatelessWidget {
                                 ? 'Vencido há ${daysUntilExpiry.abs()} dias'
                                 : 'Vence em $daysUntilExpiry dias',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white,
+                              color: isExpired ? Colors.red.shade700 : Colors.orange.shade700,
                               fontWeight: FontWeight.bold,
                             ),
                           ),

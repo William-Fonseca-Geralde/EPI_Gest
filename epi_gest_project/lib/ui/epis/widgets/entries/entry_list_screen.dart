@@ -1,18 +1,18 @@
-import 'package:epi_gest_project/ui/inventory/widgets/inventory/inventory_data_table.dart';
-import 'package:epi_gest_project/ui/inventory/widgets/inventory/inventory_filters.dart';
-import 'package:epi_gest_project/ui/inventory/widgets/inventory/new_inventory_drawer.dart';
+import 'package:epi_gest_project/ui/epis/widgets/entries/entry_data_table.dart';
+import 'package:epi_gest_project/ui/epis/widgets/entries/entry_filters.dart';
+import 'package:epi_gest_project/ui/epis/widgets/entries/new_entry_drawer.dart';
 import 'package:flutter/material.dart';
 
-class InventoryListScreen extends StatefulWidget {
-  const InventoryListScreen({super.key});
+class EntryListScreen extends StatefulWidget {
+  const EntryListScreen({super.key});
 
   @override
-  State<InventoryListScreen> createState() => _InventoryListScreenState();
+  State<EntryListScreen> createState() => _EntryListScreenState();
 }
 
-class _InventoryListScreenState extends State<InventoryListScreen> {
+class _EntryListScreenState extends State<EntryListScreen> {
   bool _showFilters = false;
-  final List<Map<String, dynamic>> _inventories = []; // Dados mockados por enquanto
+  final List<Map<String, dynamic>> _entries = []; // Dados mockados por enquanto
 
   void _goBack() {
     Navigator.of(context).pop();
@@ -61,7 +61,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
-                        Icons.inventory_outlined,
+                        Icons.input,
                         color: theme.colorScheme.onPrimaryContainer,
                         size: 40,
                       ),
@@ -71,7 +71,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Inventário de EPIs',
+                          'Entrada de Materiais',
                           style: theme.textTheme.headlineMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.8,
@@ -80,7 +80,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${_inventories.length} ${_inventories.length == 1 ? 'inventário realizado' : 'inventários realizados'}',
+                          '${_entries.length} ${_entries.length == 1 ? 'entrada registrada' : 'entradas registradas'}',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: colorScheme.onSurfaceVariant,
                             fontWeight: FontWeight.w500,
@@ -104,9 +104,9 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                     ),
                     const SizedBox(width: 12),
                     FilledButton.icon(
-                      onPressed: _showNewInventoryDrawer,
+                      onPressed: _showNewEntryDrawer,
                       icon: const Icon(Icons.add),
-                      label: const Text('Novo Inventário'),
+                      label: const Text('Nova Entrada'),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
@@ -121,7 +121,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
           ),
           const Divider(height: 1),
           if (_showFilters)
-            InventoryFilters(
+            EntryFilters(
               onApplyFilters: (filters) {
                 // TODO: Implementar filtros
               },
@@ -129,9 +129,7 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
                 // TODO: Implementar limpar filtros
               },
             ),
-          Expanded(
-            child: _buildContent(theme),
-          ),
+          Expanded(child: _buildContent(theme)),
         ],
       ),
     );
@@ -143,40 +141,45 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
     });
   }
 
-  void _showNewInventoryDrawer() {
-    showDialog(
+  void _showNewEntryDrawer() {
+    showGeneralDialog(
       context: context,
-      builder: (context) => NewInventoryDrawer(
-        onClose: () => Navigator.of(context).pop(),
-        onSave: (inventoryData) {
-          // TODO: Implementar salvamento real
-          Navigator.of(context).pop();
-        },
-      ),
+      barrierDismissible: true,
+      barrierLabel: 'Nova Entrada',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return NewEntryDrawer(
+          onClose: () => Navigator.of(context).pop(),
+          onSave: (entryData) {
+            // TODO: Implementar salvamento real
+            Navigator.of(context).pop();
+          },
+        );
+      },
     );
   }
 
   Widget _buildContent(ThemeData theme) {
-    if (_inventories.isEmpty) {
+    if (_entries.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.inventory_outlined,
+              Icons.input_outlined,
               size: 64,
               color: theme.colorScheme.outline,
             ),
             const SizedBox(height: 16),
             Text(
-              'Nenhum inventário registrado',
+              'Nenhuma entrada registrada',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Clique em "Novo Inventário" para registrar o primeiro inventário',
+              'Clique em "Nova Entrada" para registrar a primeira entrada',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.outline,
               ),
@@ -186,6 +189,6 @@ class _InventoryListScreenState extends State<InventoryListScreen> {
       );
     }
 
-    return InventoryDataTable(inventories: _inventories);
+    return EntryDataTable(entries: _entries);
   }
 }

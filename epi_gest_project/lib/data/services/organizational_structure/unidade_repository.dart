@@ -5,7 +5,7 @@ import 'package:epi_gest_project/domain/models/unidade_model.dart';
 
 class UnidadeRepository extends BaseRepository<UnidadeModel> {
   UnidadeRepository(TablesDB databases)
-      : super(databases, AppwriteConstants.databaseLocalTrabalho);  
+    : super(databases, AppwriteConstants.databaseLocalTrabalho);
 
   @override
   UnidadeModel fromMap(Map<String, dynamic> map) {
@@ -18,9 +18,7 @@ class UnidadeRepository extends BaseRepository<UnidadeModel> {
 
   Future<void> inativarUnidade(String rowId) async {
     try {
-      await update(rowId, {
-        'status': false,
-      });
+      await update(rowId, {'status': false});
     } catch (e) {
       throw Exception('Falha ao inativar unidade.');
     }
@@ -28,9 +26,7 @@ class UnidadeRepository extends BaseRepository<UnidadeModel> {
 
   Future<void> ativarUnidade(String rowId) async {
     try {
-      await update(rowId, {
-        'status': true,
-      });
+      await update(rowId, {'status': true});
     } catch (e) {
       throw Exception('Falha ao reativar unidade.');
     }

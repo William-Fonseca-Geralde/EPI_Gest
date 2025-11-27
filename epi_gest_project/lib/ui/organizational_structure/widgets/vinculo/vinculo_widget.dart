@@ -1,6 +1,7 @@
 import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
 import 'package:epi_gest_project/domain/models/vinculo_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/vinculo/vinculo_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -92,7 +93,10 @@ class VinculoWidgetState extends State<VinculoWidget> {
 
     if (confirm == true) {
       try {
-        final repository = Provider.of<VinculoRepository>(context, listen: false);
+        final repository = Provider.of<VinculoRepository>(
+          context,
+          listen: false,
+        );
         await repository.delete(vinculo.id!);
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -116,68 +120,46 @@ class VinculoWidgetState extends State<VinculoWidget> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), Text('Carregando dados...')],
+      );
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: Theme.of(context).colorScheme.error,
-              size: 48,
-            ),
-            const SizedBox(height: 16),
-            Text(_error!),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text("Tentar Novamente"),
-            ),
-          ],
-        ),
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Theme.of(context).colorScheme.error,
+            size: 48,
+          ),
+          Text(_error!),
+          FilledButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Tentar Novamente"),
+          ),
+        ],
       );
     }
 
     if (_vinculos.isEmpty) {
-      return _buildEmptyState();
+      return BuildEmpty(
+        title: 'Nenhum vínculo cadastrado',
+        subtitle: 'Clique em "Novo Vinculo" para começar',
+        icon: Icons.assignment_ind_outlined,
+        titleDrawer: "Novo Vinculo",
+        drawer: _showDrawer,
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [Expanded(child: _buildVinculosList())],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.assignment_ind_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum vínculo cadastrado',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Clique em "Novo Vinculo" para começar',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -203,7 +185,8 @@ class VinculoWidgetState extends State<VinculoWidget> {
                 IconButton(
                   icon: const Icon(Icons.visibility_outlined),
                   tooltip: 'Visualizar',
-                  onPressed: () => _showDrawer(vinculo: vinculo, viewOnly: true),
+                  onPressed: () =>
+                      _showDrawer(vinculo: vinculo, viewOnly: true),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),

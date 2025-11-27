@@ -53,6 +53,7 @@ dependencies:
   appwrite: ^20.3.0
   flutter_localizations:
     sdk: flutter
+  phosphor_flutter: ^2.1.0
 
 dev_dependencies:
   flutter_test:

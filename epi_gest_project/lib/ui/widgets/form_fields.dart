@@ -256,7 +256,7 @@ class CustomMultiSelectField extends StatelessWidget {
   final GlobalKey buttonKey;
   final VoidCallback onTap;
   final bool enabled;
-  
+
   // Novos parâmetros para o botão de adicionar
   final bool showAddButton;
   final VoidCallback? onAddPressed;
@@ -284,7 +284,9 @@ class CustomMultiSelectField extends StatelessWidget {
       key: buttonKey,
       onTap: enabled ? onTap : null,
       child: Container(
-        padding: const EdgeInsets.all(12), // Padding reduzido para alinhar melhor
+        padding: const EdgeInsets.all(
+          12,
+        ), // Padding reduzido para alinhar melhor
         decoration: BoxDecoration(
           border: Border.all(color: theme.colorScheme.outline),
           borderRadius: BorderRadius.circular(12),
@@ -327,7 +329,7 @@ class CustomMultiSelectField extends StatelessWidget {
                     color: theme.colorScheme.onSurfaceVariant.withOpacity(0.5),
                   ),
                 ),
-              )
+              ),
             ],
           ],
         ),
@@ -406,7 +408,8 @@ class MultiSelectSearchDialog extends StatefulWidget {
   });
 
   @override
-  State<MultiSelectSearchDialog> createState() => _MultiSelectSearchDialogState();
+  State<MultiSelectSearchDialog> createState() =>
+      _MultiSelectSearchDialogState();
 }
 
 class _MultiSelectSearchDialogState extends State<MultiSelectSearchDialog> {
@@ -463,7 +466,7 @@ class _MultiSelectSearchDialogState extends State<MultiSelectSearchDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Search
             TextField(
               controller: _searchController,
@@ -473,24 +476,33 @@ class _MultiSelectSearchDialogState extends State<MultiSelectSearchDialog> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 12,
+                  horizontal: 16,
+                ),
                 filled: true,
-                fillColor: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                fillColor: theme.colorScheme.surfaceContainerHighest
+                    .withOpacity(0.3),
               ),
               onChanged: _filterItems,
             ),
             const SizedBox(height: 12),
-            
+
             // List
             Expanded(
               child: _filteredItems.isEmpty
-                  ? Center(child: Text('Nenhum item encontrado', style: theme.textTheme.bodyMedium))
+                  ? Center(
+                      child: Text(
+                        'Nenhum item encontrado',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    )
                   : ListView.builder(
                       itemCount: _filteredItems.length,
                       itemBuilder: (context, index) {
                         final item = _filteredItems[index];
                         final isSelected = _tempSelectedItems.contains(item);
-                        
+
                         return CheckboxListTile(
                           title: Text(item),
                           value: isSelected,
@@ -510,9 +522,9 @@ class _MultiSelectSearchDialogState extends State<MultiSelectSearchDialog> {
                       },
                     ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Footer
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -562,9 +574,9 @@ class CustomSwitchField extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: theme.colorScheme.outlineVariant),
+        border: Border.all(color: value ? theme.colorScheme.primary : theme.colorScheme.outline),
         borderRadius: BorderRadius.circular(12),
         color: enabled ? null : theme.colorScheme.surfaceContainerHighest,
       ),
@@ -585,7 +597,7 @@ class CustomSwitchField extends StatelessWidget {
                 Text(
                   value ? activeText : inactiveText,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: value ? Colors.green : Colors.red,
                   ),
                 ),
               ],
@@ -628,16 +640,14 @@ class CustomSearchField extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(width: 4),
                 Text(
                   '*',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
               ],
             ),
@@ -646,7 +656,8 @@ class CustomSearchField extends StatelessWidget {
           controller: controller,
           readOnly: true,
           onTap: onTap,
-          validator: validator ??
+          validator:
+              validator ??
               (value) {
                 if (isRequired && (value == null || value.isEmpty)) {
                   return 'Campo obrigatório';
@@ -657,9 +668,7 @@ class CustomSearchField extends StatelessWidget {
             labelText: isRequired ? null : label,
             hintText: 'Selecione $label',
             suffixIcon: Icon(icon),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             filled: true,
             fillColor: Theme.of(context).inputDecorationTheme.fillColor,
           ),

@@ -237,10 +237,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     super.dispose();
   }
 
-  Future<void> _closeDrawer() async {
-    widget.onClose();
-  }
-
   void _showVinculoModal() {
     _controllers['newVinculoNome']!.clear();
     _controllers['newVinculoNome']!.clear();
@@ -737,11 +733,35 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return BaseDrawer(
+    String title;
+    String subtitle;
+    IconData icon;
+
+    if (_isViewing) {
+      title = 'Visualizar Funcionário';
+      subtitle = 'Informações de ${widget.employeeToEdit?.nomeFunc ?? ""}';
+      icon = Icons.visibility_outlined;
+    } else if (_isEditing) {
+      title = 'Editar Funcionário';
+      subtitle = 'Altere os dados do funcionário';
+      icon = Icons.person_search_outlined;
+    } else {
+      title = 'Adicionar Funcionário';
+      subtitle = 'Preencha os dados do novo funcionário';
+      icon = Icons.person_add_alt_1_outlined;
+    }
+
+    return BaseAddDrawer(
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
       onClose: widget.onClose,
-      header: _buildHeader(theme),
-      body: _buildBody(theme),
-      footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
+      onSave: _handleSave,
+      isEditing: _isEditing,
+      isViewing: _isViewing,
+      formKey: _formKey,
+      isSaving: _isSaving,
+      child: _buildBody(theme),
     );
   }
 
@@ -796,91 +816,16 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     return SingleChildScrollView(child: _buildForm(theme));
   }
 
-  Widget _buildHeader(ThemeData theme) {
-    String title;
-    String subtitle;
-    IconData icon;
-
-    if (_isViewing) {
-      title = 'Visualizar Funcionário';
-      subtitle = 'Informações de ${widget.employeeToEdit?.nomeFunc ?? ""}';
-      icon = Icons.visibility_outlined;
-    } else if (_isEditing) {
-      title = 'Editar Funcionário';
-      subtitle = 'Altere os dados do funcionário';
-      icon = Icons.person_search_outlined;
-    } else {
-      title = 'Adicionar Funcionário';
-      subtitle = 'Preencha os dados do novo funcionário';
-      icon = Icons.person_add_alt_1_outlined;
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: theme.colorScheme.onPrimaryContainer,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: _closeDrawer,
-            icon: const Icon(Icons.close),
-            tooltip: 'Fechar',
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildForm(ThemeData theme) {
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final useTwoColumns = constraints.maxWidth > 700;
-            return useTwoColumns
-                ? _buildTwoColumnLayout(theme)
-                : _buildSingleColumnLayout(theme);
-          },
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final useTwoColumns = constraints.maxWidth > 700;
+          return useTwoColumns
+              ? _buildTwoColumnLayout(theme)
+              : _buildSingleColumnLayout(theme);
+        },
       ),
     );
   }
@@ -902,6 +847,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
                 onImagePicked: _onImagePicked,
                 onImageRemoved: _onImageRemoved,
                 viewOnly: _isViewing,
+                height: 210,
+                width: 275,
               ),
               // HIERARQUIA ABAIXO DA IMAGEM
               InfoSection(
@@ -1017,6 +964,8 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           onImagePicked: _onImagePicked,
           onImageRemoved: _onImageRemoved,
           viewOnly: _isViewing,
+          height: 200,
+          width: 300,
         ),
         InfoSection(
           title: 'Informações Básicas',
@@ -1102,97 +1051,6 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
           ),
         ],
       ],
-    );
-  }
-
-  Widget _buildEditFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        spacing: 12,
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton.icon(
-                icon: Icon(Icons.close),
-                onPressed: _isSaving ? null : _closeDrawer,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.onSurface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                label: const Text('Cancelar'),
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: SizedBox(
-              height: 48,
-              child: FilledButton.icon(
-                onPressed: _isSaving || _isLoading ? null : _handleSave,
-                icon: _isSaving
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.colorScheme.onPrimary,
-                        ),
-                      )
-                    : const Icon(Icons.save),
-                label: Text(
-                  _isSaving
-                      ? 'Salvando...'
-                      : (_isEditing
-                            ? 'Salvar Alterações'
-                            : 'Adicionar Funcionário'),
-                ),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildViewFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(
-          top: BorderSide(color: theme.colorScheme.outlineVariant, width: 1),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _closeDrawer,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Fechar'),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

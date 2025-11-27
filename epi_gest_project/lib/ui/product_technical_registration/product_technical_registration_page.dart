@@ -18,12 +18,11 @@ class _ProductTechnicalRegistrationPageState
     extends State<ProductTechnicalRegistrationPage> {
   int? _selectedSection;
 
-  // Keys para controlar cada widget - ATUALIZADO
   final GlobalKey<MeasurementUnitsWidgetState> _measurementUnitsKey = GlobalKey();
   final GlobalKey<ProductCategoriesWidgetState> _productCategoriesKey = GlobalKey();
   final GlobalKey<StorageLocationsWidgetState> _storageLocationsKey = GlobalKey();
   final GlobalKey<SupplierRegistrationWidgetState> _supplierRegistrationKey = GlobalKey();
-  final GlobalKey<BrandsRegistrationWidgetState> _brandsRegistrationKey = GlobalKey(); // NOVO
+  final GlobalKey<BrandsRegistrationWidgetState> _brandsRegistrationKey = GlobalKey();
 
   final List<Map<String, dynamic>> _sections = [
     {
@@ -91,7 +90,7 @@ class _ProductTechnicalRegistrationPageState
         return 'Novo Local';
       case 3:
         return 'Novo Fornecedor';
-      case 4: // NOVO
+      case 4:
         return 'Nova Marca';
       default:
         return 'Adicionar';

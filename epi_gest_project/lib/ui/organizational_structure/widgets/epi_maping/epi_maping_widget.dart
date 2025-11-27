@@ -9,6 +9,7 @@ import 'package:epi_gest_project/domain/models/categoria_model.dart';
 import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
 import 'package:epi_gest_project/domain/models/riscos_model.dart';
 import 'package:epi_gest_project/domain/models/setor_model.dart';
+import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'epi_mapping_drawer.dart';
@@ -30,7 +31,7 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
   List<SetorModel> _availableSectors = [];
   List<CargoModel> _availableRoles = [];
   List<RiscosModel> _availableRisks = [];
-  List<CategoriaModel> _availableCategories = []; 
+  List<CategoriaModel> _availableCategories = [];
 
   @override
   void initState() {
@@ -45,7 +46,10 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
     });
 
     try {
-      final mapRepo = Provider.of<MapeamentoEpiRepository>(context, listen: false);
+      final mapRepo = Provider.of<MapeamentoEpiRepository>(
+        context,
+        listen: false,
+      );
       final setorRepo = Provider.of<SetorRepository>(context, listen: false);
       final cargoRepo = Provider.of<CargoRepository>(context, listen: false);
       final riscoRepo = Provider.of<RiscosRepository>(context, listen: false);
@@ -105,14 +109,20 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
 
   Future<void> _toggleStatus(MapeamentoEpiModel map) async {
     final repo = Provider.of<MapeamentoEpiRepository>(context, listen: false);
-    final vinculoRepo = Provider.of<MapeamentoFuncionarioRepository>(context, listen: false);
-    
+    final vinculoRepo = Provider.of<MapeamentoFuncionarioRepository>(
+      context,
+      listen: false,
+    );
+
     if (!map.status) {
       try {
         await repo.ativarMapeamento(map.id!);
         _loadData();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mapeamento ativado com sucesso!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Mapeamento ativado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
         );
       } catch (e) {
         _showErrorSnackBar('Erro ao ativar: $e');
@@ -141,15 +151,17 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
         final String? replacementId = result['replacementId'];
 
         await vinculoRepo.handleMapeamentoInactivation(map.id!, replacementId);
-        
+
         await repo.inativarMapeamento(map.id!);
 
         _loadData();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(replacementId != null 
-              ? 'Mapeamento inativado e funcionários migrados.' 
-              : 'Mapeamento inativado e vínculos removidos.'),
+            content: Text(
+              replacementId != null
+                  ? 'Mapeamento inativado e funcionários migrados.'
+                  : 'Mapeamento inativado e vínculos removidos.',
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -160,42 +172,10 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
   }
 
   void _showErrorSnackBar(String msg) {
-    if(!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: Colors.red));
-  }
-
-  Future<void> _deleteMapping(MapeamentoEpiModel map) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text('Excluir mapeamento ${map.setor.nomeSetor} - ${map.cargo.nomeCargo}?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      try {
-        final repo = Provider.of<MapeamentoEpiRepository>(context, listen: false);
-        await repo.delete(map.id!);
-        _loadData();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Excluído com sucesso!'), backgroundColor: Colors.green),
-        );
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao excluir: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
   void _filterMappings(String query) {
@@ -206,9 +186,9 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
       } else {
         _filteredMapeamentos = _mapeamentos.where((map) {
           return map.nomeMapeamento.toLowerCase().contains(lowerQuery) ||
-                 map.cargo.nomeCargo.toLowerCase().contains(lowerQuery) ||
-                 map.setor.nomeSetor.toLowerCase().contains(lowerQuery) ||
-                 map.codigoMapeamento.toLowerCase().contains(lowerQuery);
+              map.cargo.nomeCargo.toLowerCase().contains(lowerQuery) ||
+              map.setor.nomeSetor.toLowerCase().contains(lowerQuery) ||
+              map.codigoMapeamento.toLowerCase().contains(lowerQuery);
         }).toList();
       }
     });
@@ -216,21 +196,42 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
-    if (_error != null) return Center(child: Text(_error!));
-
-    if (_mapeamentos.isEmpty) {
+    if (_isLoading) {
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), Text('Carregando dados...')],
+      );
+    }
+    if (_error != null) {
       return Center(
         child: Column(
+          spacing: 16,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.map_outlined, size: 64, color: Colors.grey),
-            const SizedBox(height: 16),
-            const Text('Nenhum mapeamento cadastrado'),
-            const SizedBox(height: 8),
-            const Text('Clique em "Novo Mapeamento" para começar'),
+            Icon(
+              Icons.error_outline,
+              color: Theme.of(context).colorScheme.error,
+              size: 48,
+            ),
+            Text(_error!),
+            FilledButton.icon(
+              onPressed: _loadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text("Tentar Novamente"),
+            ),
           ],
         ),
+      );
+    }
+
+    if (_mapeamentos.isEmpty) {
+      return BuildEmpty(
+        title: 'Nenhum mapeamento cadastrado',
+        subtitle: 'Clique em "Novo Mapeamento" para começar',
+        icon: Icons.map_outlined,
+        titleDrawer: "Novo Mapeamento",
+        drawer: _showMapingDrawer,
       );
     }
 
@@ -255,73 +256,79 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
         ),
         Expanded(
           child: _filteredMapeamentos.isEmpty
-          ? Center(child: Text('Nenhum mapeamento encontrado'))
-          : ListView.builder(
-            itemCount: _mapeamentos.length,
-            padding: const EdgeInsets.all(16),
-            itemBuilder: (context, index) {
-              final map = _mapeamentos[index];
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.assignment_turned_in,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(map.nomeMapeamento),
-                  subtitle: Text(
-                    'Riscos: ${map.riscos.length} | Categorias EPI: ${map.listCategoriasEpis.length}\nCód: ${map.codigoMapeamento}',
-                  ),
-                  isThreeLine: true,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Status Badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: map.status ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+              ? Center(child: Text('Nenhum mapeamento encontrado'))
+              : ListView.builder(
+                  itemCount: _mapeamentos.length,
+                  padding: const EdgeInsets.all(16),
+                  itemBuilder: (context, index) {
+                    final map = _mapeamentos[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        leading: Icon(
+                          Icons.assignment_turned_in,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
-                        child: Text(
-                          map.status ? 'Ativo' : 'Inativo',
-                          style: TextStyle(
-                            color: map.status ? Colors.green : Colors.red,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
+                        title: Text(map.nomeMapeamento),
+                        subtitle: Text(
+                          'Riscos: ${map.riscos.length} | Categorias EPI: ${map.listCategoriasEpis.length}\nCód: ${map.codigoMapeamento}',
+                        ),
+                        isThreeLine: true,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: map.status
+                                    ? Colors.green.withValues(alpha: 0.1)
+                                    : Colors.red.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                map.status ? 'Ativo' : 'Inativo',
+                                style: TextStyle(
+                                  color: map.status ? Colors.green : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.visibility_outlined),
+                              tooltip: 'Visualizar',
+                              onPressed: () => _showMapingDrawer(
+                                mapping: map,
+                                viewOnly: true,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.edit_outlined),
+                              tooltip: 'Editar',
+                              onPressed: () => _showMapingDrawer(mapping: map),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                map.status
+                                    ? Icons.power_settings_new
+                                    : Icons.power_off,
+                                color: map.status
+                                    ? null
+                                    : Theme.of(context).colorScheme.error,
+                              ),
+                              tooltip: map.status ? 'Inativar' : 'Ativar',
+                              onPressed: () => _toggleStatus(map),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.visibility_outlined),
-                        tooltip: 'Visualizar',
-                        onPressed: () => _showMapingDrawer(mapping: map, viewOnly: true),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'Editar',
-                        onPressed: () => _showMapingDrawer(mapping: map),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          map.status ? Icons.toggle_on : Icons.toggle_off,
-                          color: map.status ? Colors.green : Colors.grey,
-                        ),
-                        tooltip: map.status ? 'Inativar' : 'Ativar',
-                        onPressed: () => _toggleStatus(map),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        tooltip: 'Excluir',
-                        onPressed: () => _deleteMapping(map),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
       ],
     );
@@ -349,7 +356,7 @@ class _InactivationDialogState extends State<_InactivationDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return AlertDialog(
       title: Row(
         children: [
@@ -398,9 +405,14 @@ class _InactivationDialogState extends State<_InactivationDialog> {
               value: _selectedReplacementId,
               isExpanded: true,
               decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 hintText: 'Selecione uma ação...',
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
               ),
               items: [
                 const DropdownMenuItem<String>(
@@ -410,10 +422,12 @@ class _InactivationDialogState extends State<_InactivationDialog> {
                     style: TextStyle(color: Colors.red),
                   ),
                 ),
-                ...widget.availableMappings.map((m) => DropdownMenuItem(
-                      value: m.id,
-                      child: Text('Substituir por: ${m.nomeMapeamento}'),
-                    )),
+                ...widget.availableMappings.map(
+                  (m) => DropdownMenuItem(
+                    value: m.id,
+                    child: Text('Substituir por: ${m.nomeMapeamento}'),
+                  ),
+                ),
               ],
               onChanged: (value) {
                 setState(() {
@@ -421,7 +435,7 @@ class _InactivationDialogState extends State<_InactivationDialog> {
                 });
               },
             ),
-          ] else 
+          ] else
             const Text('Nenhum funcionário será afetado.'),
         ],
       ),
@@ -433,9 +447,11 @@ class _InactivationDialogState extends State<_InactivationDialog> {
         FilledButton(
           onPressed: () => Navigator.pop(context, {
             'confirm': true,
-            'replacementId': _selectedReplacementId
+            'replacementId': _selectedReplacementId,
           }),
-          style: FilledButton.styleFrom(backgroundColor: theme.colorScheme.error),
+          style: FilledButton.styleFrom(
+            backgroundColor: theme.colorScheme.error,
+          ),
           child: const Text('Confirmar Inativação'),
         ),
       ],

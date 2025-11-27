@@ -1,4 +1,37 @@
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+
+class CnpjInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
+    if (text.length > 14) {
+      return oldValue;
+    }
+
+    var newText = '';
+
+    if (text.length <= 2) {
+      newText = text;
+    } else if (text.length <= 5) {
+      newText = '${text.substring(0, 2)}.${text.substring(2)}';
+    } else if (text.length <= 8) {
+      newText = '${text.substring(0, 2)}.${text.substring(2, 5)}.${text.substring(5)}';
+    } else if (text.length <= 12) {
+      newText = '${text.substring(0, 2)}.${text.substring(2, 5)}.${text.substring(5, 8)}/${text.substring(8)}';
+    } else {
+      newText = '${text.substring(0, 2)}.${text.substring(2, 5)}.${text.substring(5, 8)}/${text.substring(8, 12)}-${text.substring(12)}';
+    }
+
+    return TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
+  }
+}
 
 class CpfInputFormatter extends TextInputFormatter {
   @override
@@ -90,5 +123,27 @@ class TelefoneInputFormatter extends TextInputFormatter {
         selection: TextSelection.collapsed(offset: text.length + 5),
       );
     }
+  }
+}
+
+class CurrencyInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Remove tudo que não for dígito
+    double value = double.parse(newValue.text.replaceAll(RegExp('[^0-9]'), ''));
+
+    // Formata como moeda BRL
+    final formatter = NumberFormat.currency(locale: "pt_BR", symbol: "R\$");
+    String newText = formatter.format(value / 100);
+
+    return newValue.copyWith(
+        text: newText,
+        selection: TextSelection.collapsed(offset: newText.length));
   }
 }

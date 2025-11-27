@@ -1,6 +1,7 @@
 import 'package:epi_gest_project/data/services/organizational_structure/turno_repository.dart';
 import 'package:epi_gest_project/domain/models/turno_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/turno/turno_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +16,7 @@ class TurnoWidgetState extends State<TurnoWidget> {
   List<TurnoModel> _turnos = [];
   bool _isLoading = true;
   String? _error;
-  
+
   @override
   void initState() {
     super.initState();
@@ -112,72 +113,50 @@ class TurnoWidgetState extends State<TurnoWidget> {
       }
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), Text('Carregando dados...')],
+      );
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: Theme.of(context).colorScheme.error,
-              size: 48,
-            ),
-            const SizedBox(height: 16),
-            Text(_error!),
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _loadData,
-              icon: const Icon(Icons.refresh),
-              label: const Text("Tentar Novamente"),
-            ),
-          ],
-        ),
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Theme.of(context).colorScheme.error,
+            size: 48,
+          ),
+          Text(_error!),
+          FilledButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Tentar Novamente"),
+          ),
+        ],
       );
     }
 
     if (_turnos.isEmpty) {
-      return _buildEmptyState();
+      return BuildEmpty(
+        title: 'Nenhum turno cadastrado',
+        subtitle: 'Clique em "Novo Turno" para começar',
+        icon: Icons.access_time_outlined,
+        titleDrawer: "Novo Turno",
+        drawer: _showDrawer,
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [Expanded(child: _buildTurnosList())],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.access_time_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum turno cadastrado',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Clique em "Novo Turno" para começar',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -197,9 +176,7 @@ class TurnoWidgetState extends State<TurnoWidget> {
               turno.turno,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text(
-              '${turno.horaEntrada} - ${turno.horaSaida}',
-            ),
+            subtitle: Text('${turno.horaEntrada} - ${turno.horaSaida}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

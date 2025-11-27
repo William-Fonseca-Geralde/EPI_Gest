@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:epi_gest_project/domain/models/epi/inventory_filter_model.dart';
 
-class InventoryFilters extends StatefulWidget {
+class EpiFilters extends StatefulWidget {
   final InventoryFilterModel appliedFilters;
   final List<String> categories;
   final List<String> suppliers;
   final Function(InventoryFilterModel) onApplyFilters;
   final VoidCallback onClearFilters;
 
-  const InventoryFilters({
+  const EpiFilters({
     super.key,
     required this.appliedFilters,
     required this.categories,
@@ -20,10 +20,10 @@ class InventoryFilters extends StatefulWidget {
   });
 
   @override
-  State<InventoryFilters> createState() => _InventoryFiltersState();
+  State<EpiFilters> createState() => _EpiFiltersState();
 }
 
-class _InventoryFiltersState extends State<InventoryFilters> {
+class _EpiFiltersState extends State<EpiFilters> {
   bool _showAdvancedFilters = false;
 
   // Filtros temporários
@@ -57,7 +57,7 @@ class _InventoryFiltersState extends State<InventoryFilters> {
   }
 
   @override
-  void didUpdateWidget(InventoryFilters oldWidget) {
+  void didUpdateWidget(EpiFilters oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.appliedFilters != oldWidget.appliedFilters) {
       setState(() {

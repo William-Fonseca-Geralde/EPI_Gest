@@ -12,7 +12,9 @@ class _ExchangePageState extends State<ExchangePage> {
   String _selectedFilter = 'Todos';
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
-  final ValueNotifier<Widget?> _drawerContentNotifier = ValueNotifier<Widget?>(null);
+  final ValueNotifier<Widget?> _drawerContentNotifier = ValueNotifier<Widget?>(
+    null,
+  );
 
   final List<Map<String, dynamic>> _employees = [
     {
@@ -157,11 +159,15 @@ class _ExchangePageState extends State<ExchangePage> {
     return count;
   }
 
-  // CORREÇÃO: Simplificado para usar ExchangeDrawerContent
   void _openEPISelectionDrawer(Map<String, dynamic> employee) {
-    _drawerContentNotifier.value = ExchangeDrawerContent(
-      employee: employee,
-      onCloseDrawer: () => _drawerContentNotifier.value = null,
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Registrar Troca',
+      pageBuilder: (context, _, __) => ExchangeDrawerContent(
+        employee: employee,
+        onCloseDrawer: () => Navigator.of(context).pop(),
+      ),
     );
   }
 
@@ -273,6 +279,7 @@ class _ExchangePageState extends State<ExchangePage> {
               child: Padding(
                 padding: const EdgeInsets.all(18),
                 child: Column(
+                  spacing: 24,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -310,7 +317,6 @@ class _ExchangePageState extends State<ExchangePage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
@@ -320,7 +326,8 @@ class _ExchangePageState extends State<ExchangePage> {
                             child: TextField(
                               controller: _searchController,
                               decoration: InputDecoration(
-                                hintText: 'Buscar por nome, matrícula ou setor...',
+                                hintText:
+                                    'Buscar por nome, matrícula ou setor...',
                                 prefixIcon: const Icon(Icons.search, size: 20),
                                 suffixIcon: _searchQuery.isNotEmpty
                                     ? IconButton(
@@ -351,15 +358,17 @@ class _ExchangePageState extends State<ExchangePage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-
                     Expanded(
                       child: _filteredEmployees.isEmpty
                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 64,
+                                    color: Colors.grey.shade400,
+                                  ),
                                   const SizedBox(height: 16),
                                   Text(
                                     'Nenhum funcionário encontrado',
@@ -377,15 +386,16 @@ class _ExchangePageState extends State<ExchangePage> {
                                 ],
                               ),
                             )
-                          : ListView.separated(
+                          : ListView.builder(
                               itemCount: _filteredEmployees.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 12),
                               itemBuilder: (context, index) {
                                 final employee = _filteredEmployees[index];
-                                return _EmployeeCard(
-                                  employee: employee,
-                                  onRegisterExchange: _openEPISelectionDrawer,
+                                return Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: _EmployeeCard(
+                                    employee: employee,
+                                    onRegisterExchange: _openEPISelectionDrawer,
+                                  ),
                                 );
                               },
                             ),
@@ -483,7 +493,10 @@ class _EmployeeCard extends StatelessWidget {
   final Map<String, dynamic> employee;
   final Function(Map<String, dynamic>) onRegisterExchange;
 
-  const _EmployeeCard({required this.employee, required this.onRegisterExchange});
+  const _EmployeeCard({
+    required this.employee,
+    required this.onRegisterExchange,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -501,11 +514,16 @@ class _EmployeeCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: hasExpired ? Colors.red.shade500 : Colors.orange.shade500,
-          width: 1.5,
+          color: hasExpired
+              ? Colors.red.withValues(alpha: 0.3)
+              : Colors.orange.withValues(alpha: 0.3),
+          width: 2.5,
         ),
       ),
       child: ExpansionTile(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12)
+        ),
         leading: CircleAvatar(
           backgroundColor: hasExpired
               ? Colors.red.shade100
@@ -544,11 +562,18 @@ class _EmployeeCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 8.0),
           child: Row(
             children: [
-              Icon(Icons.business_outlined, size: 14, color: Colors.grey.shade600),
-              const SizedBox(width: 4),
-              Text(employee['department'], style: textTheme.bodySmall?.copyWith(
+              Icon(
+                Icons.business_outlined,
+                size: 14,
                 color: Colors.grey.shade600,
-              )),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                employee['department'],
+                style: textTheme.bodySmall?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
               const SizedBox(width: 16),
               if (expiredCount > 0) ...[
                 Container(
@@ -610,15 +635,23 @@ class _EmployeeCard extends StatelessWidget {
             ],
           ),
         ),
-        // CORREÇÃO: Uso direto do callback
-        trailing: FilledButton.icon(
+        trailing: TextButton.icon(
           onPressed: () => onRegisterExchange(employee),
-          icon: const Icon(Icons.swap_horiz, size: 18),
-          label: const Text('Registrar Troca'),
-          style: FilledButton.styleFrom(
+          icon: Icon(
+            Icons.swap_horiz,
+            size: 18,
+            color: hasExpired ? Colors.red.shade700 : Colors.orange.shade700,
+          ),
+          label: Text(
+            'Registrar Troca',
+            style: TextStyle(
+              color: hasExpired ? Colors.red.shade700 : Colors.orange.shade700,
+            ),
+          ),
+          style: TextButton.styleFrom(
             backgroundColor: hasExpired
-                ? Colors.red.shade600
-                : Colors.orange.shade600,
+                ? Colors.red.shade100
+                : Colors.orange.shade100,
           ),
         ),
         children: [
@@ -635,7 +668,9 @@ class _EmployeeCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ...epis.map((epi) => _EpiItem(epi: epi)),
+                ...epis.map(
+                  (epi) => _EpiItem(epi: epi),
+                ),
               ],
             ),
           ),
@@ -669,7 +704,9 @@ class _EpiItem extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
         side: BorderSide(
-          color: isExpired ? Colors.red.shade700 : Colors.orange.shade700,
+          color: isExpired
+              ? Colors.red.withValues(alpha: 0.3)
+              : Colors.orange.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -696,9 +733,12 @@ class _EpiItem extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Text('CA: ${epi['ca']}', style: textTheme.bodySmall?.copyWith(
-                        color: Colors.grey.shade600,
-                      )),
+                      Text(
+                        'CA: ${epi['ca']}',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
                       const SizedBox(width: 16),
                       Text(
                         'Vencimento: ${_formatDate(epi['expiryDate'])}',
@@ -714,7 +754,9 @@ class _EpiItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: isExpired ? Colors.red.shade700 : Colors.orange.shade700,
+                color: isExpired
+                    ? Colors.red.shade100
+                    : Colors.orange.shade100,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Text(
@@ -722,7 +764,9 @@ class _EpiItem extends StatelessWidget {
                     ? 'Vencido há ${daysUntilExpiry.abs()} dia${daysUntilExpiry.abs() > 1 ? 's' : ''}'
                     : 'Vence em $daysUntilExpiry dia${daysUntilExpiry > 1 ? 's' : ''}',
                 style: textTheme.bodySmall?.copyWith(
-                  color: Colors.white,
+                  color: isExpired
+                      ? Colors.red.shade700
+                      : Colors.orange.shade700,
                   fontWeight: FontWeight.bold,
                 ),
               ),

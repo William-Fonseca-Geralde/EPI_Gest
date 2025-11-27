@@ -1,6 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
 import 'package:epi_gest_project/domain/models/unidade_model.dart';
+import 'package:epi_gest_project/ui/utils/input_formatters.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,6 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
 
     setState(() => _isSaving = true);
 
-
     final unitModel = UnidadeModel(
       id: widget.unidadeToEdit?.id,
       nomeUnidade: _nomeController.text.trim(),
@@ -122,339 +122,110 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return BaseDrawer(
-      onClose: widget.onClose,
-      widthFactor: 0.4,
-      header: _buildHeader(theme),
-      body: _buildForm(theme),
-      footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
     String title;
     String subtitle;
-    IconData icon;
 
     if (_isViewing) {
       title = "Visualizar Unidade";
       subtitle = "Informações completas da unidade";
-      icon = Icons.visibility_outlined;
     } else if (_isEditing) {
       title = "Editar Unidade";
       subtitle = "Altere os dados da unidade";
-      icon = Icons.edit_outlined;
     } else {
       title = "Adicionar Unidade";
       subtitle = "Preencha os dados da nova unidade";
-      icon = Icons.add_business_outlined;
     }
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: theme.colorScheme.onPrimaryContainer,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: widget.onClose,
-            icon: const Icon(Icons.close),
-            tooltip: "Fechar",
-            style: IconButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return BaseAddDrawer(
+      title: title,
+      subtitle: subtitle,
+      icon: Icons.business_outlined,
+      onClose: widget.onClose,
+      onSave: _handleSave,
+      formKey: _formKey,
+      isSaving: _isSaving,
+      isEditing: _isEditing,
+      isViewing: _isViewing,
+      widthFactor: 0.4,
+      child: _buildForm(theme),
     );
   }
 
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 
-    return Form(
-      key: _formKey,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          spacing: 20,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              spacing: 15,
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    controller: _nomeController,
-                    label: 'Nome da Unidade',
-                    hint: 'Filial de Araras',
-                    enabled: isEnabled,
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-                    icon: Icons.business_outlined,
-                  ),
-                ),
-                Expanded(
-                  child: CustomTextField(
-                    controller: _cnpjController,
-                    label: 'CNPJ',
-                    hint: '00.000.000/0000-00',
-                    enabled: isEnabled,
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-                    icon: Icons.badge_outlined,
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-            CustomTextField(
-              controller: _enderecoController,
-              label: 'Endereço Completo',
-              hint: '',
-              enabled: isEnabled,
-              maxLines: 2,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-              icon: Icons.location_on_outlined,
-            ),
-            Row(
-              spacing: 15,
-              children: [
-                Expanded(
-                  child: CustomAutocompleteField(
-                    controller: _tipoUnidadeController,
-                    label: 'Tipo de Unidade',
-                    hint: 'Selecione uma unidade',
-                    icon: Icons.category_outlined,
-                    suggestions: ['Matriz', 'Filial'],
-                    enabled: isEnabled,
-                  ),
-                ),
-                Expanded(
-                  child: CustomSwitchField(
-                    value: _statusController,
-                    enabled: isEnabled,
-                    onChanged: (v) => setState(() => _statusController = v),
-                    label: 'Status da Unidade',
-                    activeText: 'Ativa',
-                    inactiveText: 'Inativa',
-                    icon: Icons.toggle_on_outlined,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditFooter(ThemeData theme) {
-    return Container(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
+      child: Column(
+        spacing: 20,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Botão Cancelar
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: _isSaving ? null : widget.onClose,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.onSurface,
-                  side: BorderSide(
-                    color: theme.colorScheme.outline.withOpacity(0.5),
-                  ),
-                  backgroundColor: theme.colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+          Row(
+            spacing: 15,
+            children: [
+              Expanded(
+                child: CustomTextField(
+                  controller: _nomeController,
+                  label: 'Nome da Unidade',
+                  hint: 'Filial de Araras',
+                  enabled: isEnabled,
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+                  icon: Icons.business_outlined,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.close, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Cancelar",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
+              ),
+              Expanded(
+                child: CustomTextField(
+                  controller: _cnpjController,
+                  label: 'CNPJ',
+                  hint: '00.000.000/0000-00',
+                  enabled: isEnabled,
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+                  icon: Icons.badge_outlined,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    CnpjInputFormatter()
                   ],
                 ),
               ),
-            ),
+            ],
           ),
-
-          const SizedBox(width: 16),
-
-          // Botão Principal
-          Expanded(
-            flex: 2,
-            child: SizedBox(
-              height: 48,
-              child: FilledButton(
-                onPressed: _isSaving ? null : _handleSave,
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isSaving
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: theme.colorScheme.onPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Salvando...",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _isEditing ? Icons.save_outlined : Icons.add,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isEditing
-                                ? "Salvar Alterações"
-                                : "Adicionar Unidade",
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
+          CustomTextField(
+            controller: _enderecoController,
+            label: 'Endereço Completo',
+            hint: '',
+            enabled: isEnabled,
+            maxLines: 2,
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+            icon: Icons.location_on_outlined,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildViewFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: widget.onClose,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.primary,
-                  side: BorderSide(
-                    color: theme.colorScheme.primary.withOpacity(0.3),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.close, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Fechar",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
+          Row(
+            spacing: 15,
+            children: [
+              Expanded(
+                child: CustomAutocompleteField(
+                  controller: _tipoUnidadeController,
+                  label: 'Tipo de Unidade',
+                  hint: 'Selecione uma unidade',
+                  icon: Icons.category_outlined,
+                  suggestions: ['Matriz', 'Filial'],
+                  enabled: isEnabled,
                 ),
               ),
-            ),
+              Expanded(
+                child: CustomSwitchField(
+                  value: _statusController,
+                  enabled: isEnabled,
+                  onChanged: (v) => setState(() => _statusController = v),
+                  label: 'Status da Unidade',
+                  activeText: 'Ativa',
+                  inactiveText: 'Inativa',
+                  icon: Icons.business_outlined,
+                ),
+              ),
+            ],
           ),
         ],
       ),

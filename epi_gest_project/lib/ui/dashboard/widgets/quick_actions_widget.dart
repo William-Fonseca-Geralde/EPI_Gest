@@ -116,7 +116,6 @@ class QuickActionsWidget extends StatelessWidget {
         ),
         child: InkWell(
           onTap: () {
-            // Ação futura
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('$title - Em desenvolvimento'),

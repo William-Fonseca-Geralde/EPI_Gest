@@ -182,7 +182,6 @@ class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
       return EPISelectionPage(
         employee: widget.employee,
         initialSelectedEPIs: _selectedEPIs,
-        // Callback para atualizar o estado em tempo real e habilitar o botão
         onSelectionChanged: (selectedMap) {
           setState(() {
             _selectedEPIs = selectedMap;
@@ -194,7 +193,6 @@ class _ExchangeDrawerContentState extends State<ExchangeDrawerContent> {
       return ConfirmationPage(
         employee: widget.employee,
         selectedEPIs: _selectedEPIs,
-        // Passamos os controladores para a página de confirmação usar
         authorizedByController: _authorizedByController,
         observationsController: _observationsController,
       );

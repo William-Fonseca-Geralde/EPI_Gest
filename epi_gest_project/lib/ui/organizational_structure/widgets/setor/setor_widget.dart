@@ -1,5 +1,6 @@
 import 'package:epi_gest_project/data/services/organizational_structure/setor_repository.dart';
 import 'package:epi_gest_project/domain/models/setor_model.dart';
+import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'setor_drawer.dart';
@@ -116,12 +117,17 @@ class SetorWidgetState extends State<SetorWidget> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), Text('Carregando dados...')],
+      );
     }
 
     if (_error != null) {
       return Center(
         child: Column(
+          spacing: 16,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -129,9 +135,7 @@ class SetorWidgetState extends State<SetorWidget> {
               color: Theme.of(context).colorScheme.error,
               size: 48,
             ),
-            const SizedBox(height: 16),
             Text(_error!),
-            const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _loadData,
               icon: const Icon(Icons.refresh),
@@ -143,37 +147,18 @@ class SetorWidgetState extends State<SetorWidget> {
     }
 
     if (_setores.isEmpty) {
-      return _buildEmptyState();
+      return BuildEmpty(
+        title: 'Nenhum setor cadastrado',
+        subtitle: 'Clique em "Novo Setor" para começar',
+        icon: Icons.work_outline,
+        titleDrawer: "Novo Setor",
+        drawer: _showDrawer,
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [Expanded(child: _buildSetoresList())],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.work_outline, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum setor cadastrado',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Clique em "Novo Setor" para começar',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -195,17 +180,14 @@ class SetorWidgetState extends State<SetorWidget> {
               setor.nomeSetor,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            subtitle: Text(
-              'Unidade: ${setor.codigoSetor}',
-            ),
+            subtitle: Text('Unidade: ${setor.codigoSetor}'),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.visibility_outlined),
                   tooltip: 'Visualizar',
-                  onPressed: () =>
-                      _showDrawer(setor: setor, viewOnly: true),
+                  onPressed: () => _showDrawer(setor: setor, viewOnly: true),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),

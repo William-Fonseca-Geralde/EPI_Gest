@@ -1,6 +1,7 @@
 import 'package:epi_gest_project/data/services/organizational_structure/riscos_repository.dart';
 import 'package:epi_gest_project/domain/models/riscos_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/riscos/riscos_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,7 +32,7 @@ class RiscosWidgetState extends State<RiscosWidget> {
     try {
       final repository = Provider.of<RiscosRepository>(context, listen: false);
       final result = await repository.getAllRiscos();
-      
+
       if (mounted) {
         setState(() {
           _riscos = result;
@@ -73,9 +74,14 @@ class RiscosWidgetState extends State<RiscosWidget> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Exclusão'),
-        content: Text('Tem certeza que deseja excluir a unidade "${risco.nomeRiscos}"?'),
+        content: Text(
+          'Tem certeza que deseja excluir a unidade "${risco.nomeRiscos}"?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -87,16 +93,25 @@ class RiscosWidgetState extends State<RiscosWidget> {
 
     if (confirm == true) {
       try {
-        final repository = Provider.of<RiscosRepository>(context, listen: false);
+        final repository = Provider.of<RiscosRepository>(
+          context,
+          listen: false,
+        );
         await repository.delete(risco.id!);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Risco excluído com sucesso!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Risco excluído com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
         );
         _loadData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao excluir: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Erro ao excluir: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -105,62 +120,48 @@ class RiscosWidgetState extends State<RiscosWidget> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), Text('Carregando dados...')],
+      );
     }
 
     if (_error != null) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          spacing: 16,
           children: [
-            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 48),
-            const SizedBox(height: 16),
+            Icon(
+              Icons.error_outline,
+              color: Theme.of(context).colorScheme.error,
+              size: 48,
+            ),
             Text(_error!),
-            const SizedBox(height: 16),
-            FilledButton.icon(onPressed: _loadData, icon: const Icon(Icons.refresh), label: const Text("Tentar Novamente"))
+            FilledButton.icon(
+              onPressed: _loadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text("Tentar Novamente"),
+            ),
           ],
         ),
       );
     }
 
     if (_riscos.isEmpty) {
-      return _buildEmptyState();
+      return BuildEmpty(
+        title: 'Nenhum risco cadastrado',
+        subtitle: 'Clique em "Novo Risco" para começar',
+        icon: Icons.warning_amber_outlined,
+        titleDrawer: "Novo Risco",
+        drawer: _showDrawer,
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: _buildRiscosList()),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.warning_amber_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum risco cadastrado',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Clique em "Novo Risco" para começar',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-          ],
-        ),
-      ),
+      children: [Expanded(child: _buildRiscosList())],
     );
   }
 
@@ -175,8 +176,8 @@ class RiscosWidgetState extends State<RiscosWidget> {
           margin: const EdgeInsets.only(bottom: 12),
           child: ListTile(
             leading: Icon(
-              Icons.warning_amber_outlined, 
-              color: Theme.of(context).colorScheme.primary
+              Icons.warning_amber_outlined,
+              color: Theme.of(context).colorScheme.primary,
             ),
             title: Text(
               risco.nomeRiscos,

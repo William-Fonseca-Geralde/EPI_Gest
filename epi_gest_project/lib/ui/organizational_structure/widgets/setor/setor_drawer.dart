@@ -108,294 +108,61 @@ class _SetorDrawerState extends State<SetorDrawer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return BaseDrawer(
-      onClose: widget.onClose,
-      header: _buildHeader(theme),
-      body: _buildForm(theme),
-      footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
-      widthFactor: 0.4,
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
     String title;
     String subtitle;
-    IconData icon;
 
     if (_isViewing) {
       title = 'Visualizar Setor';
       subtitle = 'Informações completas do Setor';
-      icon = Icons.visibility_outlined;
     } else if (_isEditing) {
       title = 'Editar Setor';
       subtitle = 'Altere os dados do Setor';
-      icon = Icons.edit_outlined;
     } else {
       title = 'Adicionar Setor';
       subtitle = 'Preencha os dados do novo Setor';
-      icon = Icons.add_business_outlined;
     }
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: theme.colorScheme.onPrimaryContainer,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            onPressed: widget.onClose,
-            icon: const Icon(Icons.close),
-            tooltip: 'Fechar',
-            style: IconButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ],
-      ),
+    return BaseAddDrawer(
+      title: title,
+      subtitle: subtitle,
+      icon: Icons.work_outline,
+      onClose: widget.onClose,
+      onSave: _handleSave,
+      formKey: _formKey,
+      isSaving: _isSaving,
+      isEditing: _isEditing,
+      isViewing: _isViewing,
+      widthFactor: 0.4,
+      child: _buildForm(theme),
     );
   }
 
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 20,
-          children: [
-            CustomTextField(
-              controller: _codigoSetorController,
-              label: 'Codigo do Setor',
-              hint: 'Ex: PROD01, ADM02, RH01',
-              icon: Icons.workspaces_outlined,
-              enabled: isEnabled,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            CustomTextField(
-              controller: _nomeSetorController,
-              label: 'Descrição do Setor',
-              hint: 'Ex: Produção, Administrativo, RH, Financeiro',
-              icon: Icons.work_outline,
-              enabled: isEnabled,
-              validator: (v) =>
-                  (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-            ),
-            
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 20,
         children: [
-          // Botão Cancelar - Estilo moderno
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: _isSaving ? null : widget.onClose,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.onSurface,
-                  side: BorderSide(
-                    color: theme.colorScheme.outline.withOpacity(0.5),
-                  ),
-                  backgroundColor: theme.colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.close, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Cancelar",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          CustomTextField(
+            controller: _codigoSetorController,
+            label: 'Codigo do Setor',
+            hint: 'Ex: PROD01, ADM02, RH01',
+            icon: Icons.workspaces_outlined,
+            enabled: isEnabled,
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
           ),
-
-          const SizedBox(width: 16),
-
-          // Botão Principal - Estilo moderno
-          Expanded(
-            flex: 2,
-            child: SizedBox(
-              height: 48,
-              child: FilledButton(
-                onPressed: _isSaving ? null : _handleSave,
-                style: FilledButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: theme.colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isSaving
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: theme.colorScheme.onPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Salvando...",
-                            style: TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _isEditing ? Icons.save_outlined : Icons.add,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isEditing
-                                ? "Salvar Alterações"
-                                : "Adicionar Departamento",
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildViewFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: SizedBox(
-              height: 48,
-              child: OutlinedButton(
-                onPressed: widget.onClose,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: theme.colorScheme.primary,
-                  side: BorderSide(
-                    color: theme.colorScheme.primary.withOpacity(0.3),
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.close, size: 18),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Fechar",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          CustomTextField(
+            controller: _nomeSetorController,
+            label: 'Descrição do Setor',
+            hint: 'Ex: Produção, Administrativo, RH, Financeiro',
+            icon: Icons.work_outline,
+            enabled: isEnabled,
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
           ),
         ],
       ),

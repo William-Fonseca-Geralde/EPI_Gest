@@ -1,17 +1,14 @@
 import 'dart:io';
-import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/epi_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
-import 'package:epi_gest_project/data/services/product_technical_registration/armazem_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/marcas_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/medida_repository.dart';
-import 'package:epi_gest_project/domain/models/armazem_model.dart';
 import 'package:epi_gest_project/domain/models/categoria_model.dart';
 import 'package:epi_gest_project/domain/models/epi_model.dart';
 import 'package:epi_gest_project/domain/models/marcas_model.dart';
 import 'package:epi_gest_project/domain/models/medida_model.dart';
-import 'package:epi_gest_project/domain/models/unidade_model.dart';
+import 'package:epi_gest_project/ui/utils/input_formatters.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:epi_gest_project/ui/widgets/image_picker_widget.dart';
@@ -62,20 +59,16 @@ class _EpiDrawerState extends State<EpiDrawer> {
   List<CategoriaModel> _categorias = [];
   List<MarcasModel> _marcas = [];
   List<MedidaModel> _medidas = [];
-  List<ArmazemModel> _armazens = [];
-  List<UnidadeModel> _unidades = [];
 
   // Listas de Sugestões (Strings para Autocomplete)
   List<String> _sugestaoCategorias = [];
   List<String> _sugestaoMarcas = [];
   List<String> _sugestaoMedidas = [];
-  List<String> _sugestaoArmazens = [];
 
   // Keys para botões de adicionar
   final GlobalKey _categoriaButtonKey = GlobalKey();
   final GlobalKey _marcaButtonKey = GlobalKey();
   final GlobalKey _medidaButtonKey = GlobalKey();
-  final GlobalKey _armazemButtonKey = GlobalKey();
 
   // Controller auxiliar para os modais de criação rápida
   final TextEditingController _newItemNameController = TextEditingController();
@@ -92,7 +85,6 @@ class _EpiDrawerState extends State<EpiDrawer> {
       'unidadeMedida': TextEditingController(),
       'quantidade': TextEditingController(),
       'valor': TextEditingController(),
-      'armazem': TextEditingController(),
       'periodicidade': TextEditingController(),
     };
 
@@ -106,17 +98,15 @@ class _EpiDrawerState extends State<EpiDrawer> {
       final catRepo = Provider.of<CategoriaRepository>(context, listen: false);
       final marcaRepo = Provider.of<MarcasRepository>(context, listen: false);
       final medidaRepo = Provider.of<MedidaRepository>(context, listen: false);
-      final armazemRepo = Provider.of<ArmazemRepository>(
+      final unidadeRepo = Provider.of<UnidadeRepository>(
         context,
         listen: false,
       );
-      final unidadeRepo = Provider.of<UnidadeRepository>(context, listen: false);
 
       final results = await Future.wait([
         catRepo.getAllCategorias(),
         marcaRepo.getAllMarcas(),
         medidaRepo.getAllMedidas(),
-        armazemRepo.getAllArmazens(),
         unidadeRepo.getAllUnidades(),
       ]);
 
@@ -126,13 +116,10 @@ class _EpiDrawerState extends State<EpiDrawer> {
         _categorias = results[0] as List<CategoriaModel>;
         _marcas = results[1] as List<MarcasModel>;
         _medidas = results[2] as List<MedidaModel>;
-        _armazens = results[3] as List<ArmazemModel>;
-        _unidades = results[4] as List<UnidadeModel>;
 
         _sugestaoCategorias = _categorias.map((e) => e.nomeCategoria).toList();
         _sugestaoMarcas = _marcas.map((e) => e.nomeMarca).toList();
         _sugestaoMedidas = _medidas.map((e) => e.nomeMedida).toList();
-        _sugestaoArmazens = _armazens.map((e) => e.codigoArmazem).toList();
 
         _isLoading = false;
       });
@@ -161,11 +148,9 @@ class _EpiDrawerState extends State<EpiDrawer> {
     ).format(epi.valor);
     _controllers['periodicidade']!.text = epi.periodicidade.toString();
 
-    // Relacionamentos (Strings)
     _controllers['categoria']!.text = epi.categoria.nomeCategoria;
     _controllers['marca']!.text = epi.marca.nomeMarca;
     _controllers['unidadeMedida']!.text = epi.medida.nomeMedida;
-    _controllers['armazem']!.text = epi.armazem.codigoArmazem;
 
     _validadeCA = epi.validadeCa;
     _controllers['validadeCA']!.text = DateFormat(
@@ -211,12 +196,6 @@ class _EpiDrawerState extends State<EpiDrawer> {
         _controllers['unidadeMedida']!.text,
         "Unidade de Medida",
       );
-      final armazem = _findItemOrThrow(
-        _armazens,
-        (e) => e.codigoArmazem,
-        _controllers['armazem']!.text,
-        "Armazém",
-      );
 
       String valorText = _controllers['valor']!.text
           .replaceAll('R\$', '')
@@ -224,7 +203,6 @@ class _EpiDrawerState extends State<EpiDrawer> {
           .replaceAll(',', '.')
           .trim();
       double valorDouble = double.tryParse(valorText) ?? 0.0;
-
 
       final epiToSave = EpiModel(
         id: widget.epiToEdit?.id,
@@ -237,7 +215,6 @@ class _EpiDrawerState extends State<EpiDrawer> {
         categoria: categoria,
         marca: marca,
         medida: medida,
-        armazem: armazem,
       );
 
       final epiRepository = Provider.of<EpiRepository>(context, listen: false);
@@ -336,85 +313,6 @@ class _EpiDrawerState extends State<EpiDrawer> {
     );
   }
 
-  void _showAddArmazemDialog() {
-    final codigoController = TextEditingController();
-    String? selectedUnidadeId;
-    final theme = Theme.of(context);
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setStateDialog) {
-          return AlertDialog(
-            title: Text("Novo Armazém", style: theme.textTheme.titleLarge),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomTextField(
-                  controller: codigoController,
-                  label: "Código/Nome do Armazém",
-                  hint: "Ex: Almoxarifado A",
-                  icon: Icons.warehouse_outlined,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: "Unidade Física",
-                    prefixIcon: const Icon(Icons.business),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  initialValue: selectedUnidadeId,
-                  items: _unidades.map((u) => DropdownMenuItem(
-                    value: u.id,
-                    child: Text(u.nomeUnidade),
-                  )).toList(),
-                  onChanged: (val) => setStateDialog(() => selectedUnidadeId = val),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancelar')),
-              FilledButton(
-                onPressed: () async {
-                  if (codigoController.text.isNotEmpty && selectedUnidadeId != null) {
-                    Navigator.pop(ctx);
-                    setState(() => _isLoading = true);
-                    try {
-                      final repo = Provider.of<ArmazemRepository>(context, listen: false);
-                      
-                      // Encontra o objeto Unidade completo
-                      final unidadeObj = _unidades.firstWhere((u) => u.id == selectedUnidadeId);
-                      
-                      final newItem = await repo.create(ArmazemModel(
-                        codigoArmazem: codigoController.text.trim(),
-                        unidade: unidadeObj
-                      ));
-
-                      setState(() {
-                        _armazens.add(newItem);
-                        _sugestaoArmazens.add(newItem.codigoArmazem);
-                        _controllers['armazem']!.text = newItem.codigoArmazem;
-                        _isLoading = false;
-                      });
-                      _showSuccessSnackBar('Armazém criado com sucesso!');
-                    } catch (e) {
-                      setState(() => _isLoading = false);
-                      _showErrorSnackBar("Erro ao criar armazém: $e");
-                    }
-                  } else {
-                    // Feedback visual simples no dialog se faltar dados
-                  }
-                },
-                child: const Text('Salvar'),
-              ),
-            ],
-          );
-        }
-      ),
-    );
-  }
-
   Future<void> _createCategoria(String nome) async {
     final repo = Provider.of<CategoriaRepository>(context, listen: false);
     final codigo = nome.length > 3
@@ -496,75 +394,44 @@ class _EpiDrawerState extends State<EpiDrawer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return BaseDrawer(
-      onClose: widget.onClose,
-      header: _buildHeader(theme),
-      body: _buildBody(theme),
-      footer: _isViewing ? _buildViewFooter(theme) : _buildEditFooter(theme),
-      widthFactor: 0.6,
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme) {
     String title = _isViewing
         ? 'Visualizar EPI'
-        : (_isEditing ? 'Editar EPI' : 'Novo EPI');
+        : _isEditing
+        ? 'Editar EPI'
+        : 'Novo EPI';
+    String subtitle = _isViewing
+        ? 'Informações do ${widget.epiToEdit?.nomeProduto ?? ""}'
+        : _isEditing
+        ? 'Altere os dados do EPI'
+        : 'Preencha os dados do novo EPI';
     IconData icon = _isViewing
         ? Icons.visibility_outlined
-        : (_isEditing ? Icons.edit_outlined : Icons.add_box_outlined);
+        : _isEditing
+        ? Icons.edit_outlined
+        : Icons.add_box_outlined;
 
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest,
-        border: Border(
-          bottom: BorderSide(color: theme.colorScheme.outlineVariant),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: theme.colorScheme.onPrimaryContainer,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Dados do Equipamento de Proteção Individual",
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(onPressed: widget.onClose, icon: const Icon(Icons.close)),
-        ],
-      ),
+    return BaseAddDrawer(
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
+      onClose: widget.onClose,
+      onSave: _handleSave,
+      formKey: _formKey,
+      isSaving: _isSaving,
+      isEditing: _isEditing,
+      isViewing: _isViewing,
+      child: _buildBody(theme),
     );
   }
 
   Widget _buildBody(ThemeData theme) {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), Text('Carregando dados...')],
+      );
+    }
     if (_loadingError != null) {
       return Center(
         child: Text(
@@ -574,19 +441,18 @@ class _EpiDrawerState extends State<EpiDrawer> {
       );
     }
 
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (constraints.maxWidth > 700) {
-              return SingleChildScrollView(child: _buildTwoColumnLayout(theme));
-            } else {
-              return SingleChildScrollView(child: _buildSingleColumnLayout(theme));
-            }
-          },
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 700) {
+            return SingleChildScrollView(child: _buildTwoColumnLayout(theme));
+          } else {
+            return SingleChildScrollView(
+              child: _buildSingleColumnLayout(theme),
+            );
+          }
+        },
       ),
     );
   }
@@ -606,6 +472,8 @@ class _EpiDrawerState extends State<EpiDrawer> {
                 onImagePicked: (file) => setState(() => _imageFile = file),
                 onImageRemoved: () => setState(() => _imageFile = null),
                 viewOnly: !_isEnabled,
+                height: 275,
+                width: 325,
               ),
               const SizedBox(height: 24),
               InfoSection(
@@ -748,23 +616,13 @@ class _EpiDrawerState extends State<EpiDrawer> {
                             hint: 'R\$ 0.00',
                             icon: Icons.attach_money,
                             enabled: _isEnabled,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              CurrencyInputFormatter()
+                            ],
                           ),
                         ),
                       ],
-                    ),
-                    CustomAutocompleteField(
-                      controller: _controllers['armazem']!,
-                      label: 'Armazém / Local',
-                      hint: 'Selecione o armazém',
-                      icon: Icons.warehouse_outlined,
-                      enabled: _isEnabled,
-                      suggestions: _sugestaoArmazens,
-                      showAddButton: _isEnabled,
-                      addButtonKey: _armazemButtonKey,
-                      onAddPressed: _showAddArmazemDialog,
                     ),
                     CustomTextField(
                       controller: _controllers['periodicidade']!,
@@ -795,6 +653,8 @@ class _EpiDrawerState extends State<EpiDrawer> {
           onImagePicked: (file) => setState(() => _imageFile = file),
           onImageRemoved: () => setState(() => _imageFile = null),
           viewOnly: !_isEnabled,
+          height: 275,
+          width: 325,
         ),
         InfoSection(
           title: 'Identificação Técnica',
@@ -938,16 +798,6 @@ class _EpiDrawerState extends State<EpiDrawer> {
                   ),
                 ],
               ),
-              CustomAutocompleteField(
-                controller: _controllers['armazem']!,
-                label: 'Armazém / Local',
-                hint: 'Selecione o armazém',
-                icon: Icons.warehouse_outlined,
-                enabled: _isEnabled,
-                suggestions: _sugestaoArmazens,
-                showAddButton: false,
-                addButtonKey: _armazemButtonKey,
-              ),
               CustomTextField(
                 controller: _controllers['periodicidade']!,
                 label: 'Periodicidade de Troca (dias)',
@@ -961,84 +811,6 @@ class _EpiDrawerState extends State<EpiDrawer> {
           ),
         ),
       ],
-    );
-  }
-
-  // --- Footers ---
-
-  Widget _buildEditFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-          ),
-        ),
-      ),
-      child: Row(
-        spacing: 16,
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: _isSaving ? null : widget.onClose,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Cancelar'),
-            ),
-          ),
-          Expanded(
-            flex: 2,
-            child: FilledButton.icon(
-              onPressed: _isSaving ? null : _handleSave,
-              icon: _isSaving
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Icon(Icons.save),
-              label: Text(
-                _isSaving
-                    ? 'Salvando...'
-                    : (_isEditing ? 'Salvar Alterações' : 'Cadastrar EPI'),
-              ),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildViewFooter(ThemeData theme) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(
-          top: BorderSide(
-            color: theme.colorScheme.outlineVariant.withOpacity(0.3),
-          ),
-        ),
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: OutlinedButton(
-          onPressed: widget.onClose,
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          child: const Text('Fechar'),
-        ),
-      ),
     );
   }
 }

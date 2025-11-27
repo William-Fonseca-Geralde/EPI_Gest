@@ -1,6 +1,7 @@
 import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
 import 'package:epi_gest_project/domain/models/unidade_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/unidade/unidade_drawer.dart';
+import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -73,7 +74,7 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
         onSave: (savedUnidade) async {
-          _loadData(); 
+          _loadData();
         },
       ),
     );
@@ -84,9 +85,14 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Inativação'),
-        content: Text('Tem certeza que deseja inativar a unidade "${unidade.nomeUnidade}"?'),
+        content: Text(
+          'Tem certeza que deseja inativar a unidade "${unidade.nomeUnidade}"?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -98,16 +104,25 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
 
     if (confirm == true) {
       try {
-        final repository = Provider.of<UnidadeRepository>(context, listen: false);
+        final repository = Provider.of<UnidadeRepository>(
+          context,
+          listen: false,
+        );
         await repository.inativarUnidade(unidade.id!);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unidade inativada com sucesso!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Unidade inativada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
         );
         _loadData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao inativar: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Erro ao inativar: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -118,9 +133,14 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar Ativação'),
-        content: Text('Tem certeza que deseja ativar a unidade "${unidade.nomeUnidade}"?'),
+        content: Text(
+          'Tem certeza que deseja ativar a unidade "${unidade.nomeUnidade}"?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.green),
@@ -132,16 +152,25 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
 
     if (confirm == true) {
       try {
-        final repository = Provider.of<UnidadeRepository>(context, listen: false);
+        final repository = Provider.of<UnidadeRepository>(
+          context,
+          listen: false,
+        );
         await repository.ativarUnidade(unidade.id!);
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Unidade ativada com sucesso!'), backgroundColor: Colors.green),
+          const SnackBar(
+            content: Text('Unidade ativada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
         );
         _loadData();
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao ativat: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Erro ao ativat: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -150,56 +179,46 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [CircularProgressIndicator(), Text('Carregando dados...')],
+      );
     }
 
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.error, size: 48),
-            const SizedBox(height: 16),
-            Text(_error!),
-            const SizedBox(height: 16),
-            FilledButton.icon(onPressed: _loadData, icon: const Icon(Icons.refresh), label: const Text("Tentar Novamente"))
-          ],
-        ),
+      return Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: Theme.of(context).colorScheme.error,
+            size: 48,
+          ),
+          Text(_error!),
+          FilledButton.icon(
+            onPressed: _loadData,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Tentar Novamente"),
+          ),
+        ],
       );
     }
 
     if (_unidades.isEmpty) {
-      return _buildEmptyState();
+      return BuildEmpty(
+        title: 'Nenhum cargo cadastrado',
+        subtitle: 'Clique em "Nova Unidade" para começar',
+        icon: Icons.business_outlined,
+        titleDrawer: 'Nova Unidade',
+        drawer: _showDrawer
+      );
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(child: _buildUnidadeList()),
-      ],
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Expanded(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.business_outlined, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum cargo cadastrado',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Clique em "Nova Unidade" para começar',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade500),
-            ),
-          ],
-        ),
-      ),
+      children: [Expanded(child: _buildUnidadeList())],
     );
   }
 
@@ -218,39 +237,60 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
               isMatriz ? Icons.business : Icons.business_center,
               color: Theme.of(context).colorScheme.primary,
             ),
-            title: Text(unidade.nomeUnidade, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text('CNPJ: ${unidade.cnpj}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
+            title: Text(
+              unidade.nomeUnidade,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Row(
+              spacing: 8,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: unidade.status ? Colors.green.withValues(alpha: 0.1) : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
                   ),
-                  child: Text(
-                    unidade.status ? "Ativo" : "Inativo",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: unidade.status ? Colors.green.shade800 : Colors.red.shade800,
-                      fontWeight: FontWeight.bold
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isMatriz ? Colors.blue.withValues(alpha: 0.1) : Colors.orange.withOpacity(0.1),
+                    color: isMatriz
+                        ? Colors.blue.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     unidade.tipoUnidade,
                     style: TextStyle(
                       fontSize: 12,
-                      color: isMatriz ? Colors.blue.shade800 : Colors.orange.shade800,
-                      fontWeight: FontWeight.bold
+                      color: isMatriz
+                          ? Colors.blue.shade800
+                          : Colors.orange.shade800,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Text('CNPJ: ${unidade.cnpj}'),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: unidade.status
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.red.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    unidade.status ? "Ativo" : "Inativo",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: unidade.status
+                          ? Colors.green.shade800
+                          : Colors.red.shade800,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
@@ -258,7 +298,8 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
                 IconButton(
                   icon: const Icon(Icons.visibility_outlined),
                   tooltip: 'Visualizar',
-                  onPressed: () => _showDrawer(unidade: unidade, viewOnly: true),
+                  onPressed: () =>
+                      _showDrawer(unidade: unidade, viewOnly: true),
                 ),
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
@@ -266,10 +307,16 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
                   onPressed: () => _showDrawer(unidade: unidade),
                 ),
                 IconButton(
-                  icon: unidade.status ? Icon(Icons.work_outline) : Icon(Icons.work_off_outlined),
+                  icon: unidade.status
+                      ? Icon(Icons.power_settings_new)
+                      : Icon(Icons.power_off),
                   tooltip: unidade.status ? 'Inativar' : 'Ativar',
-                  color: unidade.status ? null : Theme.of(context).colorScheme.error,
-                  onPressed: () => unidade.status ? _inativarUnidade(unidade) : _ativarUnidade(unidade),
+                  color: unidade.status
+                      ? null
+                      : Theme.of(context).colorScheme.error,
+                  onPressed: () => unidade.status
+                      ? _inativarUnidade(unidade)
+                      : _ativarUnidade(unidade),
                 ),
               ],
             ),

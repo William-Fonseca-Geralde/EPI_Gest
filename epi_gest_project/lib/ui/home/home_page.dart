@@ -3,7 +3,7 @@ import 'package:epi_gest_project/ui/employees/employees_page.dart';
 import 'package:epi_gest_project/ui/epi_exchange/exchange_page.dart';
 import 'package:epi_gest_project/ui/home/widgets/company_selector_widget.dart';
 import 'package:epi_gest_project/ui/home/widgets/perfil_widget.dart';
-import 'package:epi_gest_project/ui/inventory/inventory_page.dart';
+import 'package:epi_gest_project/ui/epis/epi_page.dart';
 import 'package:epi_gest_project/ui/organizational_structure/organizational_structure_page.dart';
 import 'package:epi_gest_project/ui/product_technical_registration/product_technical_registration_page.dart'; // NOVA IMPORT
 import 'package:epi_gest_project/ui/reports/reports_page.dart';
@@ -25,10 +25,10 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = [
     const DashboardPage(),
     const EmployeesPage(),
-    const InventoryPage(),
+    const EpiPage(),
     const ExchangePage(),
     const OrganizationalStructurePage(),
-    const ProductTechnicalRegistrationPage(), // NOVA PÁGINA
+    const ProductTechnicalRegistrationPage(),
     const ReportsPage(),
     const SettingsPage(),
   ];
