@@ -1,5 +1,5 @@
-import 'package:epi_gest_project/domain/models/turno_model.dart';
-import 'package:epi_gest_project/domain/models/vinculo_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
 
 import 'appwrite_model.dart';
 

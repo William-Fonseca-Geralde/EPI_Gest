@@ -1,5 +1,5 @@
 import 'package:epi_gest_project/data/services/organizational_structure/riscos_repository.dart';
-import 'package:epi_gest_project/domain/models/riscos_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/riscos/riscos_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';

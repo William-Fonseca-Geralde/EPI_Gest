@@ -1,7 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/epi_repository.dart';
 import 'package:epi_gest_project/domain/models/epi_model.dart';
-import 'package:epi_gest_project/domain/models/epi/inventory_filter_model.dart';
+import 'package:epi_gest_project/domain/models/filters/epi_filter_model.dart';
 import 'package:epi_gest_project/ui/epis/widgets/entries/entry_list_screen.dart';
 import 'package:epi_gest_project/ui/epis/widgets/epi_data_table.dart';
 import 'package:epi_gest_project/ui/epis/widgets/epi_drawer.dart';
@@ -30,7 +30,7 @@ class _EpiPageState extends State<EpiPage> {
   List<String> _suppliers = [];
 
   // Estado do Filtro
-  InventoryFilterModel _appliedFilters = InventoryFilterModel.empty();
+  EpiFilterModel _appliedFilters = EpiFilterModel.empty();
 
   @override
   void initState() {
@@ -86,7 +86,7 @@ class _EpiPageState extends State<EpiPage> {
     });
   }
 
-  void _applyFilters(InventoryFilterModel filters, {bool updateState = true}) {
+  void _applyFilters(EpiFilterModel filters, {bool updateState = true}) {
     void performFilter() {
       _appliedFilters = filters;
 
@@ -96,7 +96,6 @@ class _EpiPageState extends State<EpiPage> {
       }
 
       _filteredEpis = _allEpis.where((epi) {
-        // Filtro por Nome
         if (filters.nome != null &&
             filters.nome!.isNotEmpty &&
             !epi.nomeProduto.toLowerCase().contains(
@@ -105,28 +104,24 @@ class _EpiPageState extends State<EpiPage> {
           return false;
         }
 
-        // Filtro por CA
         if (filters.ca != null &&
             filters.ca!.isNotEmpty &&
             !epi.ca.toLowerCase().contains(filters.ca!.toLowerCase())) {
           return false;
         }
 
-        // Filtro por Categoria
         if (filters.categorias != null &&
             filters.categorias!.isNotEmpty &&
             !filters.categorias!.contains(epi.categoria.nomeCategoria)) {
           return false;
         }
 
-        // Filtro por Marca/Fornecedor (Assumindo Marca aqui baseado no DataTable)
-        if (filters.fornecedores != null &&
-            filters.fornecedores!.isNotEmpty &&
-            !filters.fornecedores!.contains(epi.marca.nomeMarca)) {
+        if (filters.marcas != null &&
+            filters.marcas!.isNotEmpty &&
+            !filters.marcas!.contains(epi.marca.nomeMarca)) {
           return false;
         }
 
-        // Filtro de Validade (Lógica local)
         if (filters.validades != null && filters.validades!.isNotEmpty) {
           bool matchesValidity = false;
           final now = DateTime.now();
@@ -145,6 +140,40 @@ class _EpiPageState extends State<EpiPage> {
           if (!matchesValidity) return false;
         }
 
+        if (filters.quantidade != null) {
+          final qtdFilter = filters.quantidade!;
+          final op = filters.quantidadeOperador ?? '=';
+          bool matchesQtd = false;
+
+          switch (op) {
+            case '>': matchesQtd = epi.estoque > qtdFilter; break;
+            case '<': matchesQtd = epi.estoque < qtdFilter; break;
+            case '>=': matchesQtd = epi.estoque >= qtdFilter; break;
+            case '<=': matchesQtd = epi.estoque <= qtdFilter; break;
+            case '=': 
+            default: matchesQtd = epi.estoque == qtdFilter; break;
+          }
+          if (!matchesQtd) return false;
+        }
+
+        if (filters.valor != null) {
+          final valorFilter = filters.valor!;
+          final op = filters.valorOperador ?? '=';
+          bool matchesValor = false;
+
+          switch (op) {
+            case '>': matchesValor = epi.valor > valorFilter; break;
+            case '<': matchesValor = epi.valor < valorFilter; break;
+            case '>=': matchesValor = epi.valor >= valorFilter; break;
+            case '<=': matchesValor = epi.valor <= valorFilter; break;
+            case '=': 
+            default:
+              matchesValor = (epi.valor - valorFilter).abs() < 0.01; 
+              break;
+          }
+          if (!matchesValor) return false;
+        }
+
         return true;
       }).toList();
     }
@@ -158,7 +187,7 @@ class _EpiPageState extends State<EpiPage> {
 
   void _clearFilters() {
     setState(() {
-      _appliedFilters = InventoryFilterModel.empty();
+      _appliedFilters = EpiFilterModel.empty();
       _filteredEpis = List.from(_allEpis);
     });
   }
@@ -416,7 +445,7 @@ class _EpiPageState extends State<EpiPage> {
           ),
           if (_appliedFilters.activeFiltersCount > 0) ...[
             const SizedBox(height: 24),
-            FilledButton.icon(
+            OutlinedButton.icon(
               onPressed: _clearFilters,
               icon: const Icon(Icons.clear_all),
               label: const Text('Limpar Filtros'),

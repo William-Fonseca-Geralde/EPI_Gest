@@ -1,6 +1,6 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
-import 'package:epi_gest_project/domain/models/vinculo_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
 import 'package:flutter/material.dart';

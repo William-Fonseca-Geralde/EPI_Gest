@@ -1,6 +1,6 @@
-import 'package:epi_gest_project/domain/models/categoria_model.dart';
-import 'package:epi_gest_project/domain/models/marcas_model.dart';
-import 'package:epi_gest_project/domain/models/medida_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/categoria_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/marcas_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/medida_model.dart';
 
 import 'appwrite_model.dart';
 

@@ -1,13 +1,14 @@
+import 'package:epi_gest_project/ui/utils/input_formatters.dart';
 import 'package:epi_gest_project/ui/widgets/multi_select_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:epi_gest_project/domain/models/epi/inventory_filter_model.dart';
+import 'package:epi_gest_project/domain/models/filters/epi_filter_model.dart';
 
 class EpiFilters extends StatefulWidget {
-  final InventoryFilterModel appliedFilters;
+  final EpiFilterModel appliedFilters;
   final List<String> categories;
   final List<String> suppliers;
-  final Function(InventoryFilterModel) onApplyFilters;
+  final Function(EpiFilterModel) onApplyFilters;
   final VoidCallback onClearFilters;
 
   const EpiFilters({
@@ -27,7 +28,7 @@ class _EpiFiltersState extends State<EpiFilters> {
   bool _showAdvancedFilters = false;
 
   // Filtros temporários
-  late InventoryFilterModel _tempFilters;
+  late EpiFilterModel _tempFilters;
 
   // Controllers
   final TextEditingController _caController = TextEditingController();
@@ -98,22 +99,43 @@ class _EpiFiltersState extends State<EpiFilters> {
         ),
       ),
       child: Column(
+        spacing: 12,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Chips de filtros ativos
           if (hasActiveFilters) ...[
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _buildActiveFilterChips(theme),
+            Text(
+              'Filtros Ativos:',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 16),
+            Row(
+              spacing: 16,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _buildActiveFilterChips(theme),
+                ),
+                OutlinedButton.icon(
+                  onPressed: widget.onClearFilters,
+                  icon: const Icon(Icons.clear_all, size: 18),
+                  label: const Text('Limpar Filtros'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.onSurfaceVariant,
+                    side: BorderSide(color: theme.colorScheme.outline),
+                  ),
+                ),
+              ],
+            ),
+            Divider(height: 1, color: theme.colorScheme.outlineVariant),
           ],
 
-          // Linha principal de filtros
           Row(
+            spacing: 16,
             children: [
-              // Filtro de Validade (Multi-Select)
               Expanded(
                 flex: 2,
                 child: MultiSelectDropdown(
@@ -132,9 +154,6 @@ class _EpiFiltersState extends State<EpiFilters> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
-
-              // Filtro de CA
               Expanded(
                 flex: 2,
                 child: TextField(
@@ -158,9 +177,6 @@ class _EpiFiltersState extends State<EpiFilters> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
-
-              // Filtro de Categoria (Multi-Select)
               Expanded(
                 flex: 2,
                 child: MultiSelectDropdown(
@@ -179,9 +195,6 @@ class _EpiFiltersState extends State<EpiFilters> {
                   },
                 ),
               ),
-              const SizedBox(width: 16),
-
-              // Botão Filtros Avançados
               FilledButton.tonalIcon(
                 onPressed: () {
                   setState(() {
@@ -199,9 +212,6 @@ class _EpiFiltersState extends State<EpiFilters> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-
-              // Botão Filtrar
               FilledButton.icon(
                 onPressed: _hasChanges ? _applyFilters : null,
                 icon: const Icon(Icons.filter_alt),
@@ -215,10 +225,7 @@ class _EpiFiltersState extends State<EpiFilters> {
               ),
             ],
           ),
-
-          // Filtros Avançados
           if (_showAdvancedFilters) ...[
-            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -230,6 +237,7 @@ class _EpiFiltersState extends State<EpiFilters> {
                 ),
               ),
               child: Column(
+                spacing: 16,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -249,8 +257,8 @@ class _EpiFiltersState extends State<EpiFilters> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
                   Row(
+                    spacing: 16,
                     children: [
                       // Nome do EPI
                       Expanded(
@@ -276,22 +284,19 @@ class _EpiFiltersState extends State<EpiFilters> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 16),
-
-                      // Fornecedor (Multi-Select)
                       Expanded(
                         flex: 2,
                         child: MultiSelectDropdown(
-                          label: 'Fornecedor',
+                          label: 'Marcas',
                           icon: Icons.business_outlined,
                           items: widget.suppliers,
-                          selectedItems: _tempFilters.fornecedores ?? [],
+                          selectedItems: _tempFilters.marcas ?? [],
                           allItemsLabel: 'Todos',
                           width: 300,
                           onChanged: (selected) {
                             setState(() {
                               _tempFilters = _tempFilters.copyWith(
-                                fornecedores: selected.isEmpty ? null : selected,
+                                marcas: selected.isEmpty ? null : selected,
                               );
                             });
                           },
@@ -299,8 +304,8 @@ class _EpiFiltersState extends State<EpiFilters> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
                   Row(
+                    spacing: 16,
                     children: [
                       // Quantidade
                       Expanded(
@@ -322,9 +327,6 @@ class _EpiFiltersState extends State<EpiFilters> {
                           },
                         ),
                       ),
-                      const SizedBox(width: 16),
-
-                      // Valor Unitário
                       Expanded(
                         child: _buildNumericFilter(
                           context: context,
@@ -369,11 +371,10 @@ class _EpiFiltersState extends State<EpiFilters> {
 
     return Row(
       children: [
-        // Dropdown de operador
         SizedBox(
           width: 80,
           child: DropdownButtonFormField<String>(
-            value: currentOperator,
+            initialValue: currentOperator,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -391,14 +392,13 @@ class _EpiFiltersState extends State<EpiFilters> {
             ],
             onChanged: (value) {
               if (value != null) {
-                onValueChanged(currentValue, value);
+                _processNumericValue(controller.text, value, isDecimal, onValueChanged);
               }
             },
           ),
         ),
         const SizedBox(width: 8),
 
-        // Campo de valor
         Expanded(
           child: TextField(
             controller: controller,
@@ -407,7 +407,7 @@ class _EpiFiltersState extends State<EpiFilters> {
                 : TextInputType.number,
             inputFormatters: [
               if (isDecimal)
-                FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                CurrencyInputFormatter()
               else
                 FilteringTextInputFormatter.digitsOnly,
             ],
@@ -421,19 +421,35 @@ class _EpiFiltersState extends State<EpiFilters> {
               fillColor: theme.colorScheme.surface,
             ),
             onChanged: (value) {
-              if (value.isNotEmpty) {
-                final numValue = isDecimal
-                    ? double.tryParse(value)
-                    : int.tryParse(value);
-                onValueChanged(numValue, currentOperator);
-              } else {
-                onValueChanged(null, currentOperator);
-              }
+              _processNumericValue(value, currentOperator, isDecimal, onValueChanged);
             },
           ),
         ),
       ],
     );
+  }
+
+  void _processNumericValue(
+    String value, 
+    String operator, 
+    bool isDecimal, 
+    Function(num?, String) onValueChanged
+  ) {
+    if (value.isNotEmpty) {
+      if (isDecimal) {
+        // Remove tudo que não é dígito ou vírgula (R$, espaços, pontos de milhar)
+        String cleanValue = value.replaceAll(RegExp(r'[^\d,]'), '');
+        // Troca vírgula por ponto para o parse
+        cleanValue = cleanValue.replaceAll(',', '.');
+        final numValue = double.tryParse(cleanValue);
+        onValueChanged(numValue, operator);
+      } else {
+        final numValue = int.tryParse(value);
+        onValueChanged(numValue, operator);
+      }
+    } else {
+      onValueChanged(null, operator);
+    }
   }
 
   List<Widget> _buildActiveFilterChips(ThemeData theme) {
@@ -470,12 +486,17 @@ class _EpiFiltersState extends State<EpiFilters> {
           label = 'Nome';
           displayValue = value.toString();
           break;
-        case 'fornecedores':
-          label = 'Fornecedor';
-          final fornecedores = value as List<String>;
-          displayValue = fornecedores.length == 1
-              ? fornecedores.first
-              : '${fornecedores.length} fornecedores';
+        case 'marcas':
+          label = 'Marcas';
+          final marcas = value as List<String>;
+
+          if (widget.suppliers.isNotEmpty && marcas.length == widget.suppliers.length) {
+            displayValue = 'Todos';
+          } else if (marcas.length > 2) {
+            displayValue = '${marcas.length} marcas';
+          } else {
+            displayValue = marcas.join(', ');
+          }
           break;
         case 'quantidade':
           label = 'Quantidade';
@@ -503,7 +524,7 @@ class _EpiFiltersState extends State<EpiFilters> {
                 newFiltersMap.remove('${key}Operador');
               }
 
-              final newFilters = InventoryFilterModel.fromMap(newFiltersMap);
+              final newFilters = EpiFilterModel.fromMap(newFiltersMap);
               widget.onApplyFilters(newFilters);
 
               // Atualiza os campos temporários

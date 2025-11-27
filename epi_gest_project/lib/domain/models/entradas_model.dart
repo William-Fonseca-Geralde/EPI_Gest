@@ -1,6 +1,6 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
 import 'package:epi_gest_project/domain/models/epi_model.dart';
-import 'package:epi_gest_project/domain/models/fornecedor_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/fornecedor_model.dart';
 
 class EntradasModel extends AppWriteModel {
   final String nfReferente;

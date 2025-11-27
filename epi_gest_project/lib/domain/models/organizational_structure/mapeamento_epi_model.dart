@@ -1,9 +1,9 @@
-import 'package:epi_gest_project/domain/models/cargo_model.dart';
-import 'package:epi_gest_project/domain/models/categoria_model.dart';
-import 'package:epi_gest_project/domain/models/riscos_model.dart';
-import 'package:epi_gest_project/domain/models/setor_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/categoria_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
 
-import 'appwrite_model.dart';
+import '../appwrite_model.dart';
 
 class MapeamentoEpiModel extends AppWriteModel {
   final String codigoMapeamento;

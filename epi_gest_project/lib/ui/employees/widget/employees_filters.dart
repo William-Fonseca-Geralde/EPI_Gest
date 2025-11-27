@@ -1,14 +1,13 @@
+import 'package:epi_gest_project/domain/models/filters/funcionario_filter_model.dart';
 import 'package:epi_gest_project/ui/widgets/multi_select_dropdown.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EmployeesFilters extends StatefulWidget {
-  final Map<String, dynamic> appliedFilters;
+  final FuncionarioFilterModel appliedFilters;
   final List<String> mapeamentos;
-  final Function(Map<String, dynamic>) onApplyFilters;
+  final Function(FuncionarioFilterModel) onApplyFilters;
   final VoidCallback onClearFilters;
-  final Function(String)? onAddSetor;
-  final Function(String)? onAddFuncao;
 
   const EmployeesFilters({
     super.key,
@@ -16,8 +15,6 @@ class EmployeesFilters extends StatefulWidget {
     required this.mapeamentos,
     required this.onApplyFilters,
     required this.onClearFilters,
-    this.onAddSetor,
-    this.onAddFuncao,
   });
 
   @override
@@ -26,8 +23,7 @@ class EmployeesFilters extends StatefulWidget {
 
 class _EmployeesFiltersState extends State<EmployeesFilters> {
   bool _showAdvancedFilters = false;
-
-  late Map<String, dynamic> _tempFilters;
+  late FuncionarioFilterModel _tempFilters;
 
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _idController = TextEditingController();
@@ -40,13 +36,16 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
   }
 
   void _loadFiltersToTemp() {
-    _tempFilters = Map<String, dynamic>.from(widget.appliedFilters);
-    _nomeController.text = _tempFilters['nome'] ?? '';
-    _idController.text = _tempFilters['matricula'] ?? '';
+    _tempFilters = widget.appliedFilters;
+    _nomeController.text = _tempFilters.nome ?? '';
+    _idController.text = _tempFilters.matricula ?? '';
 
-    if (_tempFilters['dataEntrada'] != null) {
-      final date = _tempFilters['dataEntrada'] as DateTime;
-      _dataEntradaController.text = DateFormat('dd/MM/yyyy').format(date);
+    if (_tempFilters.dataEntrada != null) {
+      _dataEntradaController.text = DateFormat(
+        'dd/MM/yyyy',
+      ).format(_tempFilters.dataEntrada!);
+    } else {
+      _dataEntradaController.clear();
     }
   }
 
@@ -73,26 +72,15 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
   }
 
   bool get _hasChanges {
-    return _tempFilters.toString() != widget.appliedFilters.toString();
-  }
-
-  int get _activeFiltersCount {
-    int count = 0;
-    _tempFilters.forEach((key, value) {
-      if (value != null) {
-        if (value is String && value.isNotEmpty) count++;
-        if (value is List && value.isNotEmpty) count++;
-        if (value is DateTime) count++;
-      }
-    });
-    return count;
+    return _tempFilters.toMap().toString() !=
+        widget.appliedFilters.toMap().toString();
   }
 
   Future<void> _selectDate() async {
     try {
       final DateTime? picked = await showDatePicker(
         context: context,
-        initialDate: _tempFilters['dataEntrada'] ?? DateTime.now(),
+        initialDate: _tempFilters.dataEntrada ?? DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime.now(),
         builder: (context, child) {
@@ -107,7 +95,7 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
 
       if (picked != null) {
         setState(() {
-          _tempFilters['dataEntrada'] = picked;
+          _tempFilters = _tempFilters.copyWith(dataEntrada: picked);
           _dataEntradaController.text = DateFormat('dd/MM/yyyy').format(picked);
         });
       }
@@ -119,7 +107,7 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final hasActiveFilters = _activeFiltersCount > 0;
+    final hasActiveFilters = widget.appliedFilters.activeFiltersCount > 0;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -180,11 +168,11 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                     filled: true,
                     fillColor: theme.colorScheme.surface,
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      _tempFilters['matricula'] = value.isEmpty ? null : value;
-                    });
-                  },
+                  onChanged: (value) => setState(
+                    () => _tempFilters = _tempFilters.copyWith(
+                      matricula: value.isEmpty ? null : value,
+                    ),
+                  ),
                 ),
               ),
               Expanded(
@@ -201,11 +189,11 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                     filled: true,
                     fillColor: theme.colorScheme.surface,
                   ),
-                  onChanged: (value) {
-                    setState(() {
-                      _tempFilters['nome'] = value.isEmpty ? null : value;
-                    });
-                  },
+                  onChanged: (value) => setState(
+                    () => _tempFilters = _tempFilters.copyWith(
+                      nome: value.isEmpty ? null : value,
+                    ),
+                  ),
                 ),
               ),
               Expanded(
@@ -215,15 +203,13 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                   icon: Icons.toggle_on,
                   items: const ['Ativo', 'Inativo'],
                   width: 350,
-                  selectedItems: _tempFilters['ativo'] ?? [],
+                  selectedItems: _tempFilters.status ?? [],
                   allItemsLabel: 'Todos',
-                  onChanged: (selected) {
-                    setState(() {
-                      _tempFilters['ativo'] = selected.isEmpty
-                          ? null
-                          : selected;
-                    });
-                  },
+                  onChanged: (selected) => setState(
+                    () => _tempFilters = _tempFilters.copyWith(
+                      status: selected.isEmpty ? null : selected,
+                    ),
+                  ),
                 ),
               ),
               FilledButton.tonalIcon(
@@ -301,25 +287,21 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                             prefixIcon: const Icon(
                               Icons.calendar_today_outlined,
                             ),
-                            suffixIcon: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (_tempFilters['dataEntrada'] != null)
-                                  IconButton(
-                                    icon: const Icon(Icons.clear, size: 18),
-                                    onPressed: () {
-                                      setState(() {
-                                        _tempFilters['dataEntrada'] = null;
-                                        _dataEntradaController.clear();
-                                      });
-                                    },
-                                  ),
-                                IconButton(
-                                  icon: const Icon(Icons.event),
-                                  onPressed: _selectDate,
-                                ),
-                              ],
-                            ),
+                            suffixIcon: _tempFilters.dataEntrada != null
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () => setState(() {
+                                      _tempFilters = FuncionarioFilterModel(
+                                        matricula: _tempFilters.matricula,
+                                        nome: _tempFilters.nome,
+                                        status: _tempFilters.status,
+                                        mapeamentos: _tempFilters.mapeamentos,
+                                        dataEntrada: null,
+                                      );
+                                      _dataEntradaController.clear();
+                                    }),
+                                  )
+                                : null,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -337,15 +319,13 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
                           icon: Icons.assignment_turned_in_outlined,
                           items: widget.mapeamentos,
                           width: 350,
-                          selectedItems: _tempFilters['mapeamento'] ?? [],
+                          selectedItems: _tempFilters.mapeamentos ?? [],
                           allItemsLabel: 'Todos',
-                          onChanged: (selected) {
-                            setState(() {
-                              _tempFilters['mapeamento'] = selected.isEmpty
-                                  ? null
-                                  : selected;
-                            });
-                          },
+                          onChanged: (selected) => setState(
+                            () => _tempFilters = _tempFilters.copyWith(
+                              mapeamentos: selected.isEmpty ? null : selected,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -361,8 +341,9 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
 
   List<Widget> _buildActiveFilterChips(ThemeData theme) {
     final chips = <Widget>[];
+    final filtersMap = widget.appliedFilters.toMap();
 
-    _tempFilters.forEach((key, value) {
+    filtersMap.forEach((key, value) {
       if (value == null) return;
 
       String label = '';
@@ -381,16 +362,23 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
           label = 'Data de Entrada';
           displayValue = DateFormat('dd/MM/yyyy').format(value as DateTime);
           break;
-        case 'ativo':
+        case 'status':
           label = 'Status';
           final status = value as List<String>;
           displayValue = status.length == 1 ? status.first : 'Todos';
           break;
-        case 'mapeamento':
+        case 'mapeamentos':
           label = 'Mapeamento';
-          displayValue = value.toString();
+          final maps = value as List<String>;
+          
+          if (widget.mapeamentos.isNotEmpty && maps.length == widget.mapeamentos.length) {
+            displayValue = 'Todos';
+          } else if (maps.length > 2) {
+            displayValue = '${maps.length} selecionados';
+          } else {
+            displayValue = maps.join(', ');
+          }
           break;
-
       }
 
       if (label.isNotEmpty) {
@@ -399,10 +387,14 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
             avatar: const Icon(Icons.filter_alt, size: 18),
             label: Text('$label: $displayValue'),
             onDeleted: () {
+              final newFiltersMap = Map<String, dynamic>.from(filtersMap);
+              newFiltersMap.remove(key);
+              final newFilters = FuncionarioFilterModel.fromMap(newFiltersMap);
+
               setState(() {
-                _tempFilters[key] = null;
+                _tempFilters = newFilters;
                 if (key == 'nome') _nomeController.clear();
-                if (key == 'id') _idController.clear();
+                if (key == 'matricula') _idController.clear();
                 if (key == 'dataEntrada') _dataEntradaController.clear();
               });
               widget.onApplyFilters(_tempFilters);

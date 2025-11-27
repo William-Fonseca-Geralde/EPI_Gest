@@ -4,11 +4,11 @@ import 'package:epi_gest_project/data/services/organizational_structure/mapeamen
 import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/riscos_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/setor_repository.dart';
-import 'package:epi_gest_project/domain/models/cargo_model.dart';
-import 'package:epi_gest_project/domain/models/categoria_model.dart';
-import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
-import 'package:epi_gest_project/domain/models/riscos_model.dart';
-import 'package:epi_gest_project/domain/models/setor_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/categoria_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
 import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

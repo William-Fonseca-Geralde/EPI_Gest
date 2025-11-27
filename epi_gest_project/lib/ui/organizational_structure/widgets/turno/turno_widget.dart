@@ -1,5 +1,5 @@
 import 'package:epi_gest_project/data/services/organizational_structure/turno_repository.dart';
-import 'package:epi_gest_project/domain/models/turno_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/turno/turno_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';

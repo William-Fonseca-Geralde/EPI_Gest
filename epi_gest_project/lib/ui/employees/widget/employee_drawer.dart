@@ -6,11 +6,11 @@ import 'package:epi_gest_project/data/services/organizational_structure/turno_re
 import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
-import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
 import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
-import 'package:epi_gest_project/domain/models/turno_model.dart';
-import 'package:epi_gest_project/domain/models/unidade_model.dart';
-import 'package:epi_gest_project/domain/models/vinculo_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/unidade_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_form_sections.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';

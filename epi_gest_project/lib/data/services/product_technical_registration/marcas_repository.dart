@@ -1,7 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/core/constants/appwrite_constants.dart';
 import 'package:epi_gest_project/data/services/base_repository.dart';
-import 'package:epi_gest_project/domain/models/marcas_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/marcas_model.dart';
 
 class MarcasRepository extends BaseRepository<MarcasModel> {
   MarcasRepository(TablesDB databases)

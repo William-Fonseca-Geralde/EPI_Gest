@@ -1,6 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
+import 'package:epi_gest_project/domain/models/filters/funcionario_filter_model.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_drawer.dart';
@@ -23,7 +24,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
   List<String> _availableMappings = [];
   List<FuncionarioModel> _allEmployees = [];
   List<FuncionarioModel> _filteredEmployees = [];
-  Map<String, dynamic> _appliedFilters = {};
+  FuncionarioFilterModel _appliedFilters = FuncionarioFilterModel.empty();
   Map<String, String> _employeeMappingMap = {};
 
   final _motivoController = TextEditingController();
@@ -83,22 +84,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
     }
   }
 
-  int get _activeFiltersCount {
-    int count = 0;
-    _appliedFilters.forEach((key, value) {
-      if (value != null) {
-        if (value is String && value.isNotEmpty) {
-          count++;
-        } else if (value is List && value.isNotEmpty) {
-          count++;
-        } else if (value is DateTime) {
-          count++;
-        }
-      }
-    });
-    return count;
-  }
-
   void _reloadData() {
     setState(() {
       _loadEmployeesFuture = _loadEmployees();
@@ -111,7 +96,10 @@ class _EmployeesPageState extends State<EmployeesPage> {
     });
   }
 
-  void _applyFilters(Map<String, dynamic> filters, {bool updateState = true}) {
+  void _applyFilters(
+    FuncionarioFilterModel filters, {
+    bool updateState = true,
+  }) {
     void performFilter() {
       _appliedFilters = filters;
       if (filters.isEmpty) {
@@ -119,52 +107,47 @@ class _EmployeesPageState extends State<EmployeesPage> {
         return;
       }
       _filteredEmployees = _allEmployees.where((employee) {
-        // Adaptação dos campos para o novo Model (nomeFunc, matricula, etc)
-        if (filters['nome'] != null &&
-            (filters['nome'] as String).isNotEmpty &&
+        // Filtro por Nome
+        if (filters.nome != null &&
             !employee.nomeFunc.toLowerCase().contains(
-              (filters['nome'] as String).toLowerCase(),
+              filters.nome!.toLowerCase(),
             )) {
           return false;
         }
-        if (filters['matricula'] != null &&
-            (filters['matricula'] as String).isNotEmpty &&
+
+        // Filtro por Matrícula
+        if (filters.matricula != null &&
             !employee.matricula.toLowerCase().contains(
-              (filters['matricula'] as String).toLowerCase(),
+              filters.matricula!.toLowerCase(),
             )) {
           return false;
         }
 
-        if (filters['ativo'] != null && (filters['ativo'] as List).isNotEmpty) {
-          final List<String> statusList = List<String>.from(filters['ativo']);
+        // Filtro por Status
+        if (filters.status != null && filters.status!.isNotEmpty) {
+          final isAtivo = filters.status!.contains('Ativo');
+          final isInativo = filters.status!.contains('Inativo');
 
-          if (statusList.contains('Ativo') && !statusList.contains('Inativo')) {
-            if (!employee.statusAtivo) return false;
-          }
-
-          if (statusList.contains('Inativo') && !statusList.contains('Ativo')) {
-            if (employee.statusAtivo) return false;
-          }
+          if (isAtivo && !isInativo && !employee.statusAtivo) return false;
+          if (isInativo && !isAtivo && employee.statusAtivo) return false;
         }
 
-        if (filters['dataEntrada'] != null) {
-          final filterDate = filters['dataEntrada'] as DateTime;
-          final employeeDate = employee.dataEntrada;
-          if (employeeDate.year != filterDate.year ||
-              employeeDate.month != filterDate.month ||
-              employeeDate.day != filterDate.day) {
+        // Filtro por Data
+        if (filters.dataEntrada != null) {
+          final fDate = filters.dataEntrada!;
+          final eDate = employee.dataEntrada;
+          if (eDate.year != fDate.year ||
+              eDate.month != fDate.month ||
+              eDate.day != fDate.day) {
             return false;
           }
         }
 
-        if (filters['mapeamento'] != null &&
-            (filters['mapeamento'] as List).isNotEmpty) {
-          final selectedMappings = List<String>.from(filters['mapeamento']);
+        // Filtro por Mapeamento
+        if (filters.mapeamentos != null && filters.mapeamentos!.isNotEmpty) {
           final employeeMapping = _employeeMappingMap[employee.id];
-
-          // Se o funcionário não tem mapeamento ou o mapeamento dele não está na lista selecionada
           if (employeeMapping == null ||
-              !selectedMappings.contains(employeeMapping)) {
+              !filters.mapeamentos!.contains(employeeMapping)) {
             return false;
           }
         }
@@ -182,7 +165,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
 
   void _clearFilters() {
     setState(() {
-      _appliedFilters = {};
+      _appliedFilters = FuncionarioFilterModel.empty();
       _filteredEmployees = List.from(_allEmployees);
     });
   }
@@ -485,7 +468,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                     ),
                   ),
                   Text(
-                    '${_filteredEmployees.length} de ${_allEmployees.length} ${_allEmployees.length == 1 ? 'funcionário' : 'funcionários'}${_appliedFilters.isNotEmpty ? ' (filtrado)' : ''}',
+                    '${_filteredEmployees.length} de ${_allEmployees.length} ${_allEmployees.length == 1 ? 'funcionário' : 'funcionários'}${!_appliedFilters.isEmpty ? ' (filtrado)' : ''}',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w500,
@@ -500,8 +483,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
             spacing: 12,
             children: [
               Badge.count(
-                count: _activeFiltersCount,
-                isLabelVisible: _activeFiltersCount > 0,
+                count: _appliedFilters.activeFiltersCount,
+                isLabelVisible: _appliedFilters.activeFiltersCount > 0,
                 child: IconButton.filledTonal(
                   onPressed: _toggleFilters,
                   icon: Icon(
@@ -511,10 +494,21 @@ class _EmployeesPageState extends State<EmployeesPage> {
                 ),
               ),
               FilledButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.assignment_returned),
+                label: const Text('Entregar EPIs'),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
+                ),
+              ),
+              OutlinedButton.icon(
                 onPressed: _showAddEmployeeDrawer,
                 icon: const Icon(Icons.add),
                 label: const Text('Adicionar Funcionário'),
-                style: FilledButton.styleFrom(
+                style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 16,
@@ -547,14 +541,14 @@ class _EmployeesPageState extends State<EmployeesPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            _appliedFilters.isNotEmpty
+            !_appliedFilters.isEmpty
                 ? 'Tente ajustar os filtros'
                 : 'Adicione um novo funcionário para começar',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          if (_appliedFilters.isNotEmpty) ...[
+          if (!_appliedFilters.isEmpty) ...[
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: _clearFilters,

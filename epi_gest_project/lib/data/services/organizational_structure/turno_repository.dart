@@ -1,7 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/core/constants/appwrite_constants.dart';
 import 'package:epi_gest_project/data/services/base_repository.dart';
-import 'package:epi_gest_project/domain/models/turno_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
 
 class TurnoRepository extends BaseRepository<TurnoModel> {
   TurnoRepository(TablesDB databases)

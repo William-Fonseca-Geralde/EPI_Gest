@@ -1,5 +1,5 @@
 import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
-import 'package:epi_gest_project/domain/models/vinculo_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/vinculo/vinculo_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
 import 'package:flutter/material.dart';

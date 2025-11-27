@@ -1,28 +1,28 @@
-class InventoryFilterModel {
-  final List<String>? validades; // Mudou de String para List<String>
+class EpiFilterModel {
+  final List<String>? validades;
   final String? ca;
-  final List<String>? categorias; // Mudou de String para List<String>
+  final List<String>? categorias;
   final String? nome;
-  final List<String>? fornecedores; // Mudou de String para List<String>
+  final List<String>? marcas;
   final num? quantidade;
   final String? quantidadeOperador;
   final num? valor;
   final String? valorOperador;
 
-  const InventoryFilterModel({
+  const EpiFilterModel({
     this.validades,
     this.ca,
     this.categorias,
     this.nome,
-    this.fornecedores,
+    this.marcas,
     this.quantidade,
     this.quantidadeOperador,
     this.valor,
     this.valorOperador,
   });
 
-  factory InventoryFilterModel.empty() {
-    return const InventoryFilterModel();
+  factory EpiFilterModel.empty() {
+    return const EpiFilterModel();
   }
 
   bool get isEmpty {
@@ -30,7 +30,7 @@ class InventoryFilterModel {
         ca == null &&
         (categorias == null || categorias!.isEmpty) &&
         nome == null &&
-        (fornecedores == null || fornecedores!.isEmpty) &&
+        (marcas == null || marcas!.isEmpty) &&
         quantidade == null &&
         valor == null;
   }
@@ -41,29 +41,29 @@ class InventoryFilterModel {
     if (ca != null && ca!.isNotEmpty) count++;
     if (categorias != null && categorias!.isNotEmpty) count++;
     if (nome != null && nome!.isNotEmpty) count++;
-    if (fornecedores != null && fornecedores!.isNotEmpty) count++;
+    if (marcas != null && marcas!.isNotEmpty) count++;
     if (quantidade != null) count++;
     if (valor != null) count++;
     return count;
   }
 
-  InventoryFilterModel copyWith({
+  EpiFilterModel copyWith({
     List<String>? validades,
     String? ca,
     List<String>? categorias,
     String? nome,
-    List<String>? fornecedores,
+    List<String>? marcas,
     num? quantidade,
     String? quantidadeOperador,
     num? valor,
     String? valorOperador,
   }) {
-    return InventoryFilterModel(
+    return EpiFilterModel(
       validades: validades ?? this.validades,
       ca: ca ?? this.ca,
       categorias: categorias ?? this.categorias,
       nome: nome ?? this.nome,
-      fornecedores: fornecedores ?? this.fornecedores,
+      marcas: marcas ?? this.marcas,
       quantidade: quantidade ?? this.quantidade,
       quantidadeOperador: quantidadeOperador ?? this.quantidadeOperador,
       valor: valor ?? this.valor,
@@ -77,8 +77,8 @@ class InventoryFilterModel {
       if (ca != null) 'ca': ca,
       if (categorias != null && categorias!.isNotEmpty) 'categorias': categorias,
       if (nome != null) 'nome': nome,
-      if (fornecedores != null && fornecedores!.isNotEmpty)
-        'fornecedores': fornecedores,
+      if (marcas != null && marcas!.isNotEmpty)
+        'marcas': marcas,
       if (quantidade != null) 'quantidade': quantidade,
       if (quantidadeOperador != null) 'quantidadeOperador': quantidadeOperador,
       if (valor != null) 'valor': valor,
@@ -86,8 +86,8 @@ class InventoryFilterModel {
     };
   }
 
-  factory InventoryFilterModel.fromMap(Map<String, dynamic> map) {
-    return InventoryFilterModel(
+  factory EpiFilterModel.fromMap(Map<String, dynamic> map) {
+    return EpiFilterModel(
       validades: map['validades'] != null
           ? List<String>.from(map['validades'])
           : null,
@@ -96,8 +96,8 @@ class InventoryFilterModel {
           ? List<String>.from(map['categorias'])
           : null,
       nome: map['nome'],
-      fornecedores: map['fornecedores'] != null
-          ? List<String>.from(map['fornecedores'])
+      marcas: map['marcas'] != null
+          ? List<String>.from(map['marcas'])
           : null,
       quantidade: map['quantidade'],
       quantidadeOperador: map['quantidadeOperador'],

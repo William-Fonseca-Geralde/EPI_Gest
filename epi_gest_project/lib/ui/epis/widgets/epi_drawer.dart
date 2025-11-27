@@ -5,10 +5,10 @@ import 'package:epi_gest_project/data/services/organizational_structure/unidade_
 import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/marcas_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/medida_repository.dart';
-import 'package:epi_gest_project/domain/models/categoria_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/categoria_model.dart';
 import 'package:epi_gest_project/domain/models/epi_model.dart';
-import 'package:epi_gest_project/domain/models/marcas_model.dart';
-import 'package:epi_gest_project/domain/models/medida_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/marcas_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/medida_model.dart';
 import 'package:epi_gest_project/ui/utils/input_formatters.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';

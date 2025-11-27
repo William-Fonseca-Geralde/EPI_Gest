@@ -1,5 +1,5 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
-import 'package:epi_gest_project/domain/models/unidade_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/unidade_model.dart';
 
 class ArmazemModel extends AppWriteModel {
   final String codigoArmazem;

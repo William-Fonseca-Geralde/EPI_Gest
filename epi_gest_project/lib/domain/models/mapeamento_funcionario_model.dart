@@ -1,11 +1,11 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
-import 'package:epi_gest_project/domain/models/cargo_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
 import 'package:epi_gest_project/domain/models/funcionario_model.dart';
-import 'package:epi_gest_project/domain/models/mapeamento_epi_model.dart';
-import 'package:epi_gest_project/domain/models/setor_model.dart';
-import 'package:epi_gest_project/domain/models/turno_model.dart';
-import 'package:epi_gest_project/domain/models/unidade_model.dart';
-import 'package:epi_gest_project/domain/models/vinculo_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/unidade_model.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
 
 class MapeamentoFuncionarioModel extends AppWriteModel {
   final FuncionarioModel funcionario;
