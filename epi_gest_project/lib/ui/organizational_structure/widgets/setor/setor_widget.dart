@@ -169,7 +169,6 @@ class SetorWidgetState extends State<SetorWidget> {
       children: [
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
             itemCount: _setores.length,
             itemBuilder: (context, index) {
               final setor = _setores[index];

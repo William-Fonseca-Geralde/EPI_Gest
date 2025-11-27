@@ -1,20 +1,20 @@
-import 'package:epi_gest_project/data/services/organizational_structure/cargo_repository.dart';
-import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
-import 'package:epi_gest_project/ui/organizational_structure/widgets/cargo/cargo_drawer.dart';
+import 'package:epi_gest_project/data/services/product_technical_registration/fornecedor_repository.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/fornecedor_model.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/fornecedores/fornecedores_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/build_empty.dart';
 import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class CargoWidget extends StatefulWidget {
-  const CargoWidget({super.key});
+class FornecedoresWidget extends StatefulWidget {
+  const FornecedoresWidget({super.key});
 
   @override
-  State<CargoWidget> createState() => CargoWidgetState();
+  State<FornecedoresWidget> createState() => FornecedoresWidgetState();
 }
 
-class CargoWidgetState extends State<CargoWidget> {
-  List<CargoModel> _cargos = [];
+class FornecedoresWidgetState extends State<FornecedoresWidget> {
+  List<FornecedorModel> _items = [];
   bool _isLoading = true;
   String? _error;
 
@@ -31,12 +31,12 @@ class CargoWidgetState extends State<CargoWidget> {
     });
 
     try {
-      final repository = Provider.of<CargoRepository>(context, listen: false);
-      final result = await repository.getAllCargos();
+      final repo = Provider.of<FornecedorRepository>(context, listen: false);
+      final result = await repo.getAllFornecedores();
 
       if (mounted) {
         setState(() {
-          _cargos = result;
+          _items = result;
           _isLoading = false;
         });
       }
@@ -44,34 +44,30 @@ class CargoWidgetState extends State<CargoWidget> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = 'Erro ao carregar cargos: $e';
+          _error = 'Erro: $e';
         });
       }
     }
   }
 
-  void showAddDrawer() {
-    _showDrawer();
-  }
+  void showAddDrawer() => _showDrawer();
 
-  void _showDrawer({CargoModel? cargo, bool viewOnly = false}) {
+  void _showDrawer({FornecedorModel? item, bool viewOnly = false}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Gerenciar Cargos',
-      pageBuilder: (context, _, __) => CargoDrawer(
-        cargoToEdit: cargo,
+      barrierLabel: 'Gerenciar Fornecedor',
+      pageBuilder: (context, _, __) => FornecedoresDrawer(
+        fornecedorToEdit: item,
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
-        onSave: (savedRole) {
-          _loadData();
-        },
+        onSave: (_) => _loadData(),
       ),
     );
   }
 
-  Future<void> _toggleStatusCargo(CargoModel cargo) async {
-    final novoStatus = !cargo.status;
+  Future<void> _toggleStatusFornecedor(FornecedorModel fornecedor) async {
+    final novoStatus = !fornecedor.status;
     final acao = novoStatus ? 'ativar' : 'inativar';
 
     if (!novoStatus) {
@@ -80,7 +76,7 @@ class CargoWidgetState extends State<CargoWidget> {
         builder: (context) => AlertDialog(
           title: const Text('Confirmar Inativação'),
           content: Text(
-            'Tem certeza que deseja inativar o cargo "${cargo.nomeCargo}"?',
+            'Tem certeza que deseja inativar o fornecedor "${fornecedor.nomeFornecedor}"?',
           ),
           actions: [
             TextButton(
@@ -99,14 +95,14 @@ class CargoWidgetState extends State<CargoWidget> {
     }
 
     try {
-      final repository = Provider.of<CargoRepository>(context, listen: false);
+      final repository = Provider.of<FornecedorRepository>(context, listen: false);
 
-      await repository.update(cargo.id!, {'status': novoStatus});
+      await repository.update(fornecedor.id!, {'status': novoStatus});
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Cargo ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
+            'Fornecedor ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
           ),
           backgroundColor: novoStatus ? Colors.green : Colors.orange,
         ),
@@ -155,12 +151,12 @@ class CargoWidgetState extends State<CargoWidget> {
       );
     }
 
-    if (_cargos.isEmpty) {
+    if (_items.isEmpty) {
       return BuildEmpty(
-        title: 'Nenhum cargo cadastrado',
-        subtitle: 'Clique em "Novo Cargo" para começar',
-        icon: Icons.badge_outlined,
-        titleDrawer: "Novo Cargo",
+        title: 'Nenhuma fornecedor cadastrado',
+        subtitle: 'Clique em "Novo Fornecedor" para começar',
+        icon: Icons.business_outlined,
+        titleDrawer: "Novo Fornecedor",
         drawer: _showDrawer,
       );
     }
@@ -170,18 +166,17 @@ class CargoWidgetState extends State<CargoWidget> {
       children: [
         Expanded(
           child: ListView.builder(
-            itemCount: _cargos.length,
-            itemBuilder: (context, index) {
-              final cargo = _cargos[index];
-
+            itemCount: _items.length,
+            itemBuilder: (ctx, index) {
+              final item = _items[index];
               return ItemCard(
-                title: cargo.nomeCargo,
-                subtitle: Text('Código: ${cargo.codigoCargo}'),
-                leadingIcon: Icons.badge_outlined,
-                isActive: cargo.status,
-                onView: () => _showDrawer(cargo: cargo, viewOnly: true),
-                onEdit: () => _showDrawer(cargo: cargo),
-                onToggleStatus: () => _toggleStatusCargo(cargo),
+                title: item.nomeFornecedor,
+                subtitle: Text('CNPJ: ${item.cnpj}'),
+                leadingIcon: Icons.business_outlined,
+                isActive: item.status,
+                onView: () => _showDrawer(item: item, viewOnly: true),
+                onEdit: () => _showDrawer(item: item),
+                onToggleStatus: () => _toggleStatusFornecedor(item),
               );
             },
           ),

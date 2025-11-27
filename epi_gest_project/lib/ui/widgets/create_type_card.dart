@@ -157,7 +157,6 @@ class ItemCard extends StatelessWidget {
           ],
         ),
         trailing: Row(
-          spacing: 12,
           mainAxisSize: MainAxisSize.min,
           children: [
             // Badge de Status
@@ -181,7 +180,7 @@ class ItemCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Ações
+            const SizedBox(width: 12),
             IconButton(
               icon: const Icon(Icons.visibility_outlined),
               tooltip: 'Visualizar',

@@ -1,20 +1,20 @@
-import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
-import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
-import 'package:epi_gest_project/ui/organizational_structure/widgets/vinculo/vinculo_drawer.dart';
+import 'package:epi_gest_project/data/services/product_technical_registration/medida_repository.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/medida_model.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/medidas/medida_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/build_empty.dart';
 import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class VinculoWidget extends StatefulWidget {
-  const VinculoWidget({super.key});
+class MedidasWidget extends StatefulWidget {
+  const MedidasWidget({super.key});
 
   @override
-  State<VinculoWidget> createState() => VinculoWidgetState();
+  State<MedidasWidget> createState() => MedidasWidgetState();
 }
 
-class VinculoWidgetState extends State<VinculoWidget> {
-  List<VinculoModel> _vinculos = [];
+class MedidasWidgetState extends State<MedidasWidget> {
+  List<MedidaModel> _items = [];
   bool _isLoading = true;
   String? _error;
 
@@ -31,12 +31,12 @@ class VinculoWidgetState extends State<VinculoWidget> {
     });
 
     try {
-      final repository = Provider.of<VinculoRepository>(context, listen: false);
-      final result = await repository.getAllVinculos();
+      final repo = Provider.of<MedidaRepository>(context, listen: false);
+      final result = await repo.getAllMedidas();
 
       if (mounted) {
         setState(() {
-          _vinculos = result;
+          _items = result;
           _isLoading = false;
         });
       }
@@ -44,34 +44,30 @@ class VinculoWidgetState extends State<VinculoWidget> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = 'Erro ao carregar vinculos: $e';
+          _error = 'Erro: $e';
         });
       }
     }
   }
 
-  void showAddDrawer() {
-    _showDrawer();
-  }
+  void showAddDrawer() => _showDrawer();
 
-  void _showDrawer({VinculoModel? vinculo, bool viewOnly = false}) {
+  void _showDrawer({MedidaModel? item, bool viewOnly = false}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Gerenciar Vínculo',
-      pageBuilder: (context, _, __) => VinculoDrawer(
-        vinculoToEdit: vinculo,
+      barrierLabel: 'Gerenciar Unidade',
+      pageBuilder: (context, _, __) => MedidaDrawer(
+        medidaToEdit: item,
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
-        onSave: (vinculoSalvo) {
-          _loadData();
-        },
+        onSave: (_) => _loadData(),
       ),
     );
   }
 
-  Future<void> _toggleStatusVinculo(VinculoModel vinculo) async {
-    final novoStatus = !vinculo.status;
+  Future<void> _toggleStatusMedida(MedidaModel medida) async {
+    final novoStatus = !medida.status;
     final acao = novoStatus ? 'ativar' : 'inativar';
 
     if (!novoStatus) {
@@ -80,7 +76,7 @@ class VinculoWidgetState extends State<VinculoWidget> {
         builder: (context) => AlertDialog(
           title: const Text('Confirmar Inativação'),
           content: Text(
-            'Tem certeza que deseja inativar o vinculo "${vinculo.nomeVinculo}"?',
+            'Tem certeza que deseja inativar o medida "${medida.nomeMedida}"?',
           ),
           actions: [
             TextButton(
@@ -99,14 +95,14 @@ class VinculoWidgetState extends State<VinculoWidget> {
     }
 
     try {
-      final repository = Provider.of<VinculoRepository>(context, listen: false);
+      final repository = Provider.of<MedidaRepository>(context, listen: false);
 
-      await repository.update(vinculo.id!, {'status': novoStatus});
+      await repository.update(medida.id!, {'status': novoStatus});
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Vinculo ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
+            'Medida ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
           ),
           backgroundColor: novoStatus ? Colors.green : Colors.orange,
         ),
@@ -133,31 +129,34 @@ class VinculoWidgetState extends State<VinculoWidget> {
     }
 
     if (_error != null) {
-      return Column(
-        spacing: 16,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Theme.of(context).colorScheme.error,
-            size: 48,
-          ),
-          Text(_error!),
-          FilledButton.icon(
-            onPressed: _loadData,
-            icon: const Icon(Icons.refresh),
-            label: const Text("Tentar Novamente"),
-          ),
-        ],
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: Theme.of(context).colorScheme.error,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(_error!),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: _loadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text("Tentar Novamente"),
+            ),
+          ],
+        ),
       );
     }
 
-    if (_vinculos.isEmpty) {
+    if (_items.isEmpty) {
       return BuildEmpty(
-        title: 'Nenhum vínculo cadastrado',
-        subtitle: 'Clique em "Novo Vinculo" para começar',
-        icon: Icons.assignment_ind_outlined,
-        titleDrawer: "Novo Vinculo",
+        title: 'Nenhuma unidade cadastrada',
+        subtitle: 'Clique em "Nova Unidade" para começar',
+        icon: Icons.straighten_outlined,
+        titleDrawer: "Nova Unidade",
         drawer: _showDrawer,
       );
     }
@@ -167,17 +166,16 @@ class VinculoWidgetState extends State<VinculoWidget> {
       children: [
         Expanded(
           child: ListView.builder(
-            itemCount: _vinculos.length,
-            itemBuilder: (context, index) {
-              final vinculo = _vinculos[index];
-
+            itemCount: _items.length,
+            itemBuilder: (ctx, index) {
+              final item = _items[index];
               return ItemCard(
-                title: vinculo.nomeVinculo,
-                leadingIcon: Icons.badge_outlined,
-                isActive: vinculo.status,
-                onView: () => _showDrawer(vinculo: vinculo, viewOnly: true),
-                onEdit: () => _showDrawer(vinculo: vinculo),
-                onToggleStatus: () => _toggleStatusVinculo(vinculo),
+                title: item.nomeMedida,
+                leadingIcon: Icons.straighten,
+                isActive: item.status,
+                onView: () => _showDrawer(item: item, viewOnly: true),
+                onEdit: () => _showDrawer(item: item),
+                onToggleStatus: () => _toggleStatusMedida(item),
               );
             },
           ),

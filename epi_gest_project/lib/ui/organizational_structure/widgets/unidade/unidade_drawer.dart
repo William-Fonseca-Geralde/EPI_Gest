@@ -160,36 +160,14 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
         spacing: 20,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            spacing: 15,
-            children: [
-              Expanded(
-                child: CustomTextField(
-                  controller: _nomeController,
-                  label: 'Nome da Unidade',
-                  hint: 'Filial de Araras',
-                  enabled: isEnabled,
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-                  icon: Icons.business_outlined,
-                ),
-              ),
-              Expanded(
-                child: CustomTextField(
-                  controller: _cnpjController,
-                  label: 'CNPJ',
-                  hint: '00.000.000/0000-00',
-                  enabled: isEnabled,
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
-                  icon: Icons.badge_outlined,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    CnpjInputFormatter()
-                  ],
-                ),
-              ),
-            ],
+          CustomTextField(
+            controller: _nomeController,
+            label: 'Nome da Unidade',
+            hint: 'Filial de Araras',
+            enabled: isEnabled,
+            validator: (v) =>
+                (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+            icon: Icons.business_outlined,
           ),
           CustomTextField(
             controller: _enderecoController,
@@ -205,6 +183,22 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
             spacing: 15,
             children: [
               Expanded(
+                flex: 2,
+                child: CustomTextField(
+                  controller: _cnpjController,
+                  label: 'CNPJ',
+                  hint: '00.000.000/0000-00',
+                  enabled: isEnabled,
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'Campo obrigatório' : null,
+                  icon: Icons.badge_outlined,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    CnpjInputFormatter()
+                  ],
+                ),
+              ),
+              Expanded(
                 child: CustomAutocompleteField(
                   controller: _tipoUnidadeController,
                   label: 'Tipo de Unidade',
@@ -212,17 +206,6 @@ class _UnidadeDrawerState extends State<UnidadeDrawer> {
                   icon: Icons.category_outlined,
                   suggestions: ['Matriz', 'Filial'],
                   enabled: isEnabled,
-                ),
-              ),
-              Expanded(
-                child: CustomSwitchField(
-                  value: _statusController,
-                  enabled: isEnabled,
-                  onChanged: (v) => setState(() => _statusController = v),
-                  label: 'Status da Unidade',
-                  activeText: 'Ativa',
-                  inactiveText: 'Inativa',
-                  icon: Icons.business_outlined,
                 ),
               ),
             ],

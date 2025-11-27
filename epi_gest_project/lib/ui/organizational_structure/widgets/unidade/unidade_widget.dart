@@ -178,7 +178,6 @@ class UnidadeWidgetState extends State<UnidadeWidget> {
       children: [
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
             itemCount: _unidades.length,
             itemBuilder: (context, index) {
               final unidade = _unidades[index];

@@ -1,20 +1,23 @@
-import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
-import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
-import 'package:epi_gest_project/ui/organizational_structure/widgets/vinculo/vinculo_drawer.dart';
+import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
+import 'package:epi_gest_project/data/services/product_technical_registration/armazem_repository.dart';
+import 'package:epi_gest_project/domain/models/organizational_structure/unidade_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/armazem_model.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/armazem/armazem_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/build_empty.dart';
 import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class VinculoWidget extends StatefulWidget {
-  const VinculoWidget({super.key});
+class ArmazemWidget extends StatefulWidget {
+  const ArmazemWidget({super.key});
 
   @override
-  State<VinculoWidget> createState() => VinculoWidgetState();
+  State<ArmazemWidget> createState() => ArmazemWidgetState();
 }
 
-class VinculoWidgetState extends State<VinculoWidget> {
-  List<VinculoModel> _vinculos = [];
+class ArmazemWidgetState extends State<ArmazemWidget> {
+  List<ArmazemModel> _armazem = [];
+  List<UnidadeModel> _unidade = [];
   bool _isLoading = true;
   String? _error;
 
@@ -31,12 +34,17 @@ class VinculoWidgetState extends State<VinculoWidget> {
     });
 
     try {
-      final repository = Provider.of<VinculoRepository>(context, listen: false);
-      final result = await repository.getAllVinculos();
+      final armazemRep = Provider.of<ArmazemRepository>(context, listen: false);
+      final unidadRep = Provider.of<UnidadeRepository>(context, listen: false);
+      final result = await Future.wait([
+        armazemRep.getAllArmazens(),
+        unidadRep.getAllUnidades(),
+      ]);
 
       if (mounted) {
         setState(() {
-          _vinculos = result;
+          _armazem = result[0] as List<ArmazemModel>;
+          _unidade = result[1] as List<UnidadeModel>;
           _isLoading = false;
         });
       }
@@ -44,34 +52,31 @@ class VinculoWidgetState extends State<VinculoWidget> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = 'Erro ao carregar vinculos: $e';
+          _error = 'Erro ao carregar armazém: $e';
         });
       }
     }
   }
 
-  void showAddDrawer() {
-    _showDrawer();
-  }
+  void showAddDrawer() => _showDrawer();
 
-  void _showDrawer({VinculoModel? vinculo, bool viewOnly = false}) {
+  void _showDrawer({ArmazemModel? armazem, bool viewOnly = false}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Gerenciar Vínculo',
-      pageBuilder: (context, _, __) => VinculoDrawer(
-        vinculoToEdit: vinculo,
+      barrierLabel: 'Gerenciar Armazem',
+      pageBuilder: (context, _, __) => ArmazemDrawer(
+        armazemToEdit: armazem,
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
-        onSave: (vinculoSalvo) {
-          _loadData();
-        },
+        onSave: (vinculoSalvo) =>  _loadData(),
+        availableUnidades: _unidade,
       ),
     );
   }
 
-  Future<void> _toggleStatusVinculo(VinculoModel vinculo) async {
-    final novoStatus = !vinculo.status;
+  Future<void> _toggleStatusArmazem(ArmazemModel armazem) async {
+    final novoStatus = !armazem.status;
     final acao = novoStatus ? 'ativar' : 'inativar';
 
     if (!novoStatus) {
@@ -80,7 +85,7 @@ class VinculoWidgetState extends State<VinculoWidget> {
         builder: (context) => AlertDialog(
           title: const Text('Confirmar Inativação'),
           content: Text(
-            'Tem certeza que deseja inativar o vinculo "${vinculo.nomeVinculo}"?',
+            'Tem certeza que deseja inativar o armazem "${armazem.codigoArmazem}"?',
           ),
           actions: [
             TextButton(
@@ -99,14 +104,14 @@ class VinculoWidgetState extends State<VinculoWidget> {
     }
 
     try {
-      final repository = Provider.of<VinculoRepository>(context, listen: false);
+      final repository = Provider.of<ArmazemRepository>(context, listen: false);
 
-      await repository.update(vinculo.id!, {'status': novoStatus});
+      await repository.update(armazem.id!, {'status': novoStatus});
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Vinculo ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
+            'Armazem ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
           ),
           backgroundColor: novoStatus ? Colors.green : Colors.orange,
         ),
@@ -152,12 +157,12 @@ class VinculoWidgetState extends State<VinculoWidget> {
       );
     }
 
-    if (_vinculos.isEmpty) {
+    if (_armazem.isEmpty) {
       return BuildEmpty(
-        title: 'Nenhum vínculo cadastrado',
-        subtitle: 'Clique em "Novo Vinculo" para começar',
+        title: 'Nenhum armazém cadastrado',
+        subtitle: 'Clique em "Novo Armazém" para começar',
         icon: Icons.assignment_ind_outlined,
-        titleDrawer: "Novo Vinculo",
+        titleDrawer: "Novo Armazém",
         drawer: _showDrawer,
       );
     }
@@ -167,17 +172,20 @@ class VinculoWidgetState extends State<VinculoWidget> {
       children: [
         Expanded(
           child: ListView.builder(
-            itemCount: _vinculos.length,
+            itemCount: _armazem.length,
             itemBuilder: (context, index) {
-              final vinculo = _vinculos[index];
+              final armazem = _armazem[index];
 
               return ItemCard(
-                title: vinculo.nomeVinculo,
-                leadingIcon: Icons.badge_outlined,
-                isActive: vinculo.status,
-                onView: () => _showDrawer(vinculo: vinculo, viewOnly: true),
-                onEdit: () => _showDrawer(vinculo: vinculo),
-                onToggleStatus: () => _toggleStatusVinculo(vinculo),
+                title: armazem.codigoArmazem,
+                subtitle: Text(
+                  'Unidade vinculada: ${armazem.unidade.nomeUnidade}\nCNPJ: ${armazem.unidade.cnpj}',
+                ),
+                leadingIcon: Icons.store_mall_directory_outlined,
+                isActive: armazem.status,
+                onView: () => _showDrawer(armazem: armazem, viewOnly: true),
+                onEdit: () => _showDrawer(armazem: armazem),
+                onToggleStatus: () => _toggleStatusArmazem(armazem),
               );
             },
           ),

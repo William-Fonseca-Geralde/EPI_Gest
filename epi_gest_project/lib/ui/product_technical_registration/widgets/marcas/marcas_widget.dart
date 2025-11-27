@@ -1,20 +1,20 @@
-import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
-import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';
-import 'package:epi_gest_project/ui/organizational_structure/widgets/vinculo/vinculo_drawer.dart';
+import 'package:epi_gest_project/data/services/product_technical_registration/marcas_repository.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/marcas_model.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/marcas/marcas_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/build_empty.dart';
 import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class VinculoWidget extends StatefulWidget {
-  const VinculoWidget({super.key});
+class MarcasWidget extends StatefulWidget {
+  const MarcasWidget({super.key});
 
   @override
-  State<VinculoWidget> createState() => VinculoWidgetState();
+  State<MarcasWidget> createState() => MarcasWidgetState();
 }
 
-class VinculoWidgetState extends State<VinculoWidget> {
-  List<VinculoModel> _vinculos = [];
+class MarcasWidgetState extends State<MarcasWidget> {
+  List<MarcasModel> _items = [];
   bool _isLoading = true;
   String? _error;
 
@@ -31,12 +31,12 @@ class VinculoWidgetState extends State<VinculoWidget> {
     });
 
     try {
-      final repository = Provider.of<VinculoRepository>(context, listen: false);
-      final result = await repository.getAllVinculos();
+      final repo = Provider.of<MarcasRepository>(context, listen: false);
+      final result = await repo.getAllMarcas();
 
       if (mounted) {
         setState(() {
-          _vinculos = result;
+          _items = result;
           _isLoading = false;
         });
       }
@@ -44,34 +44,30 @@ class VinculoWidgetState extends State<VinculoWidget> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _error = 'Erro ao carregar vinculos: $e';
+          _error = 'Erro: $e';
         });
       }
     }
   }
 
-  void showAddDrawer() {
-    _showDrawer();
-  }
+  void showAddDrawer() => _showDrawer();
 
-  void _showDrawer({VinculoModel? vinculo, bool viewOnly = false}) {
+  void _showDrawer({MarcasModel? item, bool viewOnly = false}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Gerenciar Vínculo',
-      pageBuilder: (context, _, __) => VinculoDrawer(
-        vinculoToEdit: vinculo,
+      barrierLabel: 'Gerenciar Unidade',
+      pageBuilder: (context, _, __) => MarcasDrawer(
+        marcaToEdit: item,
         view: viewOnly,
         onClose: () => Navigator.of(context).pop(),
-        onSave: (vinculoSalvo) {
-          _loadData();
-        },
+        onSave: (_) => _loadData(),
       ),
     );
   }
 
-  Future<void> _toggleStatusVinculo(VinculoModel vinculo) async {
-    final novoStatus = !vinculo.status;
+  Future<void> _toggleStatusMarca(MarcasModel marca) async {
+    final novoStatus = !marca.status;
     final acao = novoStatus ? 'ativar' : 'inativar';
 
     if (!novoStatus) {
@@ -80,7 +76,7 @@ class VinculoWidgetState extends State<VinculoWidget> {
         builder: (context) => AlertDialog(
           title: const Text('Confirmar Inativação'),
           content: Text(
-            'Tem certeza que deseja inativar o vinculo "${vinculo.nomeVinculo}"?',
+            'Tem certeza que deseja inativar o marca "${marca.nomeMarca}"?',
           ),
           actions: [
             TextButton(
@@ -99,14 +95,14 @@ class VinculoWidgetState extends State<VinculoWidget> {
     }
 
     try {
-      final repository = Provider.of<VinculoRepository>(context, listen: false);
+      final repository = Provider.of<MarcasRepository>(context, listen: false);
 
-      await repository.update(vinculo.id!, {'status': novoStatus});
+      await repository.update(marca.id!, {'status': novoStatus});
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Vinculo ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
+            'Marca ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
           ),
           backgroundColor: novoStatus ? Colors.green : Colors.orange,
         ),
@@ -133,31 +129,34 @@ class VinculoWidgetState extends State<VinculoWidget> {
     }
 
     if (_error != null) {
-      return Column(
-        spacing: 16,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            color: Theme.of(context).colorScheme.error,
-            size: 48,
-          ),
-          Text(_error!),
-          FilledButton.icon(
-            onPressed: _loadData,
-            icon: const Icon(Icons.refresh),
-            label: const Text("Tentar Novamente"),
-          ),
-        ],
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              color: Theme.of(context).colorScheme.error,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(_error!),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: _loadData,
+              icon: const Icon(Icons.refresh),
+              label: const Text("Tentar Novamente"),
+            ),
+          ],
+        ),
       );
     }
 
-    if (_vinculos.isEmpty) {
+    if (_items.isEmpty) {
       return BuildEmpty(
-        title: 'Nenhum vínculo cadastrado',
-        subtitle: 'Clique em "Novo Vinculo" para começar',
-        icon: Icons.assignment_ind_outlined,
-        titleDrawer: "Novo Vinculo",
+        title: 'Nenhuma marca cadastrada',
+        subtitle: 'Clique em "Nova Marca" para começar',
+        icon: Icons.straighten_outlined,
+        titleDrawer: "Nova Marca",
         drawer: _showDrawer,
       );
     }
@@ -167,17 +166,17 @@ class VinculoWidgetState extends State<VinculoWidget> {
       children: [
         Expanded(
           child: ListView.builder(
-            itemCount: _vinculos.length,
-            itemBuilder: (context, index) {
-              final vinculo = _vinculos[index];
+            itemCount: _items.length,
+            itemBuilder: (ctx, index) {
+              final item = _items[index];
 
               return ItemCard(
-                title: vinculo.nomeVinculo,
-                leadingIcon: Icons.badge_outlined,
-                isActive: vinculo.status,
-                onView: () => _showDrawer(vinculo: vinculo, viewOnly: true),
-                onEdit: () => _showDrawer(vinculo: vinculo),
-                onToggleStatus: () => _toggleStatusVinculo(vinculo),
+                title: item.nomeMarca,
+                leadingIcon: Icons.branding_watermark_outlined,
+                isActive: item.status,
+                onView: () => _showDrawer(item: item, viewOnly: true),
+                onEdit: () => _showDrawer(item: item),
+                onToggleStatus: () => _toggleStatusMarca(item),
               );
             },
           ),

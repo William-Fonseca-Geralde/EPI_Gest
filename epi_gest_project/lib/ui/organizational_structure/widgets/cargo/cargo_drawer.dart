@@ -102,15 +102,16 @@ class _CargoDrawerState extends State<CargoDrawer> {
       subtitle: _isViewing ? 'Informações completas do cargo' : _isEditing ? 'Alterar dados do cargo' : 'Preencha os dados para cadastro',
       icon: Icons.badge_outlined,
       onClose: widget.onClose,
-      onSave: _handleSave, // Passa a função que retorna Future
+      onSave: _handleSave,
       formKey: _formKey,
       isEditing: _isEditing,
       isViewing: _isViewing,
       isSaving: _isSaving,
-      widthFactor: 0.4, // Opcional
+      widthFactor: 0.4,
       child: _buildForm(theme),
     );
   }
+
   Widget _buildForm(ThemeData theme) {
     final isEnabled = !_isViewing;
 

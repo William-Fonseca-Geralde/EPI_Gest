@@ -1,10 +1,10 @@
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/armazem/armazem_widget.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/categorias/categoria_widget.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/fornecedores/fornecedores_widget.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/marcas/marcas_widget.dart';
+import 'package:epi_gest_project/ui/product_technical_registration/widgets/medidas/medidas_widget.dart';
 import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
-import 'widgets/measurement_units_widget.dart';
-import 'widgets/product_categories_widget.dart';
-import 'widgets/storage_locations_widget.dart';
-import 'widgets/supplier_registration_widget.dart';
-import 'widgets/brands_registration_widget.dart'; // NOVA IMPORT
 
 class ProductTechnicalRegistrationPage extends StatefulWidget {
   const ProductTechnicalRegistrationPage({super.key});
@@ -18,11 +18,11 @@ class _ProductTechnicalRegistrationPageState
     extends State<ProductTechnicalRegistrationPage> {
   int? _selectedSection;
 
-  final GlobalKey<MeasurementUnitsWidgetState> _measurementUnitsKey = GlobalKey();
-  final GlobalKey<ProductCategoriesWidgetState> _productCategoriesKey = GlobalKey();
-  final GlobalKey<StorageLocationsWidgetState> _storageLocationsKey = GlobalKey();
-  final GlobalKey<SupplierRegistrationWidgetState> _supplierRegistrationKey = GlobalKey();
-  final GlobalKey<BrandsRegistrationWidgetState> _brandsRegistrationKey = GlobalKey();
+  final GlobalKey<MedidasWidgetState> _medidaKey = GlobalKey();
+  final GlobalKey<CategoriaWidgetState> _categoriaKey = GlobalKey();
+  final GlobalKey<ArmazemWidgetState> _armazemKey = GlobalKey();
+  final GlobalKey<FornecedoresWidgetState> _fornecedorKey = GlobalKey();
+  final GlobalKey<MarcasWidgetState> _marcaKey = GlobalKey();
 
   final List<Map<String, dynamic>> _sections = [
     {
@@ -39,7 +39,7 @@ class _ProductTechnicalRegistrationPageState
     },
     {
       'title': 'Locais de Armazenamento',
-      'icon': Icons.place_outlined,
+      'icon': Icons.store_mall_directory_outlined,
       'description': 'Gerencie endereços e locais de estoque',
       'index': 2,
     },
@@ -49,7 +49,7 @@ class _ProductTechnicalRegistrationPageState
       'description': 'Cadastre fornecedores e seus CNPJs',
       'index': 3,
     },
-    { // NOVA SEÇÃO
+    {
       'title': 'Marcas',
       'icon': Icons.branding_watermark_outlined,
       'description': 'Gerencie marcas de produtos',
@@ -66,15 +66,15 @@ class _ProductTechnicalRegistrationPageState
   Widget _getSectionWidget(int index) {
     switch (index) {
       case 0:
-        return MeasurementUnitsWidget(key: _measurementUnitsKey);
+        return MedidasWidget(key: _medidaKey);
       case 1:
-        return ProductCategoriesWidget(key: _productCategoriesKey);
+        return CategoriaWidget(key: _categoriaKey);
       case 2:
-        return StorageLocationsWidget(key: _storageLocationsKey);
+        return ArmazemWidget(key: _armazemKey);
       case 3:
-        return SupplierRegistrationWidget(key: _supplierRegistrationKey);
-      case 4: // NOVO
-        return BrandsRegistrationWidget(key: _brandsRegistrationKey);
+        return FornecedoresWidget(key: _fornecedorKey);
+      case 4:
+        return MarcasWidget(key: _marcaKey);
       default:
         return const Center(child: Text('Seção não encontrada'));
     }
@@ -100,19 +100,19 @@ class _ProductTechnicalRegistrationPageState
   void _triggerAddAction(int sectionIndex) {
     switch (sectionIndex) {
       case 0:
-        _measurementUnitsKey.currentState?.showAddDrawer();
+        _medidaKey.currentState?.showAddDrawer();
         break;
       case 1:
-        _productCategoriesKey.currentState?.showAddDrawer();
+        _categoriaKey.currentState?.showAddDrawer();
         break;
       case 2:
-        _storageLocationsKey.currentState?.showAddDrawer();
+        _armazemKey.currentState?.showAddDrawer();
         break;
       case 3:
-        _supplierRegistrationKey.currentState?.showAddDrawer();
+        _fornecedorKey.currentState?.showAddDrawer();
         break;
       case 4: // NOVO
-        _brandsRegistrationKey.currentState?.showAddDrawer();
+        _marcaKey.currentState?.showAddDrawer();
         break;
     }
   }

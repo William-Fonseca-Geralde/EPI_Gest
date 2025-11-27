@@ -222,7 +222,6 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
         Expanded(
           child: ListView.builder(
             itemCount: _mapeamentos.length,
-            padding: const EdgeInsets.all(16),
             itemBuilder: (context, index) {
               final map = _mapeamentos[index];
 

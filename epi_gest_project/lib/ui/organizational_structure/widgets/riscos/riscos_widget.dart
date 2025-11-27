@@ -169,7 +169,6 @@ class RiscosWidgetState extends State<RiscosWidget> {
       children: [
         Expanded(
           child: ListView.builder(
-            padding: const EdgeInsets.all(16),
             itemCount: _riscos.length,
             itemBuilder: (context, index) {
               final risco = _riscos[index];
