@@ -7,6 +7,7 @@ import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart
 import 'package:epi_gest_project/ui/employees/widget/employee_drawer.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_data_table.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_filters.dart';
+import 'package:epi_gest_project/ui/employees/widget/ficha_epi_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -168,6 +169,19 @@ class _EmployeesPageState extends State<EmployeesPage> {
       _appliedFilters = FuncionarioFilterModel.empty();
       _filteredEmployees = List.from(_allEmployees);
     });
+  }
+
+  void _showFichaEpiDrawer(FuncionarioModel func) {
+    showGeneralDialog(
+      context: context,
+      pageBuilder: (context, _, __) => FichaEpiDrawer(
+        funcionario: func,
+        onClose: () => Navigator.of(context).pop(),
+        onSave: () {
+          _reloadData();
+        },
+      ),
+    );
   }
 
   void _showAddEmployeeDrawer() {
@@ -410,6 +424,7 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   onEdit: _showEditEmployeeDrawer,
                   onInactivate: _inativarFuncionario,
                   onActivate: _ativarFuncionario,
+                  entregaEpi: _showFichaEpiDrawer,
                 );
               },
             ),
@@ -491,17 +506,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
                     _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
                   ),
                   tooltip: _showFilters ? 'Ocultar filtros' : 'Mostrar filtros',
-                ),
-              ),
-              FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.assignment_returned),
-                label: const Text('Entregar EPIs'),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 16,
-                  ),
                 ),
               ),
               OutlinedButton.icon(

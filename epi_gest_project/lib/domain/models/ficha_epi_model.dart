@@ -11,7 +11,7 @@ import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_
 
 class FichaEpiModel extends AppWriteModel {
   final MapeamentoFuncionarioModel mapeamentoFuncionario;
-  final List<EpiModel> epi;
+  final EpiModel epi;
   final DateTime validadeEpi;
   final bool status;
 
@@ -76,19 +76,10 @@ class FichaEpiModel extends AppWriteModel {
             ),
           );
 
-    List<EpiModel> parseEpis(dynamic data) {
-      if (data == null || data is! List) return [];
-
-      return data
-          .whereType<Map<String, dynamic>>()
-          .map((item) => EpiModel.fromMap(item))
-          .toList();
-    }
-
     return FichaEpiModel(
       id: map['\$id'],
       mapeamentoFuncionario: mapeamentoFuncObj,
-      epi: parseEpis(map['epi_id']),
+      epi: map['epi_id'],
       validadeEpi: DateTime.parse(map['validade_epi']),
       status: map['status'],
     );
@@ -98,10 +89,7 @@ class FichaEpiModel extends AppWriteModel {
   Map<String, dynamic> toMap() {
     return {
       'mapeamentoFuncionario_id': mapeamentoFuncionario.id,
-      'epi_id': epi
-          .map((epi) => epi.id)
-          .where((id) => id != null && id.isNotEmpty)
-          .toList(),
+      'epi_id': epi,
       'validade_epi': validadeEpi.toIso8601String(),
       'status': status,
     };
