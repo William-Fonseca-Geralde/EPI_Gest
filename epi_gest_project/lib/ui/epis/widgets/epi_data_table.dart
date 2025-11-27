@@ -1,12 +1,18 @@
 import 'package:epi_gest_project/domain/models/epi_model.dart';
-import 'package:epi_gest_project/ui/epis/widgets/epi_drawer.dart'; // Importação única do drawer centralizado
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class EpiDataTable extends StatefulWidget {
   final List<EpiModel> epis;
+  final Function(EpiModel) onView;
+  final Function(EpiModel) onEdit;
 
-  const EpiDataTable({super.key, required this.epis});
+  const EpiDataTable({
+    super.key,
+    required this.epis,
+    required this.onView,
+    required this.onEdit,
+  });
 
   @override
   State<EpiDataTable> createState() => _EpiDataTableState();
@@ -102,8 +108,9 @@ class _EpiDataTableState extends State<EpiDataTable> {
             compare = a.nomeProduto.compareTo(b.nomeProduto);
             break;
           case 2: // Categoria (Objeto)
-            compare =
-                a.categoria.nomeCategoria.compareTo(b.categoria.nomeCategoria);
+            compare = a.categoria.nomeCategoria.compareTo(
+              b.categoria.nomeCategoria,
+            );
             break;
           case 3: // Estoque (Double)
             compare = a.estoque.compareTo(b.estoque);
@@ -373,71 +380,18 @@ class _EpiDataTableState extends State<EpiDataTable> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      // BOTÃO VISUALIZAR (Usa EpiDrawer com view: true)
                                       IconButton(
                                         icon: const Icon(
                                           Icons.visibility_outlined,
                                         ),
                                         tooltip: 'Visualizar',
-                                        onPressed: () {
-                                          showGeneralDialog(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            barrierLabel: 'Visualizar EPI',
-                                            transitionDuration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            pageBuilder: (
-                                              context,
-                                              animation,
-                                              secondaryAnimation,
-                                            ) {
-                                              return EpiDrawer(
-                                                epiToEdit: epi,
-                                                view: true,
-                                                onClose:
-                                                    () => Navigator.of(
-                                                      context,
-                                                    ).pop(),
-                                              );
-                                            },
-                                          );
-                                        },
+                                        onPressed: () => widget.onView(epi),
                                       ),
-                                      // BOTÃO EDITAR (Usa EpiDrawer padrão de edição)
                                       IconButton(
                                         icon: const Icon(Icons.edit_outlined),
                                         tooltip: 'Editar',
-                                        onPressed: () {
-                                          showGeneralDialog(
-                                            context: context,
-                                            barrierDismissible: false,
-                                            barrierLabel: 'Editar EPI',
-                                            transitionDuration: const Duration(
-                                              milliseconds: 300,
-                                            ),
-                                            pageBuilder: (
-                                              context,
-                                              animation,
-                                              secondaryAnimation,
-                                            ) {
-                                              return EpiDrawer(
-                                                epiToEdit: epi,
-                                                onClose:
-                                                    () => Navigator.of(
-                                                      context,
-                                                    ).pop(),
-                                                onSave: () {
-                                                  // Callback para recarregar a lista se necessário
-                                                  // Ex: context.read<InventoryController>().loadEpis();
-                                                  Navigator.of(context).pop();
-                                                },
-                                              );
-                                            },
-                                          );
-                                        },
+                                        onPressed: () => widget.onEdit(epi),
                                       ),
-                                      // BOTÃO EXCLUIR
                                       IconButton(
                                         icon: Icon(
                                           Icons.delete_outline,
@@ -485,7 +439,9 @@ class _EpiDataTableState extends State<EpiDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                   width: 1,
                 ),
         ),
@@ -514,8 +470,8 @@ class _EpiDataTableState extends State<EpiDataTable> {
                   child: Icon(
                     isActive
                         ? (_sortAscending
-                            ? Icons.arrow_upward
-                            : Icons.arrow_downward)
+                              ? Icons.arrow_upward
+                              : Icons.arrow_downward)
                         : Icons.unfold_more,
                     size: 16,
                     color: isActive
@@ -545,7 +501,9 @@ class _EpiDataTableState extends State<EpiDataTable> {
           right: isLast
               ? BorderSide.none
               : BorderSide(
-                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: theme.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
         ),
       ),

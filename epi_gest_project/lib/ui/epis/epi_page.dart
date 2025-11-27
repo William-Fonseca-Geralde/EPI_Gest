@@ -178,6 +178,36 @@ class _EpiPageState extends State<EpiPage> {
     );
   }
 
+  void _showEditEpiDrawer(EpiModel epi) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Editar EPI',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, _, __) => EpiDrawer(
+        epiToEdit: epi,
+        onClose: () => Navigator.of(context).pop(),
+        onSave: () {
+          _reloadData();
+        },
+      ),
+    );
+  }
+
+  void _showViewEpiDrawer(EpiModel epi) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Visualizar EPI',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, _, __) => EpiDrawer(
+        epiToEdit: epi,
+        view: true,
+        onClose: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
   void _navigateToEntryScreen() {
     Navigator.of(
       context,
@@ -222,7 +252,11 @@ class _EpiPageState extends State<EpiPage> {
                   return _buildEmptyState(theme);
                 }
 
-                return EpiDataTable(epis: _filteredEpis);
+                return EpiDataTable(
+                  epis: _filteredEpis,
+                  onView: _showViewEpiDrawer,
+                  onEdit: _showEditEpiDrawer,
+                );
               },
             ),
           ),

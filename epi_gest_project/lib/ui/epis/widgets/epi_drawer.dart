@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/epi_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
@@ -226,10 +227,12 @@ class _EpiDrawerState extends State<EpiDrawer> {
         await epiRepository.create(epiToSave);
         _showSuccessSnackBar('EPI cadastrado com sucesso!');
       }
-
+      
       widget.onSave?.call();
       widget.onClose();
-    } catch (e) {
+      
+
+    } on AppwriteException catch (e) {
       _showErrorSnackBar("Erro ao salvar: $e");
     } finally {
       if (mounted) setState(() => _isSaving = false);
