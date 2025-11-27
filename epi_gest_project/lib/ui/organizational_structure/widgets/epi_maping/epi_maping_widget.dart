@@ -24,7 +24,6 @@ class EpiMapingWidget extends StatefulWidget {
 class EpiMapingWidgetState extends State<EpiMapingWidget> {
   List<MapeamentoEpiModel> _mapeamentos = [];
   List<MapeamentoEpiModel> _filteredMapeamentos = [];
-  final TextEditingController _searchController = TextEditingController();
   bool _isLoading = true;
   String? _error;
 
@@ -86,10 +85,10 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
   }
 
   void showAddDrawer() {
-    _showMapingDrawer();
+    _showDrawer();
   }
 
-  void _showMapingDrawer({MapeamentoEpiModel? mapping, bool viewOnly = false}) {
+  void _showDrawer({MapeamentoEpiModel? mapping, bool viewOnly = false}) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -178,22 +177,6 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
     ).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.red));
   }
 
-  void _filterMappings(String query) {
-    final lowerQuery = query.toLowerCase();
-    setState(() {
-      if (query.isEmpty) {
-        _filteredMapeamentos = _mapeamentos;
-      } else {
-        _filteredMapeamentos = _mapeamentos.where((map) {
-          return map.nomeMapeamento.toLowerCase().contains(lowerQuery) ||
-              map.cargo.nomeCargo.toLowerCase().contains(lowerQuery) ||
-              map.setor.nomeSetor.toLowerCase().contains(lowerQuery) ||
-              map.codigoMapeamento.toLowerCase().contains(lowerQuery);
-        }).toList();
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -231,29 +214,12 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
         subtitle: 'Clique em "Novo Mapeamento" para começar',
         icon: Icons.map_outlined,
         titleDrawer: "Novo Mapeamento",
-        drawer: _showMapingDrawer,
+        drawer: _showDrawer,
       );
     }
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _searchController,
-            onChanged: _filterMappings,
-            decoration: InputDecoration(
-              labelText: 'Pesquisar Mapeamento',
-              hintText: 'Busque por nome, cargo ou setor...',
-              prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              filled: true,
-              fillColor: Theme.of(context).colorScheme.surface,
-            ),
-          ),
-        ),
         Expanded(
           child: _filteredMapeamentos.isEmpty
               ? Center(child: Text('Nenhum mapeamento encontrado'))
@@ -301,7 +267,7 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
                             IconButton(
                               icon: const Icon(Icons.visibility_outlined),
                               tooltip: 'Visualizar',
-                              onPressed: () => _showMapingDrawer(
+                              onPressed: () => _showDrawer(
                                 mapping: map,
                                 viewOnly: true,
                               ),
@@ -309,7 +275,7 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
                             IconButton(
                               icon: const Icon(Icons.edit_outlined),
                               tooltip: 'Editar',
-                              onPressed: () => _showMapingDrawer(mapping: map),
+                              onPressed: () => _showDrawer(mapping: map),
                             ),
                             IconButton(
                               icon: Icon(
