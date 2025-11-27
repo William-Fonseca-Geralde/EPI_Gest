@@ -14,6 +14,7 @@ class EpiModel extends AppWriteModel {
   final MarcasModel marca;
   final CategoriaModel categoria;
   final MedidaModel medida;
+  final bool status;
 
   EpiModel({
     super.id,
@@ -26,6 +27,7 @@ class EpiModel extends AppWriteModel {
     required this.marca,
     required this.categoria,
     required this.medida,
+    this.status = true,
   });
 
   factory EpiModel.fromMap(Map<String, dynamic> map) {
@@ -64,6 +66,7 @@ class EpiModel extends AppWriteModel {
       marca: marcaObj,
       categoria: categoriaObj,
       medida: medidaObj,
+      status: map['status'] ?? true,
     );
   }
 
@@ -79,6 +82,7 @@ class EpiModel extends AppWriteModel {
       'marca_id': marca.id,
       'categoria_id': categoria.id,
       'medida_id': medida.id,
+      'status': status,
     };
   }
 }

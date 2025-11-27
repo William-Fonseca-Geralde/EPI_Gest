@@ -1,7 +1,8 @@
 import 'package:epi_gest_project/data/services/organizational_structure/riscos_repository.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/riscos/riscos_drawer.dart';
-import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
+import 'package:epi_gest_project/ui/widgets/build_empty.dart';
+import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -69,51 +70,55 @@ class RiscosWidgetState extends State<RiscosWidget> {
     );
   }
 
-  Future<void> _deleteRisco(RiscosModel risco) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text(
-          'Tem certeza que deseja excluir a unidade "${risco.nomeRiscos}"?',
+  Future<void> _toggleStatusRiscos(RiscosModel riscos) async {
+    final novoStatus = !riscos.status;
+    final acao = novoStatus ? 'ativar' : 'inativar';
+
+    if (!novoStatus) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Inativação'),
+          content: Text(
+            'Tem certeza que deseja inativar o riscos "${riscos.nomeRiscos}"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Inativar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
+      );
+      if (confirm != true) return;
+    }
 
-    if (confirm == true) {
-      try {
-        final repository = Provider.of<RiscosRepository>(
-          context,
-          listen: false,
-        );
-        await repository.delete(risco.id!);
+    try {
+      final repository = Provider.of<RiscosRepository>(context, listen: false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Risco excluído com sucesso!'),
-            backgroundColor: Colors.green,
+      await repository.update(riscos.id!, {'status': novoStatus});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Riscos ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
           ),
-        );
-        _loadData();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+          backgroundColor: novoStatus ? Colors.green : Colors.orange,
+        ),
+      );
+      _loadData();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao $acao: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -161,52 +166,27 @@ class RiscosWidgetState extends State<RiscosWidget> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: _buildRiscosList())],
-    );
-  }
+      children: [
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: _riscos.length,
+            itemBuilder: (context, index) {
+              final risco = _riscos[index];
 
-  Widget _buildRiscosList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _riscos.length,
-      itemBuilder: (context, index) {
-        final risco = _riscos[index];
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: Icon(
-              Icons.warning_amber_outlined,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            title: Text(
-              risco.nomeRiscos,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text('Codigo ${risco.codigoRiscos}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.visibility_outlined),
-                  tooltip: 'Visualizar',
-                  onPressed: () => _showDrawer(risco: risco, viewOnly: true),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Editar',
-                  onPressed: () => _showDrawer(risco: risco),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Excluir',
-                  onPressed: () => _deleteRisco(risco),
-                ),
-              ],
-            ),
+              return ItemCard(
+                title: risco.nomeRiscos,
+                subtitle: Text('Código: ${risco.codigoRiscos}'),
+                leadingIcon: Icons.warning_amber_outlined,
+                isActive: risco.status,
+                onView: () => _showDrawer(risco: risco, viewOnly: true),
+                onEdit: () => _showDrawer(risco: risco),
+                onToggleStatus: () => _toggleStatusRiscos(risco),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

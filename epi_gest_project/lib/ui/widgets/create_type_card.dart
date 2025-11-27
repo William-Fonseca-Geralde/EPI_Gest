@@ -86,3 +86,129 @@ class CreateTypeCard extends StatelessWidget {
     );
   }
 }
+
+class ItemCard extends StatelessWidget {
+  final String title;
+  final Widget? subtitle;
+  final String? secondSubtitle;
+  final IconData leadingIcon;
+  final bool isActive;
+  final VoidCallback onView;
+  final VoidCallback onEdit;
+  final VoidCallback onToggleStatus;
+
+  const ItemCard({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.secondSubtitle,
+    required this.leadingIcon,
+    required this.isActive,
+    required this.onView,
+    required this.onEdit,
+    required this.onToggleStatus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: colorScheme.primaryContainer.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            leadingIcon,
+            color: colorScheme.primary,
+          ),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ?subtitle,
+            if (secondSubtitle != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                secondSubtitle!,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ],
+        ),
+        trailing: Row(
+          spacing: 12,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Badge de Status
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? Colors.green.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                isActive ? 'Ativo' : 'Inativo',
+                style: TextStyle(
+                  color: isActive ? Colors.green.shade700 : Colors.red.shade700,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+            // Ações
+            IconButton(
+              icon: const Icon(Icons.visibility_outlined),
+              tooltip: 'Visualizar',
+              onPressed: onView,
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(8),
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: 'Editar',
+              onPressed: onEdit,
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(8),
+            ),
+            IconButton(
+              icon: Icon(
+                isActive ? Icons.power_settings_new : Icons.power_off,
+                color: isActive ? colorScheme.onSurfaceVariant : colorScheme.error,
+              ),
+              tooltip: isActive ? 'Inativar' : 'Ativar',
+              onPressed: onToggleStatus,
+              constraints: const BoxConstraints(),
+              padding: const EdgeInsets.all(8),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

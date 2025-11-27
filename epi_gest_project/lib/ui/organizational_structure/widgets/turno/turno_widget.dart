@@ -1,7 +1,8 @@
 import 'package:epi_gest_project/data/services/organizational_structure/turno_repository.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/turno/turno_drawer.dart';
-import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
+import 'package:epi_gest_project/ui/widgets/build_empty.dart';
+import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -69,48 +70,55 @@ class TurnoWidgetState extends State<TurnoWidget> {
     );
   }
 
-  Future<void> _deleteTurno(TurnoModel turno) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text(
-          'Tem certeza que deseja excluir o turno "${turno.turno}"?',
+  Future<void> _toggleStatusTurno(TurnoModel turno) async {
+    final novoStatus = !turno.status;
+    final acao = novoStatus ? 'ativar' : 'inativar';
+
+    if (!novoStatus) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Inativação'),
+          content: Text(
+            'Tem certeza que deseja inativar o turno "${turno.turno}"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Inativar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
+      );
+      if (confirm != true) return;
+    }
 
-    if (confirm == true) {
-      try {
-        final repository = Provider.of<TurnoRepository>(context, listen: false);
-        await repository.delete(turno.id!);
+    try {
+      final repository = Provider.of<TurnoRepository>(context, listen: false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Turno excluído com sucesso!'),
-            backgroundColor: Colors.green,
+      await repository.update(turno.id!, {'status': novoStatus});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Turno ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
           ),
-        );
-        _loadData();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+          backgroundColor: novoStatus ? Colors.green : Colors.orange,
+        ),
+      );
+      _loadData();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao $acao: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -156,50 +164,25 @@ class TurnoWidgetState extends State<TurnoWidget> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: _buildTurnosList())],
-    );
-  }
-
-  Widget _buildTurnosList() {
-    return ListView.builder(
-      itemCount: _turnos.length,
-      itemBuilder: (context, index) {
-        final turno = _turnos[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: Icon(
-              Icons.access_time_outlined,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            title: Text(
-              turno.turno,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text('${turno.horaEntrada} - ${turno.horaSaida}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.visibility_outlined),
-                  tooltip: 'Visualizar',
-                  onPressed: () => _showDrawer(turno: turno, viewOnly: true),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Editar',
-                  onPressed: () => _showDrawer(turno: turno),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Excluir',
-                  onPressed: () => _deleteTurno(turno),
-                ),
-              ],
-            ),
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: _turnos.length,
+            itemBuilder: (context, index) {
+              final turno = _turnos[index];
+              return ItemCard(
+                title: turno.turno,
+                subtitle: Text('${turno.horaEntrada} - ${turno.horaSaida}'),
+                leadingIcon: Icons.access_time_outlined,
+                isActive: turno.status,
+                onView: () => _showDrawer(turno: turno, viewOnly: true),
+                onEdit: () => _showDrawer(turno: turno),
+                onToggleStatus: () => _toggleStatusTurno(turno),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

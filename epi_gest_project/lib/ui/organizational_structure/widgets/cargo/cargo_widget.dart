@@ -1,7 +1,8 @@
 import 'package:epi_gest_project/data/services/organizational_structure/cargo_repository.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
 import 'package:epi_gest_project/ui/organizational_structure/widgets/cargo/cargo_drawer.dart';
-import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
+import 'package:epi_gest_project/ui/widgets/build_empty.dart';
+import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -69,48 +70,55 @@ class CargoWidgetState extends State<CargoWidget> {
     );
   }
 
-  Future<void> _deleteCargo(CargoModel cargo) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text(
-          'Tem certeza que deseja excluir o cargo "${cargo.nomeCargo}"?',
+  Future<void> _toggleStatusCargo(CargoModel cargo) async {
+    final novoStatus = !cargo.status;
+    final acao = novoStatus ? 'ativar' : 'inativar';
+
+    if (!novoStatus) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Confirmar Inativação'),
+          content: Text(
+            'Tem certeza que deseja inativar o cargo "${cargo.nomeCargo}"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: FilledButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('Inativar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
-    );
+      );
+      if (confirm != true) return;
+    }
 
-    if (confirm == true) {
-      try {
-        final repository = Provider.of<CargoRepository>(context, listen: false);
-        await repository.delete(cargo.id!);
+    try {
+      final repository = Provider.of<CargoRepository>(context, listen: false);
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cargo excluído com sucesso!'),
-            backgroundColor: Colors.green,
+      await repository.update(cargo.id!, {'status': novoStatus});
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Cargo ${novoStatus ? 'ativado' : 'inativado'} com sucesso!',
           ),
-        );
-        _loadData();
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+          backgroundColor: novoStatus ? Colors.green : Colors.orange,
+        ),
+      );
+      _loadData();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao $acao: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -159,52 +167,27 @@ class CargoWidgetState extends State<CargoWidget> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [Expanded(child: _buildCargosList())],
-    );
-  }
+      children: [
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: _cargos.length,
+            itemBuilder: (context, index) {
+              final cargo = _cargos[index];
 
-  Widget _buildCargosList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _cargos.length,
-      itemBuilder: (context, index) {
-        final cargo = _cargos[index];
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ListTile(
-            leading: Icon(
-              Icons.badge_outlined,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            title: Text(
-              cargo.nomeCargo,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Text('Código: ${cargo.codigoCargo}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.visibility_outlined),
-                  tooltip: 'Visualizar',
-                  onPressed: () => _showDrawer(cargo: cargo, viewOnly: true),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined),
-                  tooltip: 'Editar',
-                  onPressed: () => _showDrawer(cargo: cargo),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Excluir',
-                  onPressed: () => _deleteCargo(cargo),
-                ),
-              ],
-            ),
+              return ItemCard(
+                title: cargo.nomeCargo,
+                subtitle: Text('Código: ${cargo.codigoCargo}'),
+                leadingIcon: Icons.badge_outlined,
+                isActive: cargo.status,
+                onView: () => _showDrawer(cargo: cargo, viewOnly: true),
+                onEdit: () => _showDrawer(cargo: cargo),
+                onToggleStatus: () => _toggleStatusCargo(cargo),
+              );
+            },
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }

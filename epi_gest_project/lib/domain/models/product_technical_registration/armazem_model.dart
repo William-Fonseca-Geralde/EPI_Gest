@@ -4,8 +4,14 @@ import 'package:epi_gest_project/domain/models/organizational_structure/unidade_
 class ArmazemModel extends AppWriteModel {
   final String codigoArmazem;
   final UnidadeModel unidade;
+  final bool status;
 
-  ArmazemModel({super.id, required this.codigoArmazem, required this.unidade});
+  ArmazemModel({
+    super.id,
+    required this.codigoArmazem,
+    required this.unidade,
+    this.status = true,
+  });
 
   factory ArmazemModel.fromMap(Map<String, dynamic> map) {
     Map<String, dynamic>? getData(dynamic data) {
@@ -25,18 +31,23 @@ class ArmazemModel extends AppWriteModel {
             cnpj: '',
             endereco: '',
             tipoUnidade: '',
-            status: false
+            status: false,
           );
 
     return ArmazemModel(
       id: map['\$id'],
       codigoArmazem: map['codigo_armazem'],
       unidade: unidadeObj,
+      status: map['status'] ?? true,
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
-    return {'codigo_armazem': codigoArmazem, 'unidade_id': unidade.id};
+    return {
+      'codigo_armazem': codigoArmazem,
+      'unidade_id': unidade.id,
+      'status': status,
+    };
   }
 }

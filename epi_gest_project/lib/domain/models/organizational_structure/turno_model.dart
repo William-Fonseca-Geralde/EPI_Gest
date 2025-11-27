@@ -6,6 +6,7 @@ class TurnoModel extends AppWriteModel {
   final String horaSaida;
   final String inicioAlmoco;
   final String fimAlomoco;
+  final bool status;
 
   TurnoModel({
     super.id,
@@ -14,6 +15,7 @@ class TurnoModel extends AppWriteModel {
     required this.horaSaida,
     required this.inicioAlmoco,
     required this.fimAlomoco,
+    this.status = true,
   });
 
   factory TurnoModel.fromMap(Map<String, dynamic> map) {
@@ -24,6 +26,7 @@ class TurnoModel extends AppWriteModel {
       horaSaida: map['hora_saida'],
       inicioAlmoco: map['inicio_almoc'],
       fimAlomoco: map['fim_almoc'],
+      status: map['status'] ?? true,
     );
   }
 
@@ -35,6 +38,7 @@ class TurnoModel extends AppWriteModel {
       'hora_saida': horaSaida,
       'inicio_almoc': inicioAlmoco,
       'fim_almoc': fimAlomoco,
+      'status': status,
     };
   }
 }

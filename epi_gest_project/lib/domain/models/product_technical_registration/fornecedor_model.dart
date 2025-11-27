@@ -4,12 +4,14 @@ class FornecedorModel extends AppWriteModel {
   final String cnpj;
   final String nomeFornecedor;
   final String endereco;
+  final bool status;
 
   FornecedorModel({
     super.id,
     required this.cnpj,
     required this.nomeFornecedor,
     required this.endereco,
+    this.status = true,
   });
 
   factory FornecedorModel.fromMap(Map<String, dynamic> map) {
@@ -18,6 +20,7 @@ class FornecedorModel extends AppWriteModel {
       cnpj: map['cnpj'],
       nomeFornecedor: map['nome_fornecedor'],
       endereco: map['endereco'],
+      status: map['status'] ?? true,
     );
   }
 
@@ -27,6 +30,7 @@ class FornecedorModel extends AppWriteModel {
       'cnpj': cnpj,
       'nome_fornecedor': nomeFornecedor,
       'endereco': endereco,
+      'status': status,
     };
   }
 }

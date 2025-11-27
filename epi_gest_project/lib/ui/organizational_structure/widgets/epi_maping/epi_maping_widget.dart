@@ -9,7 +9,8 @@ import 'package:epi_gest_project/domain/models/product_technical_registration/ca
 import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
-import 'package:epi_gest_project/ui/widgets/builds_widgets.dart';
+import 'package:epi_gest_project/ui/widgets/build_empty.dart';
+import 'package:epi_gest_project/ui/widgets/create_type_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'epi_mapping_drawer.dart';
@@ -23,7 +24,6 @@ class EpiMapingWidget extends StatefulWidget {
 
 class EpiMapingWidgetState extends State<EpiMapingWidget> {
   List<MapeamentoEpiModel> _mapeamentos = [];
-  List<MapeamentoEpiModel> _filteredMapeamentos = [];
   bool _isLoading = true;
   String? _error;
 
@@ -69,7 +69,6 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
           _availableRoles = results[2] as List<CargoModel>;
           _availableRisks = results[3] as List<RiscosModel>;
           _availableCategories = results[4] as List<CategoriaModel>;
-          _filteredMapeamentos = _mapeamentos;
 
           _isLoading = false;
         });
@@ -221,80 +220,24 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
     return Column(
       children: [
         Expanded(
-          child: _filteredMapeamentos.isEmpty
-              ? Center(child: Text('Nenhum mapeamento encontrado'))
-              : ListView.builder(
-                  itemCount: _mapeamentos.length,
-                  padding: const EdgeInsets.all(16),
-                  itemBuilder: (context, index) {
-                    final map = _mapeamentos[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        leading: Icon(
-                          Icons.assignment_turned_in,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        title: Text(map.nomeMapeamento),
-                        subtitle: Text(
-                          'Riscos: ${map.riscos.length} | Categorias EPI: ${map.listCategoriasEpis.length}\nCód: ${map.codigoMapeamento}',
-                        ),
-                        isThreeLine: true,
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: map.status
-                                    ? Colors.green.withValues(alpha: 0.1)
-                                    : Colors.red.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                map.status ? 'Ativo' : 'Inativo',
-                                style: TextStyle(
-                                  color: map.status ? Colors.green : Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.visibility_outlined),
-                              tooltip: 'Visualizar',
-                              onPressed: () => _showDrawer(
-                                mapping: map,
-                                viewOnly: true,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.edit_outlined),
-                              tooltip: 'Editar',
-                              onPressed: () => _showDrawer(mapping: map),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                map.status
-                                    ? Icons.power_settings_new
-                                    : Icons.power_off,
-                                color: map.status
-                                    ? null
-                                    : Theme.of(context).colorScheme.error,
-                              ),
-                              tooltip: map.status ? 'Inativar' : 'Ativar',
-                              onPressed: () => _toggleStatus(map),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+          child: ListView.builder(
+            itemCount: _mapeamentos.length,
+            padding: const EdgeInsets.all(16),
+            itemBuilder: (context, index) {
+              final map = _mapeamentos[index];
+
+              return ItemCard(
+                title: map.nomeMapeamento,
+                subtitle:
+                    Text('Riscos: ${map.riscos.length} | Categorias EPI: ${map.listCategoriasEpis.length}\nCód: ${map.codigoMapeamento}'),
+                leadingIcon: Icons.assignment_turned_in,
+                isActive: map.status,
+                onView: () => _showDrawer(mapping: map, viewOnly: true),
+                onEdit: () => _showDrawer(mapping: map),
+                onToggleStatus: () => _toggleStatus(map),
+              );
+            },
+          ),
         ),
       ],
     );
