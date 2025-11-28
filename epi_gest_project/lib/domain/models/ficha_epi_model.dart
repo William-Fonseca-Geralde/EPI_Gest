@@ -1,9 +1,8 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
-import 'package:epi_gest_project/domain/models/epi_model.dart';
-import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
-import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/mapeamento_funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/unidade_model.dart';
@@ -11,16 +10,14 @@ import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_
 
 class FichaEpiModel extends AppWriteModel {
   final MapeamentoFuncionarioModel mapeamentoFuncionario;
-  final EpiModel epi;
   final DateTime validadeEpi;
   final bool status;
 
   FichaEpiModel({
     super.id,
     required this.mapeamentoFuncionario,
-    required this.epi,
     required this.validadeEpi,
-    required this.status,
+    this.status = true,
   });
 
   factory FichaEpiModel.fromMap(Map<String, dynamic> map) {
@@ -65,7 +62,7 @@ class FichaEpiModel extends AppWriteModel {
                 nomeSetor: '',
               ),
               riscos: List.empty(),
-              listCategoriasEpis: List.empty(),
+              epis: List.empty(),
             ),
             unidade: UnidadeModel(
               nomeUnidade: '',
@@ -79,7 +76,6 @@ class FichaEpiModel extends AppWriteModel {
     return FichaEpiModel(
       id: map['\$id'],
       mapeamentoFuncionario: mapeamentoFuncObj,
-      epi: map['epi_id'],
       validadeEpi: DateTime.parse(map['validade_epi']),
       status: map['status'],
     );
@@ -89,7 +85,6 @@ class FichaEpiModel extends AppWriteModel {
   Map<String, dynamic> toMap() {
     return {
       'mapeamentoFuncionario_id': mapeamentoFuncionario.id,
-      'epi_id': epi,
       'validade_epi': validadeEpi.toIso8601String(),
       'status': status,
     };

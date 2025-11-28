@@ -1,13 +1,12 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:epi_gest_project/data/services/funcionario_repository.dart';
-import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/domain/models/filters/funcionario_filter_model.dart';
-import 'package:epi_gest_project/domain/models/funcionario_model.dart';
-import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/mapeamento_funcionario_model.dart';
 import 'package:epi_gest_project/ui/employees/widget/employee_drawer.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_data_table.dart';
 import 'package:epi_gest_project/ui/employees/widget/employees_filters.dart';
-import 'package:epi_gest_project/ui/employees/widget/ficha_epi_drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -169,19 +168,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
       _appliedFilters = FuncionarioFilterModel.empty();
       _filteredEmployees = List.from(_allEmployees);
     });
-  }
-
-  void _showFichaEpiDrawer(FuncionarioModel func) {
-    showGeneralDialog(
-      context: context,
-      pageBuilder: (context, _, __) => FichaEpiDrawer(
-        funcionario: func,
-        onClose: () => Navigator.of(context).pop(),
-        onSave: () {
-          _reloadData();
-        },
-      ),
-    );
   }
 
   void _showAddEmployeeDrawer() {
@@ -424,7 +410,6 @@ class _EmployeesPageState extends State<EmployeesPage> {
                   onEdit: _showEditEmployeeDrawer,
                   onInactivate: _inativarFuncionario,
                   onActivate: _ativarFuncionario,
-                  entregaEpi: _showFichaEpiDrawer,
                 );
               },
             ),

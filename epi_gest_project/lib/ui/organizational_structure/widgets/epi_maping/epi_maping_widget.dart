@@ -1,11 +1,11 @@
+import 'package:epi_gest_project/data/services/epi_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/cargo_repository.dart';
-import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/mapeamento_epi_repository.dart';
-import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/riscos_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/setor_repository.dart';
+import 'package:epi_gest_project/domain/models/epi_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
-import 'package:epi_gest_project/domain/models/product_technical_registration/categoria_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
@@ -30,7 +30,7 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
   List<SetorModel> _availableSectors = [];
   List<CargoModel> _availableRoles = [];
   List<RiscosModel> _availableRisks = [];
-  List<CategoriaModel> _availableCategories = [];
+  List<EpiModel> _availableCategories = [];
 
   @override
   void initState() {
@@ -52,14 +52,14 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
       final setorRepo = Provider.of<SetorRepository>(context, listen: false);
       final cargoRepo = Provider.of<CargoRepository>(context, listen: false);
       final riscoRepo = Provider.of<RiscosRepository>(context, listen: false);
-      final catRepo = Provider.of<CategoriaRepository>(context, listen: false);
+      final epiRep = Provider.of<EpiRepository>(context, listen: false);
 
       final results = await Future.wait([
         mapRepo.getAllMapeamentos(),
         setorRepo.getAllSetores(),
         cargoRepo.getAllCargos(),
         riscoRepo.getAllRiscos(),
-        catRepo.getAllCategorias(),
+        epiRep.getAllEpis(),
       ]);
 
       if (mounted) {
@@ -68,7 +68,7 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
           _availableSectors = results[1] as List<SetorModel>;
           _availableRoles = results[2] as List<CargoModel>;
           _availableRisks = results[3] as List<RiscosModel>;
-          _availableCategories = results[4] as List<CategoriaModel>;
+          _availableCategories = results[4] as List<EpiModel>;
 
           _isLoading = false;
         });
@@ -100,7 +100,7 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
         availableSectors: _availableSectors,
         availableRoles: _availableRoles,
         availableRisks: _availableRisks,
-        availableCategories: _availableCategories,
+        availableEpis: _availableCategories,
       ),
     );
   }
@@ -228,7 +228,7 @@ class EpiMapingWidgetState extends State<EpiMapingWidget> {
               return ItemCard(
                 title: map.nomeMapeamento,
                 subtitle:
-                    Text('Riscos: ${map.riscos.length} | Categorias EPI: ${map.listCategoriasEpis.length}\nCód: ${map.codigoMapeamento}'),
+                    Text('Riscos: ${map.riscos.length} | EPIs vinculados: ${map.epis.length}\nCód: ${map.codigoMapeamento}'),
                 leadingIcon: Icons.assignment_turned_in,
                 isActive: map.status,
                 onView: () => _showDrawer(mapping: map, viewOnly: true),

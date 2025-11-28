@@ -1,22 +1,17 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
-import 'package:epi_gest_project/domain/models/epi_model.dart';
 import 'package:epi_gest_project/domain/models/product_technical_registration/fornecedor_model.dart';
 
 class EntradasModel extends AppWriteModel {
   final String nfReferente;
   final FornecedorModel fornecedorId;
-  final List<EpiModel> epi;
-  final int quantidade;
-  final double valor;
+  final List<EntradasModel> entradasId;
 
   EntradasModel({
     super.id,
     super.createdAt,
     required this.nfReferente,
     required this.fornecedorId,
-    required this.epi,
-    required this.quantidade,
-    required this.valor,
+    required this.entradasId,
   });
 
   factory EntradasModel.fromMap(Map<String, dynamic> map) {
@@ -34,12 +29,12 @@ class EntradasModel extends AppWriteModel {
         ? FornecedorModel.fromMap(fornecedorData)
         : FornecedorModel(id: '', cnpj: '', nomeFornecedor: '', endereco: '');
 
-    List<EpiModel> parseEpis(dynamic data) {
+    List<EntradasModel> parseEpis(dynamic data) {
       if (data == null || data is! List) return [];
 
       return data
           .whereType<Map<String, dynamic>>()
-          .map((item) => EpiModel.fromMap(item))
+          .map((item) => EntradasModel.fromMap(item))
           .toList();
     }
 
@@ -47,9 +42,7 @@ class EntradasModel extends AppWriteModel {
       id: map['\$id'],
       nfReferente: map['nf_ref'],
       fornecedorId: fornecedorObj,
-      epi: parseEpis(map['epi_id']),
-      quantidade: map['quantidade'],
-      valor: map['valor'],
+      entradasId: parseEpis(map['entradas_epi_id']),
     );
   }
 
@@ -57,13 +50,11 @@ class EntradasModel extends AppWriteModel {
   Map<String, dynamic> toMap() {
     return {
       'nf_ref': nfReferente,
-      'fornecedor_id': fornecedorId,
-      'epi_id': epi
+      'fornecedor_id': fornecedorId.id,
+      'entradas_epi_id': entradasId
           .map((epi) => epi.id)
           .where((id) => id != null && id.isNotEmpty)
           .toList(),
-      'quantidade': quantidade,
-      'valor': valor,
     };
   }
 }

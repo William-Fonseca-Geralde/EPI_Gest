@@ -1,7 +1,7 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/core/constants/appwrite_constants.dart';
 import 'package:epi_gest_project/data/services/base_repository.dart';
-import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/mapeamento_funcionario_model.dart';
 
 class MapeamentoFuncionarioRepository
     extends BaseRepository<MapeamentoFuncionarioModel> {

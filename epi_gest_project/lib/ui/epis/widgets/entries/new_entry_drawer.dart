@@ -1,3 +1,10 @@
+import 'package:epi_gest_project/data/services/entradas_repository.dart';
+import 'package:epi_gest_project/data/services/epi_repository.dart';
+import 'package:epi_gest_project/data/services/product_technical_registration/fornecedor_repository.dart';
+import 'package:epi_gest_project/domain/models/entradas_epi_model.dart';
+import 'package:epi_gest_project/domain/models/entradas_model.dart';
+import 'package:epi_gest_project/domain/models/epi_model.dart';
+import 'package:epi_gest_project/domain/models/product_technical_registration/fornecedor_model.dart';
 import 'package:epi_gest_project/ui/utils/input_formatters.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:epi_gest_project/ui/widgets/form_fields.dart';
@@ -6,6 +13,7 @@ import 'package:epi_gest_project/ui/widgets/search_selection_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class NewEntryDrawer extends StatefulWidget {
   final VoidCallback onClose;
@@ -26,23 +34,21 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
 
   final TextEditingController _notaFiscalController = TextEditingController();
   final TextEditingController _dataEntregaController = TextEditingController();
-  final TextEditingController _fornecedorCodigoController =
+  final TextEditingController _fornecedorCnpjController =
       TextEditingController();
-  final TextEditingController _fornecedorDescricaoController =
+  final TextEditingController _fornecedorNomeController =
       TextEditingController();
 
-  final TextEditingController _produtoCodigoController =
-      TextEditingController();
   final TextEditingController _produtoDescricaoController =
       TextEditingController();
-  final TextEditingController _aplicacaoController = TextEditingController();
   final TextEditingController _caController = TextEditingController();
   final TextEditingController _quantidadeController = TextEditingController();
   final TextEditingController _valorUnitarioController =
       TextEditingController();
 
-  // Lista de produtos
-  final List<Map<String, dynamic>> _produtos = [];
+  FornecedorModel? _selectedFornecedor;
+  EpiModel? _tempSelectedEpi;
+  final List<Map<String, dynamic>> _produtosVisuais = [];
   bool _isSaving = false;
 
   @override
@@ -57,11 +63,9 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
   void dispose() {
     _notaFiscalController.dispose();
     _dataEntregaController.dispose();
-    _fornecedorCodigoController.dispose();
-    _fornecedorDescricaoController.dispose();
-    _produtoCodigoController.dispose();
+    _fornecedorCnpjController.dispose();
+    _fornecedorNomeController.dispose();
     _produtoDescricaoController.dispose();
-    _aplicacaoController.dispose();
     _caController.dispose();
     _quantidadeController.dispose();
     _valorUnitarioController.dispose();
@@ -83,49 +87,24 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
   }
 
   Future<void> _searchSupplier() async {
-    final List<Map<String, dynamic>> suppliers = [
-      {
-        'codigo': '001',
-        'descricao': 'Fornecedor A Ltda',
-        'cnpj': '12.345.678/0001-90',
-      },
-      {
-        'codigo': '002',
-        'descricao': 'Fornecedor B S/A',
-        'cnpj': '98.765.432/0001-10',
-      },
-      {
-        'codigo': '003',
-        'descricao': 'Fornecedor C ME',
-        'cnpj': '52.854.996/0001-14',
-      },
-      {
-        'codigo': '004',
-        'descricao': 'Fornecedor D EPP',
-        'cnpj': '73.889.521/0001/00',
-      },
-    ];
+    final repo = Provider.of<FornecedorRepository>(context, listen: false);
+    final suppliers = await repo.getAllFornecedores();
 
-    final selected = await showDialog<Map<String, dynamic>>(
+    final selected = await showDialog<FornecedorModel>(
       context: context,
-      builder: (context) => SearchSelectionDialog<Map<String, dynamic>>(
+      builder: (context) => SearchSelectionDialog<FornecedorModel>(
         title: 'Selecionar Fornecedor',
-        searchHint: 'Buscar por nome, código ou CNPJ...',
+        searchHint: 'Buscar por nome ou CNPJ...',
         items: suppliers,
-        // Lógica de filtro personalizada
-        searchFilter: (item, query) {
-          return item['descricao'].toString().toLowerCase().contains(query) ||
-              item['codigo'].toString().toLowerCase().contains(query) ||
-              item['cnpj'].toString().toLowerCase().contains(query);
-        },
-        // Como desenhar cada item
+        searchFilter: (item, query) =>
+            item.nomeFornecedor.toLowerCase().contains(query) ||
+            item.cnpj.contains(query),
         itemBuilder: (context, item, onSelect) {
           return ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.business, size: 20)),
-            title: Text(item['descricao']),
-            subtitle: Text('Cód: ${item['codigo']} • CNPJ: ${item['cnpj']}'),
+            leading: const CircleAvatar(child: Icon(Icons.business)),
+            title: Text(item.nomeFornecedor),
+            subtitle: Text('CNPJ: ${item.cnpj}'),
             onTap: onSelect,
-            trailing: const Icon(Icons.chevron_right),
           );
         },
       ),
@@ -133,40 +112,32 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
 
     if (selected != null) {
       setState(() {
-        _fornecedorCodigoController.text = selected['codigo'];
-        _fornecedorDescricaoController.text = selected['descricao'];
+        _selectedFornecedor = selected;
+        _fornecedorNomeController.text = selected.nomeFornecedor;
+        _fornecedorCnpjController.text = selected.cnpj;
       });
     }
   }
 
   Future<void> _searchProduct() async {
-    final List<Map<String, dynamic>> products = [
-      {'codigo': 'P001', 'descricao': 'Capacete de Segurança', 'ca': 'CA12345'},
-      {'codigo': 'P002', 'descricao': 'Luvas de Proteção', 'ca': 'CA12346'},
-      {'codigo': 'P003', 'descricao': 'Óculos de Proteção', 'ca': 'CA12347'},
-      {'codigo': 'P004', 'descricao': 'Protetor Auricular', 'ca': 'CA12348'},
-      {'codigo': 'P005', 'descricao': 'Botina de Segurança', 'ca': 'CA12349'},
-    ];
+    final repo = Provider.of<EpiRepository>(context, listen: false);
+    final products = await repo.getAllEpis();
 
-    final selected = await showDialog<Map<String, dynamic>>(
+    final selected = await showDialog<EpiModel>(
       context: context,
-      builder: (context) => SearchSelectionDialog<Map<String, dynamic>>(
-        title: 'Selecionar EPIs',
-        searchHint: 'Buscar por código, descrição ou CA...',
+      builder: (context) => SearchSelectionDialog<EpiModel>(
+        title: 'Selecionar Produto',
+        searchHint: 'Buscar por nome ou CA...',
         items: products,
-        searchFilter: (item, query) {
-          return item['descricao'].toString().toLowerCase().contains(query) ||
-              item['codigo'].toString().toLowerCase().contains(query) ||
-              item['ca'].toString().toLowerCase().contains(query);
-        },
-        // Como desenhar cada item
+        searchFilter: (item, query) =>
+            item.nomeProduto.toLowerCase().contains(query) ||
+            item.ca.contains(query),
         itemBuilder: (context, item, onSelect) {
           return ListTile(
-            leading: const CircleAvatar(child: Icon(Icons.inventory_2, size: 20)),
-            title: Text(item['descricao']),
-            subtitle: Text('CA: ${item['ca']} • Codigo: ${item['codigo']}'),
+            leading: const CircleAvatar(child: Icon(Icons.inventory_2)),
+            title: Text(item.nomeProduto),
+            subtitle: Text('CA: ${item.ca} | Estoque Atual: ${item.estoque}'),
             onTap: onSelect,
-            trailing: const Icon(Icons.chevron_right),
           );
         },
       ),
@@ -174,44 +145,53 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
 
     if (selected != null) {
       setState(() {
-        _produtoCodigoController.text = selected['codigo'];
-        _caController.text = selected['ca'];
-        _produtoDescricaoController.text = selected['descricao'];
+        _tempSelectedEpi = selected;
+        _produtoDescricaoController.text = selected.nomeProduto;
+        _caController.text = selected.ca;
+        // Sugere o valor atual, mas permite editar
+        _valorUnitarioController.text = NumberFormat.currency(
+          locale: 'pt_BR',
+          symbol: 'R\$',
+        ).format(selected.valor);
+        _quantidadeController.clear();
       });
     }
   }
 
   void _addProduct() {
-    if (_produtoCodigoController.text.isEmpty ||
-        _quantidadeController.text.isEmpty) {
+    if (_tempSelectedEpi == null || _quantidadeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Preencha o produto e a quantidade'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
+        const SnackBar(
+          content: Text('Selecione um produto e informe a quantidade'),
         ),
       );
       return;
     }
 
+    final qtd = int.tryParse(_quantidadeController.text) ?? 0;
+    // Remove R$ e formata para double
+    String valorLimpo = _valorUnitarioController.text
+        .replaceAll('R\$', '')
+        .replaceAll('.', '')
+        .replaceAll(',', '.')
+        .trim();
+    final valor = double.tryParse(valorLimpo) ?? 0.0;
+
+    if (qtd <= 0) return;
+
     setState(() {
-      _produtos.add({
-        'codigo': _produtoCodigoController.text,
-        'descricao': _produtoDescricaoController.text,
-        'aplicacao': _aplicacaoController.text,
-        'ca': _caController.text,
-        'quantidade': int.tryParse(_quantidadeController.text) ?? 0,
-        'valorUnitario':
-            double.tryParse(
-              _valorUnitarioController.text.replaceAll(',', '.'),
-            ) ??
-            0.0,
+      _produtosVisuais.add({
+        'epiModel': _tempSelectedEpi, // Guarda o objeto real
+        'descricao': _tempSelectedEpi!.nomeProduto,
+        'ca': _tempSelectedEpi!.ca,
+        'quantidade': qtd,
+        'valorUnitario': valor,
+        'valorTotal': qtd * valor,
       });
 
-      // Limpa campos do produto
-      _produtoCodigoController.clear();
+      // Limpar campos de item
+      _tempSelectedEpi = null;
       _produtoDescricaoController.clear();
-      _aplicacaoController.clear();
       _caController.clear();
       _quantidadeController.clear();
       _valorUnitarioController.clear();
@@ -220,37 +200,54 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
 
   void _removeProduct(int index) {
     setState(() {
-      _produtos.removeAt(index);
+      _produtosVisuais.removeAt(index);
     });
   }
 
-  void _saveEntry() {
-    if (_formKey.currentState!.validate() && _produtos.isNotEmpty) {
-      setState(() => _isSaving = true);
-
-      final entryData = {
-        'notaFiscal': _notaFiscalController.text,
-        'dataEntrega': _dataEntregaController.text,
-        'fornecedorCodigo': _fornecedorCodigoController.text,
-        'fornecedorDescricao': _fornecedorDescricaoController.text,
-        'produtos': List.from(_produtos),
-      };
-
-      // Simula delay para UX
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (mounted) {
-          widget.onSave(entryData);
-          setState(() => _isSaving = false);
-        }
-      });
-    } else if (_produtos.isEmpty) {
+  Future<void> _saveEntry() async {
+    if (!_formKey.currentState!.validate() ||
+        _produtosVisuais.isEmpty ||
+        _selectedFornecedor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Adicione pelo menos um produto à entrada'),
-          backgroundColor: Theme.of(context).colorScheme.error,
-          behavior: SnackBarBehavior.floating,
-        ),
+        const SnackBar(content: Text('Preencha todos os dados obrigatórios')),
       );
+      return;
+    }
+
+    setState(() => _isSaving = true);
+
+    try {
+      // 1. Converte lista visual para Models
+      final List<EntradasEpiModel> itensParaSalvar = _produtosVisuais.map((p) {
+        return EntradasEpiModel(
+          epi: p['epiModel'] as EpiModel,
+          quantidade: p['quantidade'] as int,
+          valor: p['valorUnitario'] as double,
+        );
+      }).toList();
+
+      // 2. Cria cabeçalho
+      final header = EntradasModel(
+        nfReferente: _notaFiscalController.text,
+        fornecedorId: _selectedFornecedor!,
+        entradasId: [], // Será preenchido pelo repositório com os IDs gerados
+      );
+
+      // 3. Chama repositório
+      final repo = Provider.of<EntradasRepository>(context, listen: false);
+      await repo.registrarEntradaCompleta(
+        entradaHeader: header,
+        itens: itensParaSalvar,
+      );
+
+      widget.onSave({});
+      widget.onClose();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro: $e')));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
@@ -329,7 +326,6 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
           padding: const EdgeInsets.all(24),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Se tela larga, usa 2 colunas. Se estreita, 1 coluna.
               if (constraints.maxWidth > 900) {
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,7 +403,7 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
               Expanded(
                 flex: 3,
                 child: CustomTextField(
-                  controller: _fornecedorDescricaoController,
+                  controller: _fornecedorNomeController,
                   label: 'Razão Social / Nome',
                   hint: 'Selecione o fornecedor',
                   icon: Icons.store_outlined,
@@ -430,8 +426,8 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
           ),
           const SizedBox(height: 12),
           CustomTextField(
-            controller: _fornecedorCodigoController,
-            label: 'Código / CNPJ',
+            controller: _fornecedorCnpjController,
+            label: 'CNPJ',
             hint: '',
             icon: Icons.numbers_outlined,
             enabled: false,
@@ -515,9 +511,7 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
                         hint: 'R\$ 0,00',
                         icon: Icons.attach_money,
                         keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          CurrencyInputFormatter()
-                        ],
+                        inputFormatters: [CurrencyInputFormatter()],
                       ),
                     ),
                   ],
@@ -539,14 +533,14 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Itens Adicionados (${_produtos.length})',
+                'Itens Adicionados (${_produtosVisuais.length})',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              if (_produtos.isNotEmpty)
+              if (_produtosVisuais.isNotEmpty)
                 TextButton.icon(
-                  onPressed: () => setState(() => _produtos.clear()),
+                  onPressed: () => setState(() => _produtosVisuais.clear()),
                   icon: const Icon(Icons.delete_sweep, size: 18),
                   label: const Text('Limpar Lista'),
                   style: TextButton.styleFrom(
@@ -557,7 +551,7 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
           ),
           const SizedBox(height: 8),
 
-          if (_produtos.isEmpty)
+          if (_produtosVisuais.isEmpty)
             Container(
               padding: const EdgeInsets.all(32),
               alignment: Alignment.center,
@@ -586,63 +580,53 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
               ),
             )
           else
-            ListView.builder(
+            ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _produtos.length,
+              itemCount: _produtosVisuais.length,
+              separatorBuilder: (_, __) => const Divider(),
               itemBuilder: (context, index) {
-                final prod = _produtos[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  elevation: 0,
-                  color: theme.colorScheme.surfaceContainer,
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      child: Text(
-                        '${index + 1}',
-                        style: TextStyle(
-                          color: theme.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      prod['descricao'],
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Text(
-                      'CA: ${prod['ca']} • Código: ${prod['codigo']}',
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '${prod['quantidade']} un',
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                              ),
+                final item = _produtosVisuais[index];
+                final currency = NumberFormat.currency(
+                  locale: 'pt_BR',
+                  symbol: 'R\$',
+                );
+
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    child: Text('${index + 1}'),
+                  ),
+                  title: Text(
+                    item['descricao'],
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text('CA: ${item['ca']}'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${item['quantidade']} un x ${currency.format(item['valorUnitario'])}',
+                          ),
+                          Text(
+                            currency.format(item['valorTotal']),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.primary,
                             ),
-                            if ((prod['valorUnitario'] ?? 0) > 0)
-                              Text(
-                                'R\$ ${(prod['valorUnitario'] * prod['quantidade']).toStringAsFixed(2)}',
-                                style: theme.textTheme.bodySmall,
-                              ),
-                          ],
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          color: theme.colorScheme.error,
-                          onPressed: () => _removeProduct(index),
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => _removeProduct(index),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -653,7 +637,7 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
   }
 
   Widget _buildFooter(ThemeData theme) {
-    final double totalValor = _produtos.fold(
+    final double totalValor = _produtosVisuais.fold(
       0,
       (sum, item) =>
           sum +
@@ -677,7 +661,7 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
       ),
       child: Row(
         children: [
-          if (_produtos.isNotEmpty)
+          if (_produtosVisuais.isNotEmpty)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -702,7 +686,9 @@ class _NewEntryDrawerState extends State<NewEntryDrawer> {
           ),
           const SizedBox(width: 16),
           FilledButton.icon(
-            onPressed: _produtos.isEmpty || _isSaving ? null : _saveEntry,
+            onPressed: _produtosVisuais.isEmpty || _isSaving
+                ? null
+                : _saveEntry,
             icon: _isSaving
                 ? const SizedBox(
                     width: 20,

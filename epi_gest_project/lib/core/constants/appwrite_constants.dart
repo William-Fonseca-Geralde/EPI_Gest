@@ -17,5 +17,7 @@ class AppwriteConstants {
   static const String databaseEpi = 'epi';
   static const String databaseMapeamentoEpi = 'mapeamento_epi';
   static const String databaseFuncionarioEpi = 'funcionario_epi';
-  static const String databaseTrocaEpi = 'troca_epi';
+  static const String databaseFichaEpi = 'ficha_epi';
+  static const String databaseEntradas = 'entradas';
+  static const String databaseEntradasEpi = 'entradas_epi';
 }

@@ -1,5 +1,5 @@
+import 'package:epi_gest_project/domain/models/epi_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
-import 'package:epi_gest_project/domain/models/product_technical_registration/categoria_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
 
@@ -11,7 +11,7 @@ class MapeamentoEpiModel extends AppWriteModel {
   final CargoModel cargo;
   final SetorModel setor;
   final List<RiscosModel> riscos;
-  final List<CategoriaModel> listCategoriasEpis;
+  final List<EpiModel> epis;
   final bool status;
 
   MapeamentoEpiModel({
@@ -21,7 +21,7 @@ class MapeamentoEpiModel extends AppWriteModel {
     required this.cargo,
     required this.setor,
     required this.riscos,
-    required this.listCategoriasEpis,
+    required this.epis,
     this.status = true,
   });
 
@@ -53,12 +53,12 @@ class MapeamentoEpiModel extends AppWriteModel {
           .toList();
     }
 
-    List<CategoriaModel> parseCategorias(dynamic data) {
+    List<EpiModel> parseEpis(dynamic data) {
       if (data == null || data is! List) return [];
 
       return data
           .whereType<Map<String, dynamic>>()
-          .map((item) => CategoriaModel.fromMap(item))
+          .map((item) => EpiModel.fromMap(item))
           .toList();
     }
 
@@ -69,14 +69,14 @@ class MapeamentoEpiModel extends AppWriteModel {
       cargo: cargoObj,
       setor: setorObj,
       riscos: parseRiscos(map['riscos_ids']),
-      listCategoriasEpis: parseCategorias(map['categorias_ids']),
+      epis: parseEpis(map['epi_ids']),
       status: map['status'] ?? true,
     );
   }
 
   @override
   Map<String, dynamic> toMap() {
-    final categorias = listCategoriasEpis
+    final epi = epis
         .map((categ) => categ.id)
         .where((id) => id != null && id.isNotEmpty)
         .toList();
@@ -91,7 +91,7 @@ class MapeamentoEpiModel extends AppWriteModel {
       'cargo_id': cargo.id,
       'setor_id': setor.id,
       'riscos_ids': risco,
-      'categorias_ids': categorias,
+      'epi_ids': epi,
       'status': status,
     };
   }

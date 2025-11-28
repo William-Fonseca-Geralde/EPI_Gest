@@ -1,7 +1,7 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:epi_gest_project/domain/models/funcionario_model.dart';
-import 'base_repository.dart';
-import '../../core/constants/appwrite_constants.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/funcionario_model.dart';
+import '../base_repository.dart';
+import '../../../core/constants/appwrite_constants.dart';
 
 class FuncionarioRepository extends BaseRepository<FuncionarioModel> {
   FuncionarioRepository(TablesDB databases)
@@ -17,6 +17,18 @@ class FuncionarioRepository extends BaseRepository<FuncionarioModel> {
       return await getAll([
         Query.select(['*', 'vinculo_id.*']),
         Query.select(['*', 'turno_id.*']),
+      ]);
+    } on AppwriteException catch (e) {
+      throw Exception('Falha ao carregar funcionários. $e');
+    }
+  }
+
+  Future<List<FuncionarioModel>> getAllActivatedFuncionarios() async {
+    try {
+      return await getAll([
+        Query.select(['*', 'vinculo_id.*']),
+        Query.select(['*', 'turno_id.*']),
+        Query.equal('status_ativo', true)
       ]);
     } on AppwriteException catch (e) {
       throw Exception('Falha ao carregar funcionários. $e');

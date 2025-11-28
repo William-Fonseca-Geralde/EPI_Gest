@@ -1,13 +1,13 @@
 import 'package:appwrite/appwrite.dart';
-import 'package:epi_gest_project/data/services/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/mapeamento_epi_repository.dart';
-import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/turno_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/vinculo_repository.dart';
-import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
-import 'package:epi_gest_project/domain/models/mapeamento_funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/mapeamento_funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/unidade_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/vinculo_model.dart';

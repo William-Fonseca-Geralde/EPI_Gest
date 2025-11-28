@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/funcionario_model.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -9,7 +9,6 @@ class EmployeesDataTable extends StatefulWidget {
   final Function(FuncionarioModel) onEdit;
   final Function(FuncionarioModel) onInactivate;
   final Function(FuncionarioModel) onActivate;
-  final Function(FuncionarioModel) entregaEpi;
 
   const EmployeesDataTable({
     super.key,
@@ -19,7 +18,6 @@ class EmployeesDataTable extends StatefulWidget {
     required this.onEdit,
     required this.onInactivate,
     required this.onActivate,
-    required this.entregaEpi,
   });
 
   @override
@@ -40,7 +38,7 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
   static const double mapeamentoWidth = 200.0;
   static const double vinculoWidth = 220.0;
   static const double dataEntradaWidth = 160.0;
-  static const double acoesWidth = 200.0;
+  static const double acoesWidth = 160.0;
   static const double totalTableWidth =
       matriculaWidth +
       nomeWidth +
@@ -353,13 +351,6 @@ class _EmployeesDataTableState extends State<EmployeesDataTable> {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.assignment_returned,
-                                        ),
-                                        tooltip: 'Entregar EPIs',
-                                        onPressed: () => widget.entregaEpi(employee),
-                                      ),
                                       IconButton(
                                         icon: const Icon(
                                           Icons.visibility_outlined,

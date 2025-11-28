@@ -1,11 +1,10 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/cargo_repository.dart';
-import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/mapeamento_epi_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/riscos_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/setor_repository.dart';
+import 'package:epi_gest_project/domain/models/epi_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
-import 'package:epi_gest_project/domain/models/product_technical_registration/categoria_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/riscos_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
@@ -24,7 +23,7 @@ class EpiMappingDrawer extends StatefulWidget {
   final List<SetorModel> availableSectors;
   final List<CargoModel> availableRoles;
   final List<RiscosModel> availableRisks;
-  final List<CategoriaModel> availableCategories;
+  final List<EpiModel> availableEpis;
 
   const EpiMappingDrawer({
     super.key,
@@ -35,7 +34,7 @@ class EpiMappingDrawer extends StatefulWidget {
     required this.availableSectors,
     required this.availableRoles,
     required this.availableRisks,
-    required this.availableCategories,
+    required this.availableEpis,
   });
 
   @override
@@ -52,7 +51,6 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
   final _cargoController = TextEditingController();
 
   List<String> _selectedRiskNames = [];
-  List<String> _selectedCategoryNames = [];
 
   // Keys para botões de adicionar
   final GlobalKey _setorButtonKey = GlobalKey();
@@ -64,20 +62,18 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
   final _codigoCargoController = TextEditingController();
 
   final GlobalKey _riskButtonKey = GlobalKey();
-  final GlobalKey _catButtonKey = GlobalKey();
   final GlobalKey _riskKey = GlobalKey();
-  final GlobalKey _catKey = GlobalKey();
+  final GlobalKey _epiKey = GlobalKey();
 
   late List<SetorModel> _setores = [];
   late List<CargoModel> _cargos = [];
   List<RiscosModel> _riscos = [];
-  List<CategoriaModel> _categorias = [];
 
   List<String> _setoresSugestoes = [];
   List<String> _cargosSugestoes = [];
 
   List<String> _selectedRiskIds = [];
-  List<String> _selectedCategoryIds = [];
+  List<String> _selectedEpisIds = [];
 
   bool _statusAtivo = true;
   bool _isSaving = false;
@@ -92,7 +88,6 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
     _setores = List.from(widget.availableSectors);
     _cargos = List.from(widget.availableRoles);
     _riscos = List.from(widget.availableRisks);
-    _categorias = List.from(widget.availableCategories);
 
     if (widget.mappingToEdit != null) {
       _populateForm();
@@ -109,8 +104,8 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
     _cargoController.text = map.cargo.nomeCargo;
 
     _selectedRiskIds = map.riscos.map((r) => r.nomeRiscos).toList();
-    _selectedCategoryIds = map.listCategoriasEpis
-        .map((c) => c.nomeCategoria)
+    _selectedEpisIds = map.epis
+        .map((c) => c.nomeProduto)
         .toList();
   }
 
@@ -411,75 +406,6 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
     );
   }
 
-  // --- Adicionar Categoria ---
-  void _showAddCategoriaDialog() {
-    final nomeController = TextEditingController();
-    final codigoController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Adicionar Nova Categoria'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: codigoController,
-              decoration: const InputDecoration(
-                labelText: 'Código',
-                hintText: 'Ex: CAT-LUV',
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nomeController,
-              decoration: const InputDecoration(
-                labelText: 'Nome da Categoria',
-                hintText: 'Ex: Proteção de Mãos',
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () async {
-              if (nomeController.text.isNotEmpty &&
-                  codigoController.text.isNotEmpty) {
-                try {
-                  final repo = Provider.of<CategoriaRepository>(
-                    context,
-                    listen: false,
-                  );
-                  final novo = CategoriaModel(
-                    codigoCategoria: codigoController.text.trim(),
-                    nomeCategoria: nomeController.text.trim(),
-                  );
-                  final created = await repo.create(novo);
-
-                  setState(() {
-                    _categorias.add(created);
-                    _selectedCategoryNames.add(
-                      created.nomeCategoria,
-                    ); // Já seleciona
-                  });
-                  Navigator.pop(ctx);
-                  _showSuccessSnackBar('Categoria criada com sucesso!');
-                } catch (e) {
-                  _showErrorSnackBar('Erro ao criar categoria: $e');
-                }
-              }
-            },
-            child: const Text('Adicionar'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -528,8 +454,8 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
           .where((r) => _selectedRiskIds.contains(r.nomeRiscos))
           .toList();
 
-      final categoriasObj = widget.availableCategories
-          .where((c) => _selectedCategoryIds.contains(c.nomeCategoria))
+      final epiObj = widget.availableEpis
+          .where((c) => _selectedEpisIds.contains(c.nomeProduto))
           .toList();
 
       final newMapping = MapeamentoEpiModel(
@@ -539,7 +465,7 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
         cargo: cargoObj,
         setor: setorObj,
         riscos: riscosObj,
-        listCategoriasEpis: categoriasObj,
+        epis: epiObj,
         status: _statusAtivo,
       );
 
@@ -726,24 +652,21 @@ class _EpiMappingDrawerState extends State<EpiMappingDrawer> {
                   },
                 ),
                 CustomMultiSelectField(
-                  label: 'Categorias de EPI Necessárias',
-                  hint: 'Selecione as categorias',
-                  icon: Icons.category_outlined,
-                  selectedItems: _selectedCategoryIds,
-                  buttonKey: _catKey,
+                  label: 'EPI Necessários',
+                  hint: 'Selecione os epis',
+                  icon: Icons.archive_outlined,
+                  selectedItems: _selectedEpisIds,
+                  buttonKey: _epiKey,
                   enabled: _isEnabled,
-                  showAddButton: _isEnabled,
-                  addButtonKey: _catButtonKey,
-                  onAddPressed: _showAddCategoriaDialog,
                   onTap: () {
                     _showMultiSelectDialog(
-                      title: 'Selecione as Categorias',
-                      items: widget.availableCategories
-                          .map((c) => c.nomeCategoria)
+                      title: 'Selecione os Epis',
+                      items: widget.availableEpis
+                          .map((c) => c.nomeProduto)
                           .toList(),
-                      selected: _selectedCategoryIds,
+                      selected: _selectedEpisIds,
                       onConfirm: (list) =>
-                          setState(() => _selectedCategoryIds = list),
+                          setState(() => _selectedEpisIds = list),
                     );
                   },
                 ),

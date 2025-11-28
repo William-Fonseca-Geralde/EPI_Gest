@@ -1,6 +1,6 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/cargo_model.dart';
-import 'package:epi_gest_project/domain/models/funcionario_model.dart';
+import 'package:epi_gest_project/domain/models/funcionarios/funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/setor_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/turno_model.dart';
@@ -62,7 +62,7 @@ class MapeamentoFuncionarioModel extends AppWriteModel {
             cargo: CargoModel(codigoCargo: '', nomeCargo: ''),
             setor: SetorModel(codigoSetor: '', nomeSetor: ''),
             riscos: List.empty(),
-            listCategoriasEpis: List.empty(),
+            epis: List.empty(),
           );
     final unidadeObj = unidadeData != null
         ? UnidadeModel.fromMap(unidadeData)

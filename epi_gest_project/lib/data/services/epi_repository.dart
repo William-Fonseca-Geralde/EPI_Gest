@@ -39,12 +39,14 @@ class EpiRepository extends BaseRepository<EpiModel> {
     ]);
   }
 
-  /// Atualiza o estoque (ex: após uma entrada ou saída)
-  Future<void> updateEstoque(String epiId, double novaQuantidade) async {
+  Future<void> updateEstoqueEValor(String epiId, double novoEstoque, double novoValor) async {
     try {
-      await update(epiId, {'estoque': novaQuantidade});
+      await update(epiId, {
+        'estoque': novoEstoque,
+        'valor': novoValor,
+      });
     } catch (e) {
-      throw Exception('Erro ao atualizar estoque: $e');
+      throw Exception('Erro ao atualizar estoque e valor do EPI: $e');
     }
   }
 }

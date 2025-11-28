@@ -1,12 +1,14 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/config/theme_notifier.dart';
+import 'package:epi_gest_project/data/services/entradas_epi_repository.dart';
+import 'package:epi_gest_project/data/services/entradas_repository.dart';
 import 'package:epi_gest_project/data/services/epi_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/cargo_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/armazem_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
-import 'package:epi_gest_project/data/services/funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/mapeamento_epi_repository.dart';
-import 'package:epi_gest_project/data/services/mapeamento_funcionario_repository.dart';
+import 'package:epi_gest_project/data/services/funcionarios/mapeamento_funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/turno_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/riscos_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/setor_repository.dart';
@@ -35,6 +37,13 @@ void main() {
         Provider<TurnoRepository>(create: (_) => TurnoRepository(databases)),
         Provider<MapeamentoFuncionarioRepository>(create: (_) => MapeamentoFuncionarioRepository(databases)),
         Provider<EpiRepository>(create: (_) => EpiRepository(databases)),
+
+        Provider<EntradasEpiRepository>(create: (_) => EntradasEpiRepository(databases)),
+        Provider<EntradasRepository>(create: (context) => EntradasRepository(
+          databases,
+          Provider.of<EpiRepository>(context, listen: false),
+          Provider.of<EntradasEpiRepository>(context, listen: false),
+        )),
 
         // Repositórios da Estrutura Organizacional
         Provider<UnidadeRepository>(create: (_) => UnidadeRepository(databases)),

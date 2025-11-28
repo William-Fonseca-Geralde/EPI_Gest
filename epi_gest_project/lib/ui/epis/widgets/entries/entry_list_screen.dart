@@ -12,7 +12,7 @@ class EntryListScreen extends StatefulWidget {
 
 class _EntryListScreenState extends State<EntryListScreen> {
   bool _showFilters = false;
-  final List<Map<String, dynamic>> _entries = []; // Dados mockados por enquanto
+  final List<Map<String, dynamic>> _entries = [];
 
   void _goBack() {
     Navigator.of(context).pop();
@@ -47,7 +47,6 @@ class _EntryListScreenState extends State<EntryListScreen> {
               children: [
                 Row(
                   children: [
-                    // Botão Voltar
                     IconButton(
                       onPressed: _goBack,
                       icon: const Icon(Icons.arrow_back),
