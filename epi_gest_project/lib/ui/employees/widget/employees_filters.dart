@@ -83,6 +83,7 @@ class _EmployeesFiltersState extends State<EmployeesFilters> {
         initialDate: _tempFilters.dataEntrada ?? DateTime.now(),
         firstDate: DateTime(2000),
         lastDate: DateTime.now(),
+        locale: const Locale('pt', 'BR'),
         builder: (context, child) {
           return Theme(
             data: Theme.of(

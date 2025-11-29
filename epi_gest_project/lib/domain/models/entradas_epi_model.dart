@@ -16,7 +16,7 @@ class EntradasEpiModel extends AppWriteModel {
     required this.valor,
   });
 
-  factory EntradasEpiModel.fromJson(Map<String, dynamic> map) {
+  factory EntradasEpiModel.fromMap(Map<String, dynamic> map) {
     Map<String, dynamic>? getData(dynamic data) {
       if (data == null) return null;
       if (data is Map<String, dynamic>) return data;

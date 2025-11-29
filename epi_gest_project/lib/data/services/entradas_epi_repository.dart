@@ -9,6 +9,6 @@ class EntradasEpiRepository extends BaseRepository<EntradasEpiModel> {
 
   @override
   EntradasEpiModel fromMap(Map<String, dynamic> map) {
-    return EntradasEpiModel.fromJson(map);
+    return EntradasEpiModel.fromMap(map);
   }
 }

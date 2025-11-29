@@ -1,6 +1,6 @@
 import 'package:epi_gest_project/ui/dashboard/dashboard_page.dart';
 import 'package:epi_gest_project/ui/employees/employees_page.dart';
-import 'package:epi_gest_project/ui/gestao_epi/exchange_page.dart';
+import 'package:epi_gest_project/ui/entrega_epi/exchange_page.dart';
 import 'package:epi_gest_project/ui/home/widgets/company_selector_widget.dart';
 import 'package:epi_gest_project/ui/home/widgets/perfil_widget.dart';
 import 'package:epi_gest_project/ui/epis/epi_page.dart';

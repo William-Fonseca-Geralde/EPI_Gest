@@ -23,12 +23,13 @@ abstract class BaseRepository<T extends AppWriteModel> {
     }
   }
 
-  Future<T> get(String id) async {
+  Future<T> get(String id, List<String> queries) async {
     try {
       final result = await databases.getRow(
         databaseId: AppwriteConstants.databaseId,
         tableId: tableId,
         rowId: id,
+        queries: queries
       );
       return fromMap(result.data);
     } on AppwriteException catch (e) {

@@ -2,7 +2,7 @@ import 'package:appwrite/appwrite.dart';
 import 'package:epi_gest_project/data/services/epi_repository.dart';
 import 'package:epi_gest_project/domain/models/epi_model.dart';
 import 'package:epi_gest_project/domain/models/filters/epi_filter_model.dart';
-import 'package:epi_gest_project/ui/epis/widgets/entries/entry_list_screen.dart';
+import 'package:epi_gest_project/ui/epis/widgets/entries/entry_page.dart';
 import 'package:epi_gest_project/ui/epis/widgets/epi_data_table.dart';
 import 'package:epi_gest_project/ui/epis/widgets/epi_drawer.dart';
 import 'package:epi_gest_project/ui/epis/widgets/epi_filters.dart';
@@ -237,10 +237,12 @@ class _EpiPageState extends State<EpiPage> {
     );
   }
 
-  void _navigateToEntryScreen() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const EntryListScreen()));
+  Future<void> _navigateToEntryScreen() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const EntryPage())
+    );
+    
+    _reloadData();
   }
 
   @override

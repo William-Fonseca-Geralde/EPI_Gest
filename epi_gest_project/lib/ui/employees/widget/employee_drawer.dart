@@ -1,4 +1,4 @@
-import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/appwrite.dart' as appwrite;
 import 'package:epi_gest_project/data/services/funcionarios/funcionario_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/mapeamento_epi_repository.dart';
 import 'package:epi_gest_project/data/services/funcionarios/mapeamento_funcionario_repository.dart';
@@ -564,17 +564,30 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
     String field,
     Function(DateTime) onDateSelected,
   ) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() {
-        onDateSelected(picked);
-        _controllers[field]!.text = DateFormat('dd/MM/yyyy').format(picked);
-      });
+    try {
+      final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(1900),
+        lastDate: DateTime(2100),
+        locale: const Locale('pt', 'BR'),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(
+              context,
+            ).copyWith(colorScheme: Theme.of(context).colorScheme),
+            child: child!,
+          );
+        },
+      );
+      if (picked != null) {
+        setState(() {
+          onDateSelected(picked);
+          _controllers[field]!.text = DateFormat('dd/MM/yyyy').format(picked);
+        });
+      }
+    } catch (e) {
+      debugPrint('Erro ao selecionar data: $e');
     }
   }
 
@@ -707,7 +720,7 @@ class _EmployeeDrawerState extends State<EmployeeDrawer>
       _showSuccessSnackBar('Dados salvos com sucesso!');
       if (mounted) Navigator.of(context).pop();
       widget.onSave?.call();
-    } on AppwriteException catch (e) {
+    } on appwrite.AppwriteException catch (e) {
       _showErrorSnackBar('Erro do Appwrite: ${e.message ?? "Ocorreu um erro"}');
     } catch (e) {
       _showErrorSnackBar('Erro inesperado: ${e.toString()}');

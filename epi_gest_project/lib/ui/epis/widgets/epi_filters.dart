@@ -104,12 +104,22 @@ class _EpiFiltersState extends State<EpiFilters> {
         children: [
           // Chips de filtros ativos
           if (hasActiveFilters) ...[
-            Text(
-              'Filtros Ativos:',
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              spacing: 8,
+              children: [
+                Icon(
+                  Icons.filter_list,
+                  size: 20,
+                  color: theme.colorScheme.primary,
+                ),
+                Text(
+                  'Filtros Ativos:',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             Row(
               spacing: 16,

@@ -1,4 +1,4 @@
-import 'package:epi_gest_project/ui/gestao_epi/widgets/epi_form_page.dart';
+import 'package:epi_gest_project/ui/entrega_epi/widgets/epi_form_page.dart';
 import 'package:epi_gest_project/ui/widgets/base_drawer.dart';
 import 'package:flutter/material.dart';
 import 'epi_selection_page.dart';

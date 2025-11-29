@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:appwrite/appwrite.dart';
+import 'package:appwrite/appwrite.dart' as appwrite;
 import 'package:epi_gest_project/data/services/epi_repository.dart';
 import 'package:epi_gest_project/data/services/organizational_structure/unidade_repository.dart';
 import 'package:epi_gest_project/data/services/product_technical_registration/categoria_repository.dart';
@@ -232,7 +232,7 @@ class _EpiDrawerState extends State<EpiDrawer> {
       widget.onClose();
       
 
-    } on AppwriteException catch (e) {
+    } on appwrite.AppwriteException catch (e) {
       _showErrorSnackBar("Erro ao salvar: $e");
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -381,6 +381,7 @@ class _EpiDrawerState extends State<EpiDrawer> {
       initialDate: _validadeCA ?? DateTime.now().add(const Duration(days: 365)),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      locale: const Locale('pt', 'BR'),
     );
     if (picked != null) {
       setState(() {

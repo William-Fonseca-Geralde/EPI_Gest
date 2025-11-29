@@ -1,10 +1,12 @@
 import 'package:epi_gest_project/domain/models/appwrite_model.dart';
+import 'package:epi_gest_project/domain/models/entradas_epi_model.dart';
 import 'package:epi_gest_project/domain/models/product_technical_registration/fornecedor_model.dart';
 
 class EntradasModel extends AppWriteModel {
   final String nfReferente;
   final FornecedorModel fornecedorId;
-  final List<EntradasModel> entradasId;
+  final List<EntradasEpiModel> entradasId;
+  final DateTime dataEntrada;
 
   EntradasModel({
     super.id,
@@ -12,6 +14,7 @@ class EntradasModel extends AppWriteModel {
     required this.nfReferente,
     required this.fornecedorId,
     required this.entradasId,
+    required this.dataEntrada,
   });
 
   factory EntradasModel.fromMap(Map<String, dynamic> map) {
@@ -29,12 +32,12 @@ class EntradasModel extends AppWriteModel {
         ? FornecedorModel.fromMap(fornecedorData)
         : FornecedorModel(id: '', cnpj: '', nomeFornecedor: '', endereco: '');
 
-    List<EntradasModel> parseEpis(dynamic data) {
+    List<EntradasEpiModel> parseEpis(dynamic data) {
       if (data == null || data is! List) return [];
 
       return data
           .whereType<Map<String, dynamic>>()
-          .map((item) => EntradasModel.fromMap(item))
+          .map((item) => EntradasEpiModel.fromMap(item))
           .toList();
     }
 
@@ -43,6 +46,7 @@ class EntradasModel extends AppWriteModel {
       nfReferente: map['nf_ref'],
       fornecedorId: fornecedorObj,
       entradasId: parseEpis(map['entradas_epi_id']),
+      dataEntrada: DateTime.parse(map['data_entrada'])
     );
   }
 
@@ -55,6 +59,7 @@ class EntradasModel extends AppWriteModel {
           .map((epi) => epi.id)
           .where((id) => id != null && id.isNotEmpty)
           .toList(),
+      'data_entrada': dataEntrada.toIso8601String()
     };
   }
 }

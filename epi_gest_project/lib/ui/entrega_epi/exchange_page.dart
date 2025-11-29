@@ -3,7 +3,7 @@ import 'package:epi_gest_project/data/services/funcionarios/mapeamento_funcionar
 import 'package:epi_gest_project/domain/models/epi_model.dart';
 import 'package:epi_gest_project/domain/models/funcionarios/funcionario_model.dart';
 import 'package:epi_gest_project/domain/models/organizational_structure/mapeamento_epi_model.dart';
-import 'package:epi_gest_project/ui/gestao_epi/widgets/exchange_drawer_content.dart';
+import 'package:epi_gest_project/ui/entrega_epi/widgets/exchange_drawer_content.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
